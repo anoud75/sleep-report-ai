@@ -32,8 +32,8 @@ const Index = () => {
                 <Activity className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">AI Sleep Report Generator</h1>
-                <p className="text-sm text-muted-foreground">Clinical Sleep Study Analysis Tool</p>
+                <h1 className="text-2xl font-bold text-foreground">Sleep Report AI</h1>
+                <p className="text-sm text-muted-foreground">Smarter reporting for sleep centers</p>
               </div>
             </div>
             <Badge variant="secondary" className="px-3 py-1">
@@ -43,6 +43,121 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <h2 className="text-4xl font-bold text-foreground mb-4">
+            Turn 20+ page sleep studies into clean 2-page summaries in seconds
+          </h2>
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            Sleep Report AI is a web-based tool that helps sleep centers turn long, technical sleep study reports from G3 and other platforms into clean, accurate 2-page summaries in seconds.
+          </p>
+          <p className="text-lg text-muted-foreground mb-12">
+            Instead of manually going through 20+ pages, extracting values, and writing the final summary, the AI does it for you. Just upload the report, review the AI-generated summary, and download your final PDF.
+          </p>
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+          <Card className="glass-card hover-scale">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <span>Smart Reading</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Reads .docx reports from G3 and other sleep systems automatically
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card hover-scale">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Activity className="h-5 w-5 text-primary" />
+                <span>Key Value Extraction</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Finds key values (AHI, sleep time, oxygen, arousals…) precisely
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card hover-scale">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <span>Professional Summary</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Writes a professional summary based on study type
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card hover-scale">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Activity className="h-5 w-5 text-primary" />
+                <span>Review & Edit</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Lets you edit the final report before saving
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card hover-scale">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <span>PDF Generation</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Generates a ready-to-print PDF in seconds
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card hover-scale">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Clock className="h-5 w-5 text-primary" />
+                <span>Time Savings</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Fast, consistent, and professional reports without manual effort
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Who it's for section */}
+        <div className="mt-16 text-center">
+          <h3 className="text-2xl font-bold text-foreground mb-6">Who it's for</h3>
+          <Card className="glass-card max-w-2xl mx-auto">
+            <CardContent className="p-8">
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Sleep centers and hospital units looking to reduce workload, improve accuracy, and save time. 
+                It's the perfect solution for teams that want fast, consistent, and professional reports without the manual effort.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
