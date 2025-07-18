@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     const { fileContent, studyType } = await req.json();
     
-    const openAIApiKey = Deno.env.get('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');
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
