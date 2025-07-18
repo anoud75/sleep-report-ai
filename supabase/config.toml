@@ -1,1 +1,4 @@
 project_id = "rotdapktuwxwvylhnfry"
+
+[functions.process-sleep-study]
+verify_jwt = false

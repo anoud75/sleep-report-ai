@@ -54,48 +54,36 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType }: FileUploadPro
     setError(null);
 
     try {
-      // Simulate file processing steps
-      const steps = [
-        { name: 'Reading document...', duration: 1000 },
-        { name: 'Extracting clinical data...', duration: 2000 },
-        { name: 'Analyzing sleep parameters...', duration: 1500 },
-        { name: 'Generating report...', duration: 1000 },
-      ];
+      // Read file content
+      const fileContent = await file.text();
+      
+      // Update progress
+      setProgress(30);
 
-      for (let i = 0; i < steps.length; i++) {
-        setProgress((i / steps.length) * 100);
-        await new Promise(resolve => setTimeout(resolve, steps[i].duration));
+      // Call the Supabase edge function to process with OpenAI
+      const response = await fetch('https://rotdapktuwxwvylhnfry.functions.supabase.co/process-sleep-study', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileContent: fileContent,
+          studyType: selectedStudyType
+        }),
+      });
+
+      setProgress(70);
+
+      if (!response.ok) {
+        throw new Error(`Processing failed: ${response.statusText}`);
       }
 
+      const processedData = await response.json();
       setProgress(100);
-
-      // Mock extracted data
-      const mockData = {
-        patientInfo: {
-          name: 'Patient, Sample',
-          dob: '1980-01-01',
-          studyDate: new Date().toISOString().split('T')[0],
-        },
-        studyType: selectedStudyType,
-        sleepParameters: {
-          totalSleepTime: '385 minutes',
-          sleepEfficiency: '82.3%',
-          rem: '18.5%',
-          arousalIndex: '15.2/hr',
-        },
-        respiratoryEvents: {
-          ahi: selectedStudyType === 'Diagnostic' ? '28.4/hr' : '3.1/hr',
-          oxygenSaturation: '88%',
-        },
-        recommendations: [
-          'CPAP therapy recommended',
-          'Follow-up in 3 months',
-        ],
-      };
 
       setTimeout(() => {
         setSuccess(true);
-        onFileProcessed(mockData);
+        onFileProcessed(processedData);
         toast({
           title: "Processing Complete",
           description: "Sleep study report has been successfully analyzed.",
