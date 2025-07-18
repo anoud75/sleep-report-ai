@@ -66,12 +66,11 @@ All colors MUST be HSL.
     --professional: 215 25% 27%;
     --professional-light: 215 25% 95%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--trust)) 50%, hsl(var(--success)) 100%);
-    --gradient-premium: linear-gradient(135deg, hsl(var(--premium)), hsl(var(--primary)));
-    --gradient-trust: linear-gradient(135deg, hsl(var(--trust)), hsl(var(--success)));
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--secondary)));
+    /* Enhanced Shadows for depth without gradients */
+    --shadow-card: 0 1px 3px 0 hsl(var(--foreground) / 0.1), 0 1px 2px 0 hsl(var(--foreground) / 0.06);
+    --shadow-card-hover: 0 4px 6px -1px hsl(var(--foreground) / 0.1), 0 2px 4px -1px hsl(var(--foreground) / 0.06);
+    --shadow-button: 0 1px 2px 0 hsl(var(--foreground) / 0.05);
+    --shadow-button-hover: 0 2px 4px 0 hsl(var(--foreground) / 0.1);
 
     /* Shadows */
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.15);
@@ -140,12 +139,11 @@ All colors MUST be HSL.
     --professional: 215 25% 75%;
     --professional-light: 215 25% 12%;
 
-    /* Gradients - Dark Mode */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--trust)) 50%, hsl(var(--success)) 100%);
-    --gradient-premium: linear-gradient(135deg, hsl(var(--premium)), hsl(var(--primary)));
-    --gradient-trust: linear-gradient(135deg, hsl(var(--trust)), hsl(var(--success)));
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--secondary)));
+    /* Enhanced Shadows for dark mode */
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.2), 0 1px 2px 0 hsl(0 0% 0% / 0.12);
+    --shadow-card-hover: 0 4px 6px -1px hsl(0 0% 0% / 0.2), 0 2px 4px -1px hsl(0 0% 0% / 0.12);
+    --shadow-button: 0 1px 2px 0 hsl(0 0% 0% / 0.1);
+    --shadow-button-hover: 0 2px 4px 0 hsl(0 0% 0% / 0.2);
 
     /* Shadows - Dark Mode */
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.25);
@@ -172,11 +170,11 @@ All colors MUST be HSL.
   }
 
   .premium-card {
-    @apply bg-gradient-to-br from-white to-gray-50/50 border border-gray-200 shadow-[var(--shadow-elegant)] dark:from-gray-800 dark:to-gray-900/50 dark:border-gray-700;
+    @apply bg-card border border-border shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-shadow duration-200;
   }
 
   .trust-card {
-    @apply bg-gradient-to-br from-blue-50/80 to-white border border-blue-200/50 shadow-[var(--shadow-trust)] dark:from-blue-950/30 dark:to-gray-900 dark:border-blue-800/30;
+    @apply bg-card border border-border shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-shadow duration-200;
   }
 
   .feature-card {
@@ -192,10 +190,7 @@ All colors MUST be HSL.
   }
 
   .gradient-text {
-    background: var(--gradient-hero);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    @apply text-primary font-bold;
   }
 
   .gradient-border {
@@ -215,6 +210,6 @@ All colors MUST be HSL.
   }
 
   .trust-badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-trust/10 to-success/10 border border-trust/20 text-trust dark:text-trust-light text-sm font-medium;
+    @apply inline-flex items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium;
   }
 }

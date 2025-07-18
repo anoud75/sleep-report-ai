@@ -22,13 +22,13 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-blue-50/30 to-purple-50/30 dark:from-background dark:via-blue-950/20 dark:to-purple-950/20">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-br from-primary to-trust p-3 rounded-xl shadow-[var(--shadow-glow)] hover-glow">
+              <div className="bg-primary p-3 rounded-xl shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] transition-shadow duration-200">
                 <Activity className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -176,7 +176,7 @@ const Index = () => {
             <Card className="trust-card">
               <CardContent className="p-6">
                 <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-trust to-success rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto shadow-[var(--shadow-button)]">
                     <Activity className="h-6 w-6 text-white" />
                   </div>
                   <h4 className="text-lg font-semibold text-foreground">Sleep Centers</h4>
@@ -189,7 +189,7 @@ const Index = () => {
             <Card className="trust-card">
               <CardContent className="p-6">
                 <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-premium to-primary rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto shadow-[var(--shadow-button)]">
                     <FileText className="h-6 w-6 text-white" />
                   </div>
                   <h4 className="text-lg font-semibold text-foreground">Hospital Units</h4>

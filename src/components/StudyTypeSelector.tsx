@@ -14,9 +14,8 @@ const studyTypes = [
     name: 'Diagnostic (PSG)',
     description: 'Baseline sleep assessment without CPAP',
     icon: Activity,
-    gradient: 'linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(142, 70%, 45%) 100%)',
-    bgColor: 'bg-diagnostic-light',
-    iconColor: 'text-diagnostic',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
     details: ['Complete polysomnography', 'Sleep architecture analysis', 'Respiratory event scoring']
   },
   {
@@ -24,9 +23,8 @@ const studyTypes = [
     name: 'Titration',
     description: 'CPAP therapy used throughout the night',
     icon: Zap,
-    gradient: 'linear-gradient(135deg, hsl(217, 91%, 60%) 0%, hsl(217, 85%, 70%) 100%)',
-    bgColor: 'bg-titration-light',
-    iconColor: 'text-titration',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
     details: ['CPAP pressure optimization', 'Leak assessment', 'Efficacy evaluation']
   },
   {
@@ -34,9 +32,8 @@ const studyTypes = [
     name: 'Split-Night',
     description: 'Hybrid study combining diagnostic and CPAP phases',
     icon: GitBranch,
-    gradient: 'linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(271, 75%, 65%) 100%)',
-    bgColor: 'bg-split-night-light',
-    iconColor: 'text-split-night',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
     details: ['Initial diagnostic phase', 'CPAP titration phase', 'Combined analysis']
   }
 ];
@@ -69,21 +66,17 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
               onClick={() => onTypeSelect(type.id)}
             >
               <CardContent className="p-0 relative overflow-hidden">
-                {/* Gradient Header */}
-                <div 
-                  className="h-16 relative"
-                  style={{ background: type.gradient }}
-                >
-                  <div className="absolute inset-0 bg-black/10"></div>
+                {/* Clean Header */}
+                <div className={`h-16 relative ${type.bgColor} border-b border-border`}>
                   <div className="absolute top-3 left-4 right-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
-                        <Icon className="h-5 w-5 text-white" />
+                      <div className="p-2 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
+                        <Icon className={`h-5 w-5 ${type.iconColor}`} />
                       </div>
-                      <h4 className="font-semibold text-sm text-white">{type.name}</h4>
+                      <h4 className="font-semibold text-sm text-foreground">{type.name}</h4>
                     </div>
                     {isSelected && (
-                      <div className="w-3 h-3 bg-white rounded-full shadow-sm"></div>
+                      <div className="w-3 h-3 bg-primary rounded-full shadow-sm"></div>
                     )}
                   </div>
                 </div>
@@ -97,7 +90,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                   <div className="space-y-1">
                     {type.details.map((detail, index) => (
                       <div key={index} className="flex items-center space-x-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${type.iconColor}`}></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                         <span className="text-xs text-muted-foreground">{detail}</span>
                       </div>
                     ))}
