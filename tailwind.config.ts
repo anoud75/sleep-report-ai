@@ -73,6 +73,22 @@ export default {
 				'split-night': {
 					DEFAULT: 'hsl(var(--split-night))',
 					light: 'hsl(var(--split-night-light))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					light: 'hsl(var(--success-light))'
+				},
+				trust: {
+					DEFAULT: 'hsl(var(--trust))',
+					light: 'hsl(var(--trust-light))'
+				},
+				premium: {
+					DEFAULT: 'hsl(var(--premium))',
+					light: 'hsl(var(--premium-light))'
+				},
+				professional: {
+					DEFAULT: 'hsl(var(--professional))',
+					light: 'hsl(var(--professional-light))'
 				}
 			},
 			borderRadius: {
