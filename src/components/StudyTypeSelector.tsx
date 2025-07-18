@@ -14,7 +14,9 @@ const studyTypes = [
     name: 'Diagnostic (PSG)',
     description: 'Baseline sleep assessment without CPAP',
     icon: Activity,
-    color: 'bg-green-500',
+    gradient: 'linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(142, 70%, 45%) 100%)',
+    bgColor: 'bg-diagnostic-light',
+    iconColor: 'text-diagnostic',
     details: ['Complete polysomnography', 'Sleep architecture analysis', 'Respiratory event scoring']
   },
   {
@@ -22,7 +24,9 @@ const studyTypes = [
     name: 'Titration',
     description: 'CPAP therapy used throughout the night',
     icon: Zap,
-    color: 'bg-blue-500',
+    gradient: 'linear-gradient(135deg, hsl(217, 91%, 60%) 0%, hsl(217, 85%, 70%) 100%)',
+    bgColor: 'bg-titration-light',
+    iconColor: 'text-titration',
     details: ['CPAP pressure optimization', 'Leak assessment', 'Efficacy evaluation']
   },
   {
@@ -30,7 +34,9 @@ const studyTypes = [
     name: 'Split-Night',
     description: 'Hybrid study combining diagnostic and CPAP phases',
     icon: GitBranch,
-    color: 'bg-purple-500',
+    gradient: 'linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(271, 75%, 65%) 100%)',
+    bgColor: 'bg-split-night-light',
+    iconColor: 'text-split-night',
     details: ['Initial diagnostic phase', 'CPAP titration phase', 'Combined analysis']
   }
 ];
@@ -55,37 +61,47 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           return (
             <Card
               key={type.id}
-              className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${
                 isSelected 
-                  ? 'ring-2 ring-primary bg-primary/5' 
+                  ? 'ring-2 ring-primary shadow-lg scale-[1.02]' 
                   : 'hover:border-primary/50'
               }`}
               onClick={() => onTypeSelect(type.id)}
             >
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${type.color}/10`}>
-                    <Icon className={`h-5 w-5 ${type.color.replace('bg-', 'text-')}`} />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-sm">{type.name}</h4>
-                  </div>
-                  {isSelected && (
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  )}
-                </div>
-                
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {type.description}
-                </p>
-                
-                <div className="space-y-1">
-                  {type.details.map((detail, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <div className="w-1 h-1 bg-muted-foreground rounded-full"></div>
-                      <span className="text-xs text-muted-foreground">{detail}</span>
+              <CardContent className="p-0 relative overflow-hidden">
+                {/* Gradient Header */}
+                <div 
+                  className="h-16 relative"
+                  style={{ background: type.gradient }}
+                >
+                  <div className="absolute inset-0 bg-black/10"></div>
+                  <div className="absolute top-3 left-4 right-4 flex items-center justify-between">
+                    <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
+                      <Icon className="h-5 w-5 text-white" />
                     </div>
-                  ))}
+                    {isSelected && (
+                      <div className="w-3 h-3 bg-white rounded-full shadow-sm"></div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-4 space-y-3">
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1">{type.name}</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {type.description}
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    {type.details.map((detail, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${type.iconColor}`}></div>
+                        <span className="text-xs text-muted-foreground">{detail}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>

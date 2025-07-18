@@ -53,6 +53,14 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Medical Study Type Colors */
+    --diagnostic: 142 76% 36%;
+    --diagnostic-light: 142 76% 86%;
+    --titration: 217 91% 60%;
+    --titration-light: 217 91% 90%;
+    --split-night: 271 81% 56%;
+    --split-night-light: 271 81% 90%;
   }
 
   .dark {
@@ -91,6 +99,14 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Dark mode study colors - slightly adjusted */
+    --diagnostic: 142 70% 45%;
+    --diagnostic-light: 142 70% 20%;
+    --titration: 217 85% 70%;
+    --titration-light: 217 85% 25%;
+    --split-night: 271 75% 65%;
+    --split-night-light: 271 75% 25%;
   }
 }
 

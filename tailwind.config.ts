@@ -61,6 +61,18 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				diagnostic: {
+					DEFAULT: 'hsl(var(--diagnostic))',
+					light: 'hsl(var(--diagnostic-light))'
+				},
+				titration: {
+					DEFAULT: 'hsl(var(--titration))',
+					light: 'hsl(var(--titration-light))'
+				},
+				'split-night': {
+					DEFAULT: 'hsl(var(--split-night))',
+					light: 'hsl(var(--split-night-light))'
 				}
 			},
 			borderRadius: {
