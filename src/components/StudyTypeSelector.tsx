@@ -83,6 +83,9 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                       <div className="w-3 h-3 bg-white rounded-full shadow-sm"></div>
                     )}
                   </div>
+                  <div className="absolute bottom-2 left-4">
+                    <h4 className="font-semibold text-sm text-white">{type.name}</h4>
+                  </div>
                 </div>
 
                 {/* Content */}
