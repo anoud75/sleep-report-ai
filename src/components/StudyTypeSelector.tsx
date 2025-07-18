@@ -76,26 +76,23 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                 >
                   <div className="absolute inset-0 bg-black/10"></div>
                   <div className="absolute top-3 left-4 right-4 flex items-center justify-between">
-                    <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
-                      <Icon className="h-5 w-5 text-white" />
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
+                        <Icon className="h-5 w-5 text-white" />
+                      </div>
+                      <h4 className="font-semibold text-sm text-white">{type.name}</h4>
                     </div>
                     {isSelected && (
                       <div className="w-3 h-3 bg-white rounded-full shadow-sm"></div>
                     )}
                   </div>
-                  <div className="absolute bottom-2 left-4">
-                    <h4 className="font-semibold text-sm text-white">{type.name}</h4>
-                  </div>
                 </div>
 
                 {/* Content */}
                 <div className="p-4 space-y-3">
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1">{type.name}</h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {type.description}
-                    </p>
-                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {type.description}
+                  </p>
                   
                   <div className="space-y-1">
                     {type.details.map((detail, index) => (
