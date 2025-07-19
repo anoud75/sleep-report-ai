@@ -181,7 +181,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         <CardContent>
           <p className="text-sm text-muted-foreground leading-relaxed">
             The sleep study analysis has been completed for <strong>{data.patientInfo.name}</strong>. 
-            The {data.studyType.toLowerCase()} study shows{' '}
+            The {data.patientInfo.studyType.toLowerCase()} study shows{' '}
             {parseFloat(data.respiratoryEvents.ahi) > 15 ? 'severe sleep apnea' : 
              parseFloat(data.respiratoryEvents.ahi) > 5 ? 'moderate sleep apnea' : 'mild sleep disturbance'}
             {' '}with an AHI of {data.respiratoryEvents.ahi}. 
