@@ -27,27 +27,96 @@ serve(async (req) => {
       ? fileContent.substring(0, maxContentLength) + "\n\n[Content truncated...]"
       : fileContent;
 
-    const prompt = `Extract key sleep study values from this ${studyType} report. Return ONLY valid JSON:
+    const prompt = `You are an AI assistant for a sleep report analysis website. Your task is to extract, calculate, and format values from a raw G3 sleep study report.
 
+📥 INPUT
+The AI will receive raw text from a G3 PSG sleep study.
+
+🎯 TASK
+Extract the following values exactly as written from the report (do not modify or assume anything):
+
+Light off
+Light on
+Time in Bed (min)
+Total Sleep Time (min)
+CPAP/BPAP/O2 (if unused, write ---)
+Sleep Latency (min)
+REM Latency (min)
+Sleep Efficiency (%)
+Sleep Stage 1 (%)
+Sleep Stage 2 (%)
+Slow Wave Sleep (%)
+REM Sleep (%)
+AHI (NREM/REM)
+Central Apnea Index
+Obstructive Apnea Index (/hr)
+Mixed Apnea Index
+Hypopnea Index (/hr)
+Desaturation Index (/hr)
+Lowest O2 / Average O2
+Arousal Index (/hr)
+Snoring (%)
+Leg Movement Index (/hr)
+
+🔢 CALCULATED VALUES
+Only calculate the following if the values involved are not zero. If all components are 0, return ---.
+
+AHI (supine/lateral)
+Supine = use directly from report
+Lateral = (AHI Right + AHI Left) / 2
+
+Hypopnea Mean Duration (sec)
+= average of mean durations for: Obstructive + Central + Mixed + Hypopnea
+(exclude 0 values from the calculation)
+
+Heart Rate (NREM/REM)
+= average of: Obstructive Index + Central Index + Mixed Index + Hypopnea Index
+(exclude 0 values)
+
+% Time with O2 < 90%
+= ((REM minutes with O2 < 90 + NREM minutes with O2 < 90) × 100) / Total Sleep Time
+
+% Time with O2 < 95%
+= ((REM + NREM minutes with O2 < 95) × 100) / Total Sleep Time
+
+Study Type: ${studyType}
+
+File Content:
+${truncatedContent}
+
+Please return the extracted data in this exact JSON structure:
 {
-  "lightOff": "value or null",
-  "lightOn": "value or null", 
-  "totalSleepTime": "minutes or null",
-  "sleepEfficiency": "% or null",
-  "ahi": "value or null",
-  "sleepLatency": "minutes or null",
-  "remLatency": "minutes or null",
-  "stage1": "% or null",
-  "stage2": "% or null",
-  "slowWave": "% or null", 
-  "rem": "% or null",
-  "desaturationIndex": "value or null",
-  "lowestO2": "% or null",
-  "arousalIndex": "value or null",
-  "summary": "brief clinical summary"
+  "lightOff": "value",
+  "lightOn": "value",
+  "timeInBed": "value",
+  "totalSleepTime": "value",
+  "cpapBpapO2": "value",
+  "sleepLatency": "value",
+  "remLatency": "value",
+  "sleepEfficiency": "value",
+  "stage1": "value",
+  "stage2": "value",
+  "slowWave": "value",
+  "rem": "value",
+  "ahiNremRem": "value",
+  "ahiSupineLateral": "value",
+  "centralApneaIndex": "value",
+  "obstructiveApneaIndex": "value",
+  "mixedApneaIndex": "value",
+  "hypopneaIndex": "value",
+  "hypopneaMeanDuration": "value",
+  "heartRateNremRem": "value",
+  "desaturationIndex": "value",
+  "timeO2Below90": "value",
+  "timeO2Below95": "value",
+  "lowestO2AverageO2": "value",
+  "arousalIndex": "value",
+  "snoring": "value",
+  "legMovementIndex": "value",
+  "summary": "Overnight sleep study shows evidence of \"[Severity] Obstructive Sleep Apnea\". The patient slept for a total sleep time of [X] hours and [Y] minutes with an AHI of [AHI] events per hour associated with minimal desaturation and repetitive sleep interruptions. However, she progressed into all sleep stages. Otherwise, no unusual events were noted."
 }
 
-Report: ${truncatedContent}`;
+Extract exact values from the report. If a value is not found, use "---".`;
 
     console.log('Sending request to OpenAI...');
     
