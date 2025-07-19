@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, FileText, CheckCircle, AlertCircle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import mammoth from 'mammoth';
 
 interface FileUploadProps {
   onFileProcessed: (data: any) => void;
@@ -54,8 +55,13 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType }: FileUploadPro
     setError(null);
 
     try {
-      // Read file content
-      const fileContent = await file.text();
+      // Extract text from .docx file using mammoth
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      const fileContent = result.value;
+      
+      console.log('Extracted text length:', fileContent.length);
+      console.log('First 500 chars:', fileContent.substring(0, 500));
       
       // Update progress
       setProgress(30);
