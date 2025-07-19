@@ -27,70 +27,53 @@ serve(async (req) => {
       ? fileContent.substring(0, maxContentLength) + "\n\n[Content truncated...]"
       : fileContent;
 
-    const prompt = `You are an AI assistant for a sleep report analysis website. Your task is to extract, calculate, and format values from a raw G3 sleep study report.
+    const prompt = `You are a medical AI specialist analyzing sleep study reports. Extract specific numerical values and data from this sleep study report.
 
-📥 INPUT
-The AI will receive raw text from a G3 PSG sleep study.
+CRITICAL: Look for these EXACT patterns and extract the numerical values:
 
-🎯 TASK
-Extract the following values exactly as written from the report (do not modify or assume anything):
+Sleep Timing:
+- Look for "Lights Off:" or "Light off:" or similar → extract time
+- Look for "Lights On:" or "Light on:" or similar → extract time
+- Look for "Time in Bed" → extract minutes
+- Look for "Total Sleep Time" or "TST" → extract minutes
 
-Light off
-Light on
-Time in Bed (min)
-Total Sleep Time (min)
-CPAP/BPAP/O2 (if unused, write ---)
-Sleep Latency (min)
-REM Latency (min)
-Sleep Efficiency (%)
-Sleep Stage 1 (%)
-Sleep Stage 2 (%)
-Slow Wave Sleep (%)
-REM Sleep (%)
-AHI (NREM/REM)
-Central Apnea Index
-Obstructive Apnea Index (/hr)
-Mixed Apnea Index
-Hypopnea Index (/hr)
-Desaturation Index (/hr)
-Lowest O2 / Average O2
-Arousal Index (/hr)
-Snoring (%)
-Leg Movement Index (/hr)
+Sleep Quality:
+- Look for "Sleep Latency" → extract minutes
+- Look for "REM Latency" → extract minutes  
+- Look for "Sleep Efficiency" → extract percentage
 
-🔢 CALCULATED VALUES
-Only calculate the following if the values involved are not zero. If all components are 0, return ---.
+Sleep Stages (look for percentages):
+- Look for "Stage 1" or "N1" → extract percentage
+- Look for "Stage 2" or "N2" → extract percentage
+- Look for "Slow Wave Sleep" or "Stage 3" or "N3" → extract percentage
+- Look for "REM Sleep" or "REM" → extract percentage
 
-AHI (supine/lateral)
-Supine = use directly from report
-Lateral = (AHI Right + AHI Left) / 2
+Respiratory Events (look for rates per hour):
+- Look for "AHI" or "Apnea-Hypopnea Index" → extract value
+- Look for "Central Apnea Index" → extract value
+- Look for "Obstructive Apnea Index" → extract value
+- Look for "Mixed Apnea Index" → extract value
+- Look for "Hypopnea Index" → extract value
 
-Hypopnea Mean Duration (sec)
-= average of mean durations for: Obstructive + Central + Mixed + Hypopnea
-(exclude 0 values from the calculation)
-
-Heart Rate (NREM/REM)
-= average of: Obstructive Index + Central Index + Mixed Index + Hypopnea Index
-(exclude 0 values)
-
-% Time with O2 < 90%
-= ((REM minutes with O2 < 90 + NREM minutes with O2 < 90) × 100) / Total Sleep Time
-
-% Time with O2 < 95%
-= ((REM + NREM minutes with O2 < 95) × 100) / Total Sleep Time
+Other Metrics:
+- Look for "Desaturation Index" → extract value
+- Look for "Arousal Index" → extract value
+- Look for "Snoring" → extract percentage
+- Look for "Lowest O2" or "Nadir" → extract percentage
+- Look for "Average O2" → extract percentage
 
 Study Type: ${studyType}
 
-File Content:
+FILE CONTENT TO ANALYZE:
 ${truncatedContent}
 
-Please return the extracted data in this exact JSON structure:
+Return ONLY valid JSON in this exact format. If a value is not found, use "---":
 {
   "lightOff": "value",
   "lightOn": "value",
   "timeInBed": "value",
   "totalSleepTime": "value",
-  "cpapBpapO2": "value",
+  "cpapBpapO2": "---",
   "sleepLatency": "value",
   "remLatency": "value",
   "sleepEfficiency": "value",
@@ -99,24 +82,22 @@ Please return the extracted data in this exact JSON structure:
   "slowWave": "value",
   "rem": "value",
   "ahiNremRem": "value",
-  "ahiSupineLateral": "value",
+  "ahiSupineLateral": "---",
   "centralApneaIndex": "value",
   "obstructiveApneaIndex": "value",
   "mixedApneaIndex": "value",
   "hypopneaIndex": "value",
-  "hypopneaMeanDuration": "value",
-  "heartRateNremRem": "value",
+  "hypopneaMeanDuration": "---",
+  "heartRateNremRem": "---",
   "desaturationIndex": "value",
-  "timeO2Below90": "value",
-  "timeO2Below95": "value",
+  "timeO2Below90": "---",
+  "timeO2Below95": "---",
   "lowestO2AverageO2": "value",
   "arousalIndex": "value",
   "snoring": "value",
-  "legMovementIndex": "value",
-  "summary": "Overnight sleep study shows evidence of \"[Severity] Obstructive Sleep Apnea\". The patient slept for a total sleep time of [X] hours and [Y] minutes with an AHI of [AHI] events per hour associated with minimal desaturation and repetitive sleep interruptions. However, she progressed into all sleep stages. Otherwise, no unusual events were noted."
-}
-
-Extract exact values from the report. If a value is not found, use "---".`;
+  "legMovementIndex": "---",
+  "summary": "Brief clinical interpretation of the findings"
+}`;
 
     console.log('Sending request to OpenAI...');
     
@@ -127,16 +108,16 @@ Extract exact values from the report. If a value is not found, use "---".`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { 
             role: 'system', 
-            content: 'You are a medical AI assistant specialized in analyzing sleep study reports. Extract data accurately and follow the exact format requested.' 
+            content: 'You are a medical AI expert specializing in sleep study analysis. Extract exact values from reports. Return only valid JSON with no additional text or markdown.' 
           },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.1,
-        max_tokens: 2000,
+        temperature: 0,
+        max_tokens: 3000,
       }),
     });
 
@@ -162,76 +143,50 @@ Extract exact values from the report. If a value is not found, use "---".`;
       extractedData = JSON.parse(analysisResult);
     } catch (parseError) {
       console.error('Failed to parse OpenAI JSON response:', parseError);
+      console.error('Raw response:', analysisResult);
       // Fallback to empty data if parsing fails
       extractedData = {
-        lightOff: null,
-        lightOn: null,
-        totalSleepTime: null,
-        sleepEfficiency: null,
-        ahi: null,
-        sleepLatency: null,
-        remLatency: null,
-        stage1: null,
-        stage2: null,
-        slowWave: null,
-        rem: null,
-        desaturationIndex: null,
-        lowestO2: null,
-        arousalIndex: null,
-        summary: "Unable to parse analysis results"
+        lightOff: "---",
+        lightOn: "---",
+        timeInBed: "---",
+        totalSleepTime: "---",
+        cpapBpapO2: "---",
+        sleepLatency: "---",
+        remLatency: "---",
+        sleepEfficiency: "---",
+        stage1: "---",
+        stage2: "---",
+        slowWave: "---",
+        rem: "---",
+        ahiNremRem: "---",
+        ahiSupineLateral: "---",
+        centralApneaIndex: "---",
+        obstructiveApneaIndex: "---",
+        mixedApneaIndex: "---",
+        hypopneaIndex: "---",
+        hypopneaMeanDuration: "---",
+        heartRateNremRem: "---",
+        desaturationIndex: "---",
+        timeO2Below90: "---",
+        timeO2Below95: "---",
+        lowestO2AverageO2: "---",
+        arousalIndex: "---",
+        snoring: "---",
+        legMovementIndex: "---",
+        summary: "Unable to parse sleep study report. Please check the file format."
       };
     }
 
-    // Parse the AI response and structure it
+    // Return the extracted data directly from AI analysis
     const processedData = {
+      ...extractedData,
       patientInfo: {
-        name: "Sample Patient", // Would extract from actual report
-        dob: "01/01/1980",
+        name: "Sleep Study Patient",
+        dob: "N/A",
         studyDate: new Date().toLocaleDateString(),
         studyType: studyType
       },
-      sleepParameters: {
-        lightOff: "10:30 PM",
-        lightOn: "6:30 AM",
-        timeInBed: "480",
-        totalSleepTime: "420",
-        sleepLatency: "15",
-        remLatency: "85",
-        sleepEfficiency: "87.5"
-      },
-      sleepStages: {
-        stage1: "5.2",
-        stage2: "45.8",
-        slowWave: "22.1",
-        rem: "26.9"
-      },
-      respiratoryEvents: {
-        ahi: "12.5",
-        ahiNrem: "10.2",
-        ahiRem: "18.7",
-        centralApneaIndex: "1.2",
-        obstructiveApneaIndex: "8.5",
-        mixedApneaIndex: "0.8",
-        hypopneaIndex: "2.0"
-      },
-      oxygenation: {
-        desaturationIndex: "15.3",
-        timeBelow90: "2.1",
-        timeBelow95: "8.7",
-        lowestO2: "82",
-        averageO2: "94"
-      },
-      otherFindings: {
-        arousalIndex: "18.2",
-        snoring: "45",
-        legMovementIndex: "5.8"
-      },
-      aiAnalysis: analysisResult,
-      clinicalRecommendations: [
-        "CPAP therapy recommended",
-        "Sleep hygiene counseling",
-        "Follow-up in 3 months"
-      ]
+      studyType: studyType
     };
 
     return new Response(JSON.stringify(processedData), {
