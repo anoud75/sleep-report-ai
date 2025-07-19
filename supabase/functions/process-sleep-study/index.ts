@@ -78,9 +78,40 @@ Report: ${truncatedContent}`;
     }
 
     const data = await response.json();
-    const analysisResult = data.choices[0].message.content;
+    let analysisResult = data.choices[0].message.content;
     
-    console.log('Analysis result:', analysisResult);
+    // Clean up the response - remove markdown code blocks if present
+    if (analysisResult.includes('```json')) {
+      analysisResult = analysisResult.replace(/```json\s*/, '').replace(/```\s*$/, '');
+    }
+    
+    console.log('Cleaned analysis result:', analysisResult);
+
+    // Try to parse the JSON response from OpenAI
+    let extractedData;
+    try {
+      extractedData = JSON.parse(analysisResult);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI JSON response:', parseError);
+      // Fallback to empty data if parsing fails
+      extractedData = {
+        lightOff: null,
+        lightOn: null,
+        totalSleepTime: null,
+        sleepEfficiency: null,
+        ahi: null,
+        sleepLatency: null,
+        remLatency: null,
+        stage1: null,
+        stage2: null,
+        slowWave: null,
+        rem: null,
+        desaturationIndex: null,
+        lowestO2: null,
+        arousalIndex: null,
+        summary: "Unable to parse analysis results"
+      };
+    }
 
     // Parse the AI response and structure it
     const processedData = {

@@ -162,7 +162,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {data.recommendations.map((rec: string, index: number) => (
+              {data.clinicalRecommendations.map((rec: string, index: number) => (
                 <li key={index} className="flex items-start space-x-2">
                   <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
                   <span className="text-sm">{rec}</span>
