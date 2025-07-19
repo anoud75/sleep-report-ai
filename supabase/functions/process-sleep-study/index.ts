@@ -21,51 +21,33 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const prompt = `DO NOT generate any final interpretation text or summary unless explicitly instructed. Your task is only to extract and calculate the following values from the raw G3 sleep study report, without assuming or inferring. Use exact values only. If any value is missing or unused, use ---.
+    // Truncate file content if too long to avoid token limits
+    const maxContentLength = 8000;
+    const truncatedContent = fileContent.length > maxContentLength 
+      ? fileContent.substring(0, maxContentLength) + "\n\n[Content truncated...]"
+      : fileContent;
 
-Extract these values (in order):
-* Light off
-* Light on
-* Time in Bed (min)
-* Total Sleep Time (min)
-* CPAP/BPAP/O2
-* Sleep Latency (min)
-* REM Latency (min)
-* Sleep Efficiency (%)
-* Sleep Stage 1 (%)
-* Sleep Stage 2 (%)
-* Slow Wave Sleep (%)
-* REM Sleep (%)
-* AHI (NREM/REM)
-* AHI (supine/lateral) (/hr):
-    * Lateral = (Right + Left)/2
-    * Supine = same value from report
-* Central Apnea Index
-* Obstructive Apnea Index (/hr)
-* Mixed Apnea Index
-* Hypopnea Index (/hr)
-* Hypopnea Mean Duration (sec):
-    * = Average of (Obstructive + Central + Mixed + Hypopnea mean durations) (ignore zeroes)
-* Heart Rate (NREM/REM):
-    * = Average of (Obstructive + Central + Mixed + Hypopnea Index) / 4 (ignore zeroes)
-* Desaturation Index (/hr)
-* % Time with O2 < 90% (%):
-    * = ((REM minutes + NREM minutes with O2 < 90%) × 100) / Total Sleep Time
-* % Time with O2 < 95% (%) (same formula)
-* Lowest O2 / Average O2
-* Arousal Index (/hr)
-* Snoring (%)
-* Leg Movement Index (/hr)
+    const prompt = `Extract key sleep study values from this ${studyType} report. Return ONLY valid JSON:
 
-Then generate the following summary section using a fixed template, and only after values have been extracted:
+{
+  "lightOff": "value or null",
+  "lightOn": "value or null", 
+  "totalSleepTime": "minutes or null",
+  "sleepEfficiency": "% or null",
+  "ahi": "value or null",
+  "sleepLatency": "minutes or null",
+  "remLatency": "minutes or null",
+  "stage1": "% or null",
+  "stage2": "% or null",
+  "slowWave": "% or null", 
+  "rem": "% or null",
+  "desaturationIndex": "value or null",
+  "lowestO2": "% or null",
+  "arousalIndex": "value or null",
+  "summary": "brief clinical summary"
+}
 
-Template:
-Overnight sleep study shows evidence of "[Severity] Obstructive Sleep Apnea". The patient slept for a total sleep time of [hours] hours and [minutes] minutes with an AHI of [AHI value] events per hour associated with minimal desaturation and repetitive sleep interruptions. However, she progressed into all sleep stages. Otherwise, no unusual events were noted.
-
-Please extract these values from the following sleep study report and format the response as JSON with the extracted values and generated summary.
-
-Report content:
-${fileContent}`;
+Report: ${truncatedContent}`;
 
     console.log('Sending request to OpenAI...');
     
@@ -76,7 +58,7 @@ ${fileContent}`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
