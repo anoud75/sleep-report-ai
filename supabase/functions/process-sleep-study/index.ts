@@ -22,81 +22,97 @@ serve(async (req) => {
     }
 
     // Truncate file content if too long to avoid token limits
-    const maxContentLength = 8000;
+    const maxContentLength = 12000;
     const truncatedContent = fileContent.length > maxContentLength 
       ? fileContent.substring(0, maxContentLength) + "\n\n[Content truncated...]"
       : fileContent;
 
+    console.log('Processing file content length:', fileContent.length);
+
     const prompt = `You are a medical AI specialist analyzing sleep study reports. Extract specific numerical values and data from this sleep study report.
 
-CRITICAL: Look for these EXACT patterns and extract the numerical values:
+CRITICAL INSTRUCTIONS:
+1. Search the ENTIRE document thoroughly for each value
+2. Look for various formats, abbreviations, and terminology
+3. Extract exact numerical values when found
+4. Only use "---" if the value is genuinely not present anywhere in the document
+
+SEARCH PATTERNS:
 
 Sleep Timing:
-- Look for "Lights Off:" or "Light off:" or similar → extract time
-- Look for "Lights On:" or "Light on:" or similar → extract time
-- Look for "Time in Bed" → extract minutes
-- Look for "Total Sleep Time" or "TST" → extract minutes
+- "Lights Off", "Light off", "LO:", "Bedtime" → extract time
+- "Lights On", "Light on", "Final awakening", "Wake time" → extract time  
+- "Time in Bed", "TIB", "Recording time" → extract minutes
+- "Total Sleep Time", "TST", "Sleep time" → extract minutes
 
 Sleep Quality:
-- Look for "Sleep Latency" → extract minutes
-- Look for "REM Latency" → extract minutes  
-- Look for "Sleep Efficiency" → extract percentage
+- "Sleep Latency", "Sleep onset latency", "Latency to sleep" → extract minutes
+- "REM Latency", "REM onset", "Time to REM" → extract minutes
+- "Sleep Efficiency", "Efficiency" → extract percentage
 
 Sleep Stages (look for percentages):
-- Look for "Stage 1" or "N1" → extract percentage
-- Look for "Stage 2" or "N2" → extract percentage
-- Look for "Slow Wave Sleep" or "Stage 3" or "N3" → extract percentage
-- Look for "REM Sleep" or "REM" → extract percentage
+- "Stage 1", "N1", "NREM 1", "Light sleep" → extract percentage
+- "Stage 2", "N2", "NREM 2" → extract percentage  
+- "Slow Wave Sleep", "Stage 3", "N3", "SWS", "Deep Sleep" → extract percentage
+- "REM Sleep", "REM", "Stage REM" → extract percentage
 
-Respiratory Events (look for rates per hour):
-- Look for "AHI" or "Apnea-Hypopnea Index" → extract value
-- Look for "Central Apnea Index" → extract value
-- Look for "Obstructive Apnea Index" → extract value
-- Look for "Mixed Apnea Index" → extract value
-- Look for "Hypopnea Index" → extract value
+Respiratory Events (/hour):
+- "AHI", "Apnea-Hypopnea Index", "Apnea Hypopnea Index" → extract value
+- "Central Apnea Index", "CAI", "Central AI" → extract value
+- "Obstructive Apnea Index", "OAI", "Obstructive AI" → extract value
+- "Mixed Apnea Index", "MAI", "Mixed AI" → extract value
+- "Hypopnea Index", "HI", "Hypopnea/hour" → extract value
+- "Hypopnea Mean Duration", "Hypopnea duration", "Mean hypopnea duration", "Hypopnea length" → extract seconds
+
+Oxygen & Heart Rate:
+- "Desaturation Index", "ODI", "Oxygen Desaturation Index", "Desat Index" → extract value
+- "Heart Rate NREM", "HR NREM", "Heart Rate REM", "HR REM", "NREM HR", "REM HR" → extract BPM
+- "Time O2 < 90%", "Time below 90%", "% time SpO2 < 90%", "SpO2 <90%" → extract percentage
+- "Time O2 < 95%", "Time below 95%", "% time SpO2 < 95%", "SpO2 <95%" → extract percentage  
+- "Lowest O2", "Nadir SpO2", "Minimum O2", "Min SpO2" → extract percentage
+- "Average O2", "Mean SpO2", "Average SpO2", "Avg SpO2" → extract percentage
 
 Other Metrics:
-- Look for "Desaturation Index" → extract value
-- Look for "Arousal Index" → extract value
-- Look for "Snoring" → extract percentage
-- Look for "Lowest O2" or "Nadir" → extract percentage
-- Look for "Average O2" → extract percentage
+- "Arousal Index", "AI", "Arousals/hour", "Arousal/hr" → extract value
+- "Snoring", "Snore", "% snoring", "Snoring time" → extract percentage
+- "Leg Movement Index", "PLM Index", "PLMI", "Periodic Limb Movement", "LM Index" → extract value
 
 Study Type: ${studyType}
 
 FILE CONTENT TO ANALYZE:
 ${truncatedContent}
 
-Return ONLY valid JSON in this exact format. If a value is not found, use "---":
+IMPORTANT: Extract ACTUAL values from the document. Do not return placeholder text. Return ONLY valid JSON:
+
 {
-  "lightOff": "value",
-  "lightOn": "value",
-  "timeInBed": "value",
-  "totalSleepTime": "value",
-  "cpapBpapO2": "---",
-  "sleepLatency": "value",
-  "remLatency": "value",
-  "sleepEfficiency": "value",
-  "stage1": "value",
-  "stage2": "value",
-  "slowWave": "value",
-  "rem": "value",
-  "ahiNremRem": "value",
-  "ahiSupineLateral": "---",
-  "centralApneaIndex": "value",
-  "obstructiveApneaIndex": "value",
-  "mixedApneaIndex": "value",
-  "hypopneaIndex": "value",
-  "hypopneaMeanDuration": "---",
-  "heartRateNremRem": "---",
-  "desaturationIndex": "value",
-  "timeO2Below90": "---",
-  "timeO2Below95": "---",
-  "lowestO2AverageO2": "value",
-  "arousalIndex": "value",
-  "snoring": "value",
-  "legMovementIndex": "---",
-  "summary": "Brief clinical interpretation of the findings"
+  "lightOff": "search and extract time",
+  "lightOn": "search and extract time", 
+  "timeInBed": "search and extract minutes",
+  "totalSleepTime": "search and extract minutes",
+  "cpapBpapO2": "search for CPAP/BiPAP data or use ---",
+  "sleepLatency": "search and extract minutes",
+  "remLatency": "search and extract minutes",
+  "sleepEfficiency": "search and extract percentage",
+  "stage1": "search and extract percentage",
+  "stage2": "search and extract percentage", 
+  "slowWave": "search and extract percentage",
+  "rem": "search and extract percentage",
+  "ahiNremRem": "search and extract AHI value",
+  "ahiSupineLateral": "search for positional AHI or use ---",
+  "centralApneaIndex": "search and extract value",
+  "obstructiveApneaIndex": "search and extract value",
+  "mixedApneaIndex": "search and extract value", 
+  "hypopneaIndex": "search and extract value",
+  "hypopneaMeanDuration": "SEARCH THOROUGHLY for hypopnea duration in seconds",
+  "heartRateNremRem": "SEARCH THOROUGHLY for heart rate values",
+  "desaturationIndex": "SEARCH THOROUGHLY for ODI or desaturation index",
+  "timeO2Below90": "SEARCH THOROUGHLY for time with O2 < 90%",
+  "timeO2Below95": "SEARCH THOROUGHLY for time with O2 < 95%",
+  "lowestO2AverageO2": "SEARCH THOROUGHLY for lowest and average O2",
+  "arousalIndex": "search and extract arousal index",
+  "snoring": "search and extract snoring percentage",
+  "legMovementIndex": "SEARCH THOROUGHLY for PLM or leg movement index",
+  "summary": "Brief clinical interpretation of findings"
 }`;
 
     console.log('Sending request to OpenAI...');
@@ -112,7 +128,7 @@ Return ONLY valid JSON in this exact format. If a value is not found, use "---":
         messages: [
           { 
             role: 'system', 
-            content: 'You are a medical AI expert specializing in sleep study analysis. Extract exact values from reports. Return only valid JSON with no additional text or markdown.' 
+            content: 'You are a medical AI expert specializing in sleep study analysis. Your task is to extract exact numerical values from sleep study reports. Search thoroughly through the entire document for each requested metric. Return only valid JSON with actual extracted values, not placeholder text.' 
           },
           { role: 'user', content: prompt }
         ],
@@ -133,6 +149,9 @@ Return ONLY valid JSON in this exact format. If a value is not found, use "---":
     // Clean up the response - remove markdown code blocks if present
     if (analysisResult.includes('```json')) {
       analysisResult = analysisResult.replace(/```json\s*/, '').replace(/```\s*$/, '');
+    }
+    if (analysisResult.includes('```')) {
+      analysisResult = analysisResult.replace(/```\s*/, '').replace(/```\s*$/, '');
     }
     
     console.log('Cleaned analysis result:', analysisResult);
@@ -188,6 +207,8 @@ Return ONLY valid JSON in this exact format. If a value is not found, use "---":
       },
       studyType: studyType
     };
+
+    console.log('Final processed data:', JSON.stringify(processedData, null, 2));
 
     return new Response(JSON.stringify(processedData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
