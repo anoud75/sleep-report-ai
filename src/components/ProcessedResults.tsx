@@ -71,7 +71,20 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         doc.addPage();
         yPosition = 20;
       }
-      doc.text(`${label}: ${value || '---'}`, 20, yPosition);
+      
+      // Handle object values for PDF
+      let displayValue = value || '---';
+      if (typeof value === 'object' && value !== null) {
+        if (value.NREM !== undefined && value.REM !== undefined) {
+          displayValue = `NREM: ${value.NREM || '---'}, REM: ${value.REM || '---'}`;
+        } else if (value.lowest !== undefined && value.average !== undefined) {
+          displayValue = `${value.lowest || '---'} / ${value.average || '---'}`;
+        } else {
+          displayValue = JSON.stringify(value);
+        }
+      }
+      
+      doc.text(`${label}: ${displayValue}`, 20, yPosition);
       yPosition += 10;
     });
     
@@ -280,7 +293,11 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Heart Rate (NREM/REM)</span>
-              <span className="font-medium">{data.heartRateNremRem || '---'}</span>
+              <span className="font-medium">
+                {typeof data.heartRateNremRem === 'object' && data.heartRateNremRem 
+                  ? `NREM: ${data.heartRateNremRem.NREM || '---'}, REM: ${data.heartRateNremRem.REM || '---'}`
+                  : data.heartRateNremRem || '---'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Desaturation Index (/hr)</span>
@@ -316,7 +333,11 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Lowest O2 / Average O2</span>
-              <span className="font-medium">{data.lowestO2AverageO2 || '---'}</span>
+              <span className="font-medium">
+                {typeof data.lowestO2AverageO2 === 'object' && data.lowestO2AverageO2 
+                  ? `${data.lowestO2AverageO2.lowest || '---'} / ${data.lowestO2AverageO2.average || '---'}`
+                  : data.lowestO2AverageO2 || '---'}
+              </span>
             </div>
           </CardContent>
         </Card>
