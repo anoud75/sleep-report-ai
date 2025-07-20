@@ -15,88 +15,207 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
   const { toast } = useToast();
 
   const handleDownloadPDF = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF('portrait', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentWidth = pageWidth - (margin * 2);
     
-    // Add title
-    doc.setFontSize(20);
-    doc.text('Sleep Study Report', 20, 30);
+    // Color scheme
+    const primaryColor = [0, 123, 191] as const; // Medical blue
+    const accentColor = [244, 247, 251] as const; // Light blue-gray
+    const textColor = [51, 51, 51] as const; // Dark gray
+    const lightGray = [128, 128, 128] as const; // Medium gray
     
-    // Add patient info
-    doc.setFontSize(12);
-    doc.text(`Patient: ${data.patientInfo?.name || 'N/A'}`, 20, 50);
-    doc.text(`Study Date: ${data.patientInfo?.studyDate || 'N/A'}`, 20, 60);
-    doc.text(`Study Type: ${data.patientInfo?.studyType || data.studyType || 'N/A'}`, 20, 70);
+    // Header with logo area and title
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(0, 0, pageWidth, 40, 'F');
     
-    // Add sleep data
-    let yPosition = 90;
-    doc.setFontSize(14);
-    doc.text('Sleep Study Results:', 20, yPosition);
+    // Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(28);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SLEEP STUDY REPORT', margin, 25);
     
-    yPosition += 20;
-    doc.setFontSize(10);
+    // Patient Information Section
+    let yPos = 60;
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PATIENT INFORMATION', margin, yPos);
     
-    // Display all the extracted data
-    const fields = [
+    // Patient info box
+    doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+    doc.roundedRect(margin, yPos + 5, contentWidth, 30, 3, 3, 'F');
+    
+    yPos += 15;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Patient Name: ${data.patientInfo?.name || 'N/A'}`, margin + 5, yPos);
+    yPos += 7;
+    doc.text(`Study Date: ${data.patientInfo?.studyDate || 'N/A'}`, margin + 5, yPos);
+    yPos += 7;
+    doc.text(`Study Type: ${data.patientInfo?.studyType || data.studyType || 'N/A'}`, margin + 5, yPos);
+    
+    // Sleep Study Results Section
+    yPos += 25;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SLEEP STUDY RESULTS', margin, yPos);
+    
+    // Helper function to create a section with title and data
+    const createSection = (title, fields, startY) => {
+      let currentY = startY + 10;
+      
+      // Section title
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.text(title, margin, currentY);
+      currentY += 8;
+      
+      // Section border
+      doc.setDrawColor(lightGray[0], lightGray[1], lightGray[2]);
+      doc.setLineWidth(0.5);
+      doc.line(margin, currentY - 2, pageWidth - margin, currentY - 2);
+      
+      // Data fields
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setFontSize(10);
+      
+      fields.forEach(([label, value]) => {
+        if (currentY > pageHeight - 30) {
+          doc.addPage();
+          currentY = 40;
+        }
+        
+        // Handle object values
+        let displayValue = value || '---';
+        if (typeof value === 'object' && value !== null) {
+          if (value.NREM !== undefined && value.REM !== undefined) {
+            displayValue = `NREM: ${value.NREM || '---'}, REM: ${value.REM || '---'}`;
+          } else if (value.lowest !== undefined && value.average !== undefined) {
+            displayValue = `${value.lowest || '---'} / ${value.average || '---'}`;
+          } else {
+            displayValue = JSON.stringify(value);
+          }
+        }
+        
+        // Label (left aligned)
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+        doc.text(label, margin + 2, currentY);
+        
+        // Value (right aligned)
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        const valueWidth = doc.getTextWidth(displayValue.toString());
+        doc.text(displayValue.toString(), pageWidth - margin - valueWidth - 2, currentY);
+        
+        currentY += 6;
+      });
+      
+      return currentY + 5;
+    };
+    
+    // Organize data into logical sections
+    const sleepTimingFields = [
       ['Light Off', data.lightOff],
       ['Light On', data.lightOn],
       ['Time in Bed (min)', data.timeInBed],
       ['Total Sleep Time (min)', data.totalSleepTime],
-      ['CPAP/BPAP/O2', data.cpapBpapO2],
+      ['CPAP/BPAP/O2', data.cpapBpapO2]
+    ];
+    
+    const sleepQualityFields = [
       ['Sleep Latency (min)', data.sleepLatency],
       ['REM Latency (min)', data.remLatency],
-      ['Sleep Efficiency (%)', data.sleepEfficiency],
+      ['Sleep Efficiency (%)', data.sleepEfficiency]
+    ];
+    
+    const sleepStagesFields = [
       ['Sleep Stage 1 (%)', data.stage1],
       ['Sleep Stage 2 (%)', data.stage2],
       ['Slow Wave Sleep (%)', data.slowWave],
-      ['REM Sleep (%)', data.rem],
+      ['REM Sleep (%)', data.rem]
+    ];
+    
+    const respiratoryFields = [
       ['AHI (NREM/REM)', data.ahiNremRem],
-      ['AHI (supine/lateral)', data.ahiSupineLateral],
+      ['AHI (Supine/Lateral)', data.ahiSupineLateral],
       ['Central Apnea Index', data.centralApneaIndex],
       ['Obstructive Apnea Index (/hr)', data.obstructiveApneaIndex],
       ['Mixed Apnea Index', data.mixedApneaIndex],
       ['Hypopnea Index (/hr)', data.hypopneaIndex],
-      ['Hypopnea Mean Duration (sec)', data.hypopneaMeanDuration],
+      ['Hypopnea Mean Duration (sec)', data.hypopneaMeanDuration]
+    ];
+    
+    const vitalSignsFields = [
       ['Heart Rate (NREM/REM)', data.heartRateNremRem],
       ['Desaturation Index (/hr)', data.desaturationIndex],
       ['% Time with O2 < 90%', data.timeO2Below90],
       ['% Time with O2 < 95%', data.timeO2Below95],
-      ['Lowest O2 / Average O2', data.lowestO2AverageO2],
+      ['Lowest O2 / Average O2', data.lowestO2AverageO2]
+    ];
+    
+    const additionalFields = [
       ['Arousal Index (/hr)', data.arousalIndex],
       ['Snoring (%)', data.snoring],
       ['Leg Movement Index (/hr)', data.legMovementIndex]
     ];
     
-    fields.forEach(([label, value]) => {
-      if (yPosition > 280) {
-        doc.addPage();
-        yPosition = 20;
-      }
-      
-      // Handle object values for PDF
-      let displayValue = value || '---';
-      if (typeof value === 'object' && value !== null) {
-        if (value.NREM !== undefined && value.REM !== undefined) {
-          displayValue = `NREM: ${value.NREM || '---'}, REM: ${value.REM || '---'}`;
-        } else if (value.lowest !== undefined && value.average !== undefined) {
-          displayValue = `${value.lowest || '---'} / ${value.average || '---'}`;
-        } else {
-          displayValue = JSON.stringify(value);
-        }
-      }
-      
-      doc.text(`${label}: ${displayValue}`, 20, yPosition);
-      yPosition += 10;
-    });
+    // Create sections
+    yPos = createSection('Sleep Timing & Equipment', sleepTimingFields, yPos);
+    yPos = createSection('Sleep Quality Metrics', sleepQualityFields, yPos);
+    yPos = createSection('Sleep Architecture', sleepStagesFields, yPos);
+    yPos = createSection('Respiratory Events', respiratoryFields, yPos);
+    yPos = createSection('Oxygen Saturation & Heart Rate', vitalSignsFields, yPos);
+    yPos = createSection('Additional Metrics', additionalFields, yPos);
     
-    // Add summary
-    if (data.summary && yPosition < 250) {
-      yPosition += 10;
-      doc.setFontSize(12);
-      doc.text('Summary:', 20, yPosition);
-      yPosition += 10;
-      doc.setFontSize(10);
-      const splitSummary = doc.splitTextToSize(data.summary, 170);
-      doc.text(splitSummary, 20, yPosition);
+    // Clinical Summary Section
+    if (data.summary) {
+      if (yPos > pageHeight - 80) {
+        doc.addPage();
+        yPos = 40;
+      }
+      
+      yPos += 10;
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.text('CLINICAL SUMMARY', margin, yPos);
+      
+      // Summary box
+      yPos += 10;
+      const summaryLines = doc.splitTextToSize(data.summary, contentWidth - 10);
+      const summaryHeight = summaryLines.length * 6 + 10;
+      
+      doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+      doc.roundedRect(margin, yPos, contentWidth, summaryHeight, 3, 3, 'F');
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.text(summaryLines, margin + 5, yPos + 8);
+    }
+    
+    // Footer with generation date and page numbers
+    const totalPages = (doc as any).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      
+      // Footer line
+      doc.setDrawColor(lightGray[0], lightGray[1], lightGray[2]);
+      doc.setLineWidth(0.5);
+      doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+      
+      // Footer text
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+      doc.text(`Generated on ${new Date().toLocaleDateString()}`, margin, pageHeight - 8);
+      doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 8);
     }
     
     doc.save(`sleep-study-report-${new Date().toISOString().split('T')[0]}.pdf`);
