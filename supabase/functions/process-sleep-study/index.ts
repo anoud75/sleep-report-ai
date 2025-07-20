@@ -29,57 +29,56 @@ serve(async (req) => {
 
     console.log('Processing file content length:', fileContent.length);
 
-    const prompt = `You are a medical AI specialist analyzing sleep study reports. You must extract EXACT numerical values from this sleep study report.
+    const prompt = `You are a medical AI specialist analyzing G3 sleep study reports. Extract EXACT values from specific sections as detailed below.
 
-CRITICAL INSTRUCTIONS:
-1. Search the ENTIRE document for each specific value
-2. Look for tabular format with "Events" and "Reports" columns
-3. Extract the EXACT numbers as they appear in the document
-4. Pay special attention to values in parentheses like (22.7/29.3) or slash formats like 58/59
-5. Do NOT make up or estimate values - only extract what is explicitly written
-6. For compound values like "23.7 (22.7/29.3)", extract the main number 23.7
-7. For ratio values like "25.2/15.35", extract both numbers
-8. For percentage values, extract the number without the % symbol
+🚫 CRITICAL RULES:
+1. Do NOT rely on color highlighting - extract from document structure only
+2. Only extract specific values listed below from their exact locations
+3. Do NOT calculate or include any value that is 0
+4. Extract EXACT numbers as they appear - do not estimate
+5. Look for tabular format with "Events" and "Reports" columns
 
-SPECIFIC SEARCH PATTERNS FOR THIS DOCUMENT FORMAT:
+📍 EXTRACTION LOCATIONS & RULES:
 
-Sleep Timing:
-- "Light off" → extract time (format: 10:01 PM)
-- "Light on" → extract time (format: 4:25 AM)  
-- "Time in Bed (min)" → extract number (384.1)
-- "Total Sleep Time (min)" → extract number (301)
+SLEEP TIMING (from "Study Information" section):
+- Light Off: Look for "Lights Off:" or "Light off" → extract time (e.g., "10:01 PM")
+- Light On: Look for "Lights On:" or "Light on" → extract time (e.g., "4:25 AM")
+- Time in Bed: Look for "Time in Bed" → extract minutes (e.g., "384.1")
+- Total Sleep Time: Look for "Total Sleep Time" → extract minutes (e.g., "301")
 
-Sleep Quality:
-- "Sleep Latency (min)" → extract number (27.5)
-- "REM Latency (min)" → extract number (279) - NOT 306.5!
-- "Sleep Efficiency (%)" → extract number (78.4)
+SLEEP QUALITY:
+- Sleep Latency: Extract from sleep latency field (e.g., "27.5")
+- REM Latency: Extract from REM latency field (e.g., "279")
+- Sleep Efficiency: Extract percentage (e.g., "78.4")
 
-Sleep Stages - Look for exact percentages:
-- "Sleep Stage 1 (%)" → extract number (3) - NOT 2.3!
-- "Sleep Stage 2 (%)" → extract number (76.2) - NOT 59.8!
-- "Slow Wave Sleep (%)" → extract number (14) - NOT 10.9!
-- "REM Sleep (%)" → extract number (6.8) - NOT 5.3!
+SLEEP STAGES (from "Sleep Stages" table):
+- Sleep Stage 1 (%): Extract exact percentage (e.g., "3")
+- Sleep Stage 2 (%): Extract exact percentage (e.g., "76.2")
+- Slow Wave Sleep (%): Extract exact percentage (e.g., "14")
+- REM Sleep (%): Extract exact percentage (e.g., "6.8")
 
-Respiratory Events - CRITICAL VALUES:
-- "AHI (NREM/REM)" → extract main number (23.7) - NOT 0.4!
-- "AHI (supine/lateral)" → extract values like "25.2/15.35"
-- "Central Apnea Index" → extract number (0)
-- "Obstructive Apnea Index (/hr)" → extract number (0.4)
-- "Mixed Apnea Index" → extract number (0)
-- "Hypopnea Index (/hr)" → extract number (23.3)
-- "Hypopnea Mean Duration (sec)" → extract number (17.55)
+RESPIRATORY EVENTS (from "Respiratory Events" table):
+- AHI (NREM/REM): Extract the main AHI value (e.g., "23.7" from "23.7 (22.7/29.3)")
+- AHI (Supine/Lateral): Extract supine value and lateral value (e.g., "25.2/15.35")
+- Central Apnea Index: Extract exact value
+- Obstructive Apnea Index: Extract exact value  
+- Mixed Apnea Index: Extract exact value
+- Hypopnea Index: Extract exact value
+- Hypopnea Mean Duration: Extract duration in seconds
 
-Heart Rate & Oxygen:
-- "Heart Rate (NREM/REM)" → extract values like "58/59"
-- "Desaturation Index (/hr)" → extract number (2.8)
-- "% Time with O2 < 90%" → extract number (0)
-- "% Time with O2 < 95%" → extract number (0.36)
-- "Lowest O2 /Average O2" → extract values like "92%/97%"
+OXYGEN & HEART RATE:
+- Heart Rate (NREM/REM): Extract both values (e.g., "58/59")
+- Desaturation Index: Extract exact value (e.g., "2.8")
+- % Time with O2 < 90%: Extract percentage (e.g., "0")
+- % Time with O2 < 95%: Extract percentage (e.g., "0.36")
+- Lowest O2/Average O2: Extract both values (e.g., "92%/97%")
 
-Other Metrics:
-- "Arousal Index (/hr)" → extract number (34.9)
-- "Snoring (%)" → extract number (2.7) - NOT 0.0!
-- "Leg Movement Index (/hr)" → extract number (2.8)
+OTHER METRICS:
+- Arousal Index: Extract from arousal events section (e.g., "34.9")
+- Snoring (%): Extract from snoring events (e.g., "2.7")
+- Leg Movement Index: Extract from limb movements (e.g., "2.8")
+
+CPAP/BPAP/O2: Look for any mention of CPAP, BPAP, or oxygen use. If not mentioned, use "---"
 
 Study Type: ${studyType}
 
@@ -117,7 +116,7 @@ Return ONLY valid JSON with these exact field names:
   "arousalIndex": "exact value (should be 34.9)",
   "snoring": "percentage (should be 2.7)",
   "legMovementIndex": "exact value (should be 2.8)",
-  "summary": "Brief clinical interpretation based on extracted values"
+  "summary": "Generate summary using this EXACT template: 'Overnight sleep study shows evidence of [Severity] Obstructive Sleep Apnea. The patient slept for a total sleep time of [X hours and Y minutes] with an AHI of [Z] events per hour associated with [minimal/significant] desaturation and repetitive sleep interruptions. However, she progressed into all sleep stages. Otherwise, no unusual events were noted.' Use these rules: AHI <5=Normal, 5-14.9=Mild, 15-29.9=Moderate, ≥30=Severe. Use 'significant' if lowest O2 <88% or Desaturation Index >15, else use 'minimal'. Convert total sleep time from minutes to hours+minutes format."
 }`;
 
     console.log('Sending request to OpenAI...');
