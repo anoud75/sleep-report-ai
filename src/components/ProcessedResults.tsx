@@ -5,6 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
+import { FeedbackDialog } from "@/components/FeedbackDialog";
+import { useState } from "react";
 
 interface ProcessedResultsProps {
   data: any;
@@ -13,6 +15,7 @@ interface ProcessedResultsProps {
 
 export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) => {
   const { toast } = useToast();
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF('portrait', 'mm', 'a4');
@@ -224,6 +227,9 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       title: "PDF Generated",
       description: "Your sleep study report has been downloaded.",
     });
+
+    // Show feedback dialog after PDF generation
+    setShowFeedback(true);
   };
 
   const handlePreviewReport = () => {
@@ -475,6 +481,13 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           </CardContent>
         </Card>
       )}
+
+      {/* Feedback Dialog */}
+      <FeedbackDialog 
+        isOpen={showFeedback}
+        onClose={() => setShowFeedback(false)}
+        reportData={data}
+      />
     </div>
   );
 };
