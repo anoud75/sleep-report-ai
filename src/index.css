@@ -9,24 +9,24 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 0%;
-    --foreground: 0 0% 95.7%;
+    --foreground: 0 0% 95%;
 
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 95.7%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 95.7%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 266 100% 70%;
-    --primary-foreground: 0 0% 95.7%;
+    --primary: 210 100% 60%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 163 100% 50%;
+    --secondary: 270 100% 70%;
     --secondary-foreground: 0 0% 0%;
 
-    --muted: 0 0% 8%;
-    --muted-foreground: 0 0% 63.9%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 188 100% 50%;
+    --accent: 140 100% 60%;
     --accent-foreground: 0 0% 0%;
 
     --destructive: 0 84.2% 60.2%;
@@ -178,51 +178,39 @@ All colors MUST be HSL.
 }
 
 @layer components {
-  .glass-card {
-    @apply bg-card/50 backdrop-blur-lg border border-border/50 rounded-lg shadow-[var(--shadow-violet)];
+  .neon-glow-button {
+    @apply bg-transparent border border-primary/50 text-foreground/90 relative overflow-hidden transition-all duration-300 ease-out;
   }
-  
-  .premium-card {
-    @apply bg-gradient-to-br from-card/20 to-card/10 backdrop-blur-md border border-border/30 rounded-xl shadow-2xl hover:shadow-[var(--shadow-blue)] transition-[var(--transition-smooth)];
+
+  .neon-glow-button::before {
+    @apply content-[''] absolute top-0 -left-full w-full h-full bg-gradient-to-r from-transparent via-primary/20 to-transparent transition-all duration-300;
   }
-  
-  .glow-card {
-    @apply bg-card/10 backdrop-blur-sm border border-primary/20 rounded-lg p-6 hover:border-primary/40 hover:shadow-[var(--shadow-violet)] transition-[var(--transition-smooth)];
+
+  .neon-glow-button:hover {
+    @apply border-primary text-foreground;
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
   }
-  
+
+  .neon-glow-button:hover::before {
+    @apply left-full;
+  }
+
   .feature-card {
-    @apply bg-card/5 backdrop-blur-sm border border-accent/20 rounded-lg p-6 hover:border-accent/40 hover:shadow-[var(--shadow-blue)] transition-[var(--transition-smooth)];
+    @apply bg-card/50 backdrop-blur-sm border border-border transition-all duration-300;
   }
-  
-  .hover-scale {
-    @apply transition-transform duration-300 hover:scale-105;
+
+  .feature-card:hover {
+    @apply border-primary/50;
+    box-shadow: 0 4px 20px hsl(0 0% 0% / 0.3);
   }
-  
-  .hover-glow {
-    @apply transition-all duration-300 hover:shadow-[var(--shadow-mint)];
+
+  .neon-text {
+    @apply text-foreground/90;
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.3);
   }
-  
-  .gradient-text {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
-  }
-  
-  .gradient-border {
-    @apply border-transparent bg-gradient-to-r from-primary to-accent bg-clip-border;
-  }
-  
-  .medical-text {
-    @apply text-muted-foreground leading-relaxed font-light;
-  }
-  
-  .glow-button {
-    @apply bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 hover:shadow-[var(--shadow-violet)] transition-[var(--transition-smooth)];
-  }
-  
-  .secondary-glow-button {
-    @apply bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 hover:border-secondary/50 hover:shadow-[var(--shadow-mint)] transition-[var(--transition-smooth)];
-  }
-  
-  .accent-glow-button {
-    @apply bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20 hover:border-accent/50 hover:shadow-[var(--shadow-blue)] transition-[var(--transition-smooth)];
+
+  .hero-text {
+    @apply text-foreground/95;
+    text-shadow: 0 2px 10px hsl(0 0% 0% / 0.5);
   }
 }

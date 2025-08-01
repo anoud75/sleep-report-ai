@@ -23,17 +23,17 @@ const studyTypes = [
     name: 'Titration',
     description: 'CPAP therapy used throughout the night',
     icon: Zap,
-    bgColor: 'bg-primary/10',
-    iconColor: 'text-primary',
+    bgColor: 'bg-secondary/10',
+    iconColor: 'text-secondary',
     details: ['CPAP pressure optimization', 'Leak assessment', 'Efficacy evaluation']
   },
   {
     id: 'Split-Night',
-    name: 'Split-Night',
+    name: 'Split Night',
     description: 'Hybrid study combining diagnostic and CPAP phases',
     icon: GitBranch,
-    bgColor: 'bg-primary/10',
-    iconColor: 'text-primary',
+    bgColor: 'bg-accent/10',
+    iconColor: 'text-accent',
     details: ['Initial diagnostic phase', 'CPAP titration phase', 'Combined analysis']
   }
 ];
