@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StudyTypeSelector } from "@/components/StudyTypeSelector";
 import { FileUpload } from "@/components/FileUpload";
 import { ProcessedResults } from "@/components/ProcessedResults";
-import heroImage from "@/assets/hero-bg.jpg";
+import heroBackground from "@/assets/hero-video-bg.jpg";
 
 const Index = () => {
   const [selectedStudyType, setSelectedStudyType] = useState('');
@@ -40,7 +40,7 @@ const Index = () => {
         {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroImage})` }}
+          style={{ backgroundImage: `url(${heroBackground})` }}
         >
           <div className="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]" />
         </div>
