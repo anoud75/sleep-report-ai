@@ -58,7 +58,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           return (
             <Card
               key={type.id}
-              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] min-h-[200px] ${
+              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] h-48 ${
                 isSelected 
                   ? 'ring-2 ring-primary shadow-lg scale-[1.02]' 
                   : 'hover:border-primary/50'
@@ -66,32 +66,32 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
               onClick={() => onTypeSelect(type.id)}
             >
               <CardContent className="p-0 relative overflow-hidden h-full flex flex-col">
-                {/* Clean Header */}
-                <div className={`flex-shrink-0 relative ${type.bgColor} border-b border-border`}>
-                  <div className="p-4 flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2.5 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
-                        <Icon className={`h-5 w-5 ${type.iconColor}`} />
+                {/* Header */}
+                <div className={`flex-shrink-0 relative ${type.bgColor} border-b border-border p-3`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="p-1.5 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
+                        <Icon className={`h-4 w-4 ${type.iconColor}`} />
                       </div>
-                      <h4 className="font-semibold text-base text-foreground">{type.name}</h4>
+                      <h4 className="font-semibold text-sm text-foreground">{type.name}</h4>
                     </div>
                     {isSelected && (
-                      <div className="w-3 h-3 bg-primary rounded-full shadow-sm"></div>
+                      <div className="w-2 h-2 bg-primary rounded-full shadow-sm"></div>
                     )}
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-4 flex-1">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                <div className="p-4 space-y-3 flex-1">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     {type.description}
                   </p>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {type.details.map((detail, index) => (
-                      <div key={index} className="flex items-start space-x-3">
-                        <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
-                        <span className="text-sm text-muted-foreground leading-relaxed">{detail}</span>
+                      <div key={index} className="flex items-start space-x-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
+                        <span className="text-xs text-muted-foreground leading-relaxed">{detail}</span>
                       </div>
                     ))}
                   </div>
