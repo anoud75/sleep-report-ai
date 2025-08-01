@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StudyTypeSelector } from "@/components/StudyTypeSelector";
 import { FileUpload } from "@/components/FileUpload";
 import { ProcessedResults } from "@/components/ProcessedResults";
+// import heroVideo from "@/assets/hero-video.mp4"; // Add your video file here
 import heroBackground from "@/assets/hero-video-bg.jpg";
 
 const Index = () => {
@@ -37,11 +38,24 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Hero Section */}
       <section className="relative h-screen flex items-end">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroBackground})` }}
-        >
+        {/* Background Video - Replace with your video file */}
+        <div className="absolute inset-0">
+          {/* Uncomment and add your video file:
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src={heroVideo} type="video/mp4" />
+          </video> */}
+          
+          {/* Fallback background image */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${heroBackground})` }}
+          />
           <div className="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]" />
         </div>
         
