@@ -56,11 +56,14 @@ const Index = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
-                ● AI-Powered
-              </Badge>
               <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                ● Ready
+                🛡️ HIPAA Compliant
+              </Badge>
+              <Badge variant="secondary" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                ⚡ 5-Second Processing
+              </Badge>
+              <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
+                🎯 99.8% Accuracy
               </Badge>
             </div>
           </div>
@@ -88,19 +91,6 @@ const Index = () => {
                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight hero-text bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 bg-clip-text text-transparent">
                   AI Sleep Report Analysis.
                 </h1>
-                
-                {/* Trust Badges - moved to better position */}
-                <div className="flex flex-wrap gap-3 pt-6 pb-4">
-                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-4 py-2 text-sm font-medium">
-                    🛡️ HIPAA Compliant
-                  </Badge>
-                  <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 px-4 py-2 text-sm font-medium">
-                    ⚡ 5-Second Processing
-                  </Badge>
-                  <Badge className="bg-green-500/20 text-green-300 border-green-500/30 px-4 py-2 text-sm font-medium">
-                    🎯 99.8% Accuracy
-                  </Badge>
-                </div>
                 
                 <p className="text-lg text-white/80 max-w-2xl leading-relaxed">
                   Sleep Report AI is a web-based tool that helps sleep centers turn long, technical sleep study reports from G3 and other platforms into clean, accurate 2-page summaries in seconds.
