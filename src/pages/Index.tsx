@@ -47,7 +47,10 @@ const Index = () => {
           <div className="container mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Heart className="h-6 w-6 text-white" />
+                <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                  <path d="M2 12c2-3 4-5 6-6 2 1 4 3 4 6 0-3 2-5 4-6 2 1 4 3 6 6"/>
+                </svg>
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">Sleep Report AI</h2>
@@ -88,12 +91,16 @@ const Index = () => {
           <div className="container mx-auto px-6 pb-20">
             <div className="max-w-4xl">
               <div className="space-y-6">
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight hero-text">
-                  AI Sleep Report Analysis.
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight hero-text bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 bg-clip-text text-transparent">
+                  AI-Powered
+                  <br />
+                  <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Sleep Study</span>
+                  <br />
+                  Analysis
                 </h1>
                 
-                <p className="text-lg text-white/80 max-w-2xl leading-relaxed">
-                  Sleep Report AI is a web-based tool that helps sleep centers turn long, technical sleep study reports from G3 and other platforms into clean, accurate 2-page summaries in seconds.
+                <p className="text-lg text-white/70 max-w-2xl leading-relaxed">
+                  Transform complex sleep data into precise, clinical insights. Our AI whispers through data in the dark, delivering professional reports in seconds.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 pt-8">
@@ -164,8 +171,8 @@ const Index = () => {
       <section id="upload-section" className="py-20 bg-background" style={{ marginTop: '80px' }}>
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="text-center space-y-4 mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold neon-text">
-              Begin Your Analysis
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Begin Your <span className="bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent">Analysis</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Upload your sleep report and select the type.
