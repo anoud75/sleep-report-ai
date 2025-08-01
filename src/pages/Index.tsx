@@ -81,15 +81,13 @@ const Index = () => {
             <div className="max-w-2xl">
               <div className="space-y-8">
                 <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-                  <span className="text-white">AI-Powered</span>
-                  <br />
-                  <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Sleep Study</span>
+                  <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">AI Sleep Report</span>
                   <br />
                   <span className="text-white">Analysis</span>
                 </h1>
                 
                 <p className="text-lg text-white/70 leading-relaxed">
-                  Transform complex sleep data into precise, clinical insights. Our AI whispers through data in the dark, delivering professional reports in seconds.
+                  Sleep Report AI is a web-based tool that helps sleep centers turn long, technical sleep study reports from G3 and other platforms into clean, accurate 2-page summaries in seconds.
                 </p>
                 
                 <div className="flex items-center gap-6 pt-4">
@@ -125,11 +123,11 @@ const Index = () => {
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-4xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              <span className="text-white">Digital Sleep Lab </span>
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Intelligence</span>
+              <span className="text-white">How It </span>
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Works</span>
             </h2>
             <p className="text-lg text-white/70">
-              Advanced AI algorithms designed for clinical precision and seamless integration into your medical practice workflow.
+              Transform your sleep study reporting workflow with automated processing.
             </p>
           </div>
           
@@ -137,23 +135,71 @@ const Index = () => {
             <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 text-center">
               <div className="mx-auto w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center mb-6">
                 <svg className="h-8 w-8 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
-                  <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14,2 14,8 20,8"></polyline>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">AI Analysis</h3>
+              <h3 className="text-xl font-semibold text-white mb-3">Smart Reading</h3>
               <p className="text-white/70">
-                Deep learning models trained on thousands of sleep studies for unparalleled accuracy and insight.
+                Reads .docx reports from G3 and other systems automatically
               </p>
             </div>
 
             <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 text-center">
               <div className="mx-auto w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mb-6">
-                <Shield className="h-8 w-8 text-green-400" />
+                <svg className="h-8 w-8 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="9,11 12,14 22,4"></polyline>
+                  <path d="m21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.73 0 3.34.49 4.71 1.34"></path>
+                </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">HIPAA Compliant</h3>
+              <h3 className="text-xl font-semibold text-white mb-3">Key Value Extraction</h3>
               <p className="text-white/70">
-                Enterprise-grade security ensuring patient data protection and regulatory compliance.
+                Finds key values (AHI, sleep time, oxygen, arousals…) precisely
+              </p>
+            </div>
+
+            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 text-center">
+              <div className="mx-auto w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-6">
+                <svg className="h-8 w-8 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14,2 14,8 20,8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10,9 9,9 8,9"></polyline>
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Professional Summary</h3>
+              <p className="text-white/70">
+                Writes a professional summary based on study type
+              </p>
+            </div>
+
+            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 text-center">
+              <div className="mx-auto w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center mb-6">
+                <svg className="h-8 w-8 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="m16 3 4 4-4 4"></path>
+                  <path d="M20 7H4"></path>
+                  <path d="m8 21-4-4 4-4"></path>
+                  <path d="M4 17h16"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Review & Edit</h3>
+              <p className="text-white/70">
+                Lets users review and edit the final report before saving
+              </p>
+            </div>
+
+            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 text-center">
+              <div className="mx-auto w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mb-6">
+                <svg className="h-8 w-8 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14,2 14,8 20,8"></polyline>
+                  <line x1="9" y1="15" x2="15" y2="15"></line>
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">PDF Generation</h3>
+              <p className="text-white/70">
+                Generates a clean, ready-to-print PDF in seconds
               </p>
             </div>
 
@@ -161,9 +207,9 @@ const Index = () => {
               <div className="mx-auto w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-6">
                 <Zap className="h-8 w-8 text-blue-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">Instant Results</h3>
+              <h3 className="text-xl font-semibold text-white mb-3">Time Savings</h3>
               <p className="text-white/70">
-                Generate comprehensive reports in seconds, not hours. Streamline your diagnostic workflow.
+                Fast, consistent, professional reports with no manual work
               </p>
             </div>
           </div>
@@ -193,21 +239,17 @@ const Index = () => {
                 onTypeSelect={setSelectedStudyType}
               />
               
-              {/* Quick Stats */}
+              {/* Who It's For */}
               <div className="mt-12 bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Quick Stats</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/70">Reports Processed</span>
-                    <span className="text-green-400 font-semibold">{reportCount}</span>
+                <h4 className="text-lg font-semibold text-white mb-4">Who It's For</h4>
+                <div className="space-y-4">
+                  <div>
+                    <h5 className="text-white font-medium mb-1">Sleep Centers</h5>
+                    <p className="text-white/70 text-sm">Reduce workload and improve accuracy with automated reports</p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/70">Average Processing Time</span>
-                    <span className="text-blue-400 font-semibold">&lt; 30 seconds</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/70">Accuracy Rate</span>
-                    <span className="text-purple-400 font-semibold">99.7%</span>
+                  <div>
+                    <h5 className="text-white font-medium mb-1">Hospital Units</h5>
+                    <p className="text-white/70 text-sm">Generate consistent reports instantly without manual effort</p>
                   </div>
                 </div>
               </div>
@@ -224,73 +266,62 @@ const Index = () => {
               {/* Supported Studies */}
               <div className="mt-8">
                 <h4 className="text-lg font-semibold text-white mb-4">Supported Studies</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                    <span className="text-white/70">PSG Studies</span>
+                    <div>
+                      <span className="text-white font-medium">PSG – Diagnostic Studies</span>
+                      <p className="text-white/70 text-sm">Complete polysomnography</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span className="text-white/70">Home Sleep Tests</span>
+                    <div>
+                      <span className="text-white font-medium">TIT – CPAP Titration</span>
+                      <p className="text-white/70 text-sm">Pressure optimization</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                    <span className="text-white/70">Split Night</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                    <span className="text-white/70">MSLT Studies</span>
+                    <div>
+                      <span className="text-white font-medium">SPL – Split-Night</span>
+                      <p className="text-white/70 text-sm">Hybrid diagnostic + titration</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          
+          {/* Second Start Analysis Button */}
+          <div className="text-center mt-16">
+            <button 
+              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+              onClick={scrollToUpload}
+            >
+              Start Analysis
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* Trust Section */}
-      <section className="py-20 bg-black">
-        <div className="container mx-auto px-6 text-center">
-          <div className="max-w-4xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              <span className="text-white">Trusted by </span>
-              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 bg-clip-text text-transparent">Leading Medical Centers</span>
-            </h2>
-            <p className="text-lg text-white/70">
-              Sleep Report AI is trusted by sleep medicine professionals worldwide for accurate, reliable, and fast sleep study analysis.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 text-center">
-              <div className="mx-auto w-12 h-12 mb-4 flex items-center justify-center">
-                <svg className="h-8 w-8 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12,6 12,12 16,14"/>
-                </svg>
-              </div>
-              <div className="text-3xl font-bold text-white mb-2">10,000+</div>
-              <div className="text-white/70">Studies Analyzed</div>
+      {/* Footer Tags */}
+      <section className="py-12 bg-black border-t border-gray-800">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-wrap justify-center gap-8 text-center">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-green-400" />
+              <span className="text-white/70">🔒 HIPAA Compliant</span>
             </div>
-
-            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 text-center">
-              <div className="mx-auto w-12 h-12 mb-4 flex items-center justify-center">
-                <svg className="h-8 w-8 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="m22 21-3-3m0 0a2 2 0 0 0-3-3 2 2 0 0 0 3 3Z"/>
-                </svg>
-              </div>
-              <div className="text-3xl font-bold text-white mb-2">500+</div>
-              <div className="text-white/70">Medical Centers</div>
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-blue-400" />
+              <span className="text-white/70">⚡ 5-Second Processing</span>
             </div>
-
-            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 text-center">
-              <div className="mx-auto w-12 h-12 mb-4 flex items-center justify-center">
-                <Shield className="h-8 w-8 text-blue-400" />
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-purple-400/20 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-purple-400"></div>
               </div>
-              <div className="text-3xl font-bold text-white mb-2">99.7%</div>
-              <div className="text-white/70">Accuracy Rate</div>
+              <span className="text-white/70">🎯 99.8% Accuracy</span>
             </div>
           </div>
         </div>
