@@ -179,16 +179,17 @@ All colors MUST be HSL.
 
 @layer components {
   .neon-glow-button {
-    @apply bg-transparent border border-primary/50 text-foreground/90 relative overflow-hidden transition-all duration-300 ease-out;
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 border border-blue-500/50 text-white relative overflow-hidden transition-all duration-300 ease-out;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
   }
 
   .neon-glow-button::before {
-    @apply content-[''] absolute top-0 -left-full w-full h-full bg-gradient-to-r from-transparent via-primary/20 to-transparent transition-all duration-300;
+    @apply content-[''] absolute top-0 -left-full w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-all duration-300;
   }
 
   .neon-glow-button:hover {
-    @apply border-primary text-foreground;
-    box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
+    @apply border-blue-400 transform scale-105;
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.6), 0 0 80px hsl(var(--primary) / 0.3);
   }
 
   .neon-glow-button:hover::before {
@@ -196,12 +197,13 @@ All colors MUST be HSL.
   }
 
   .feature-card {
-    @apply bg-card/50 backdrop-blur-sm border border-border transition-all duration-300;
+    @apply bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-sm border border-gray-700/50 transition-all duration-300;
+    box-shadow: 0 4px 20px hsl(0 0% 0% / 0.5);
   }
 
   .feature-card:hover {
-    @apply border-primary/50;
-    box-shadow: 0 4px 20px hsl(0 0% 0% / 0.3);
+    @apply border-blue-500/50 transform -translate-y-1;
+    box-shadow: 0 8px 30px hsl(0 0% 0% / 0.7), 0 0 30px hsl(var(--primary) / 0.2);
   }
 
   .neon-text {
