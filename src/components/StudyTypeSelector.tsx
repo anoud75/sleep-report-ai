@@ -58,7 +58,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           return (
             <Card
               key={type.id}
-              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] aspect-square ${
+              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] h-40 ${
                 isSelected 
                   ? 'ring-2 ring-primary shadow-lg scale-[1.02]' 
                   : 'hover:border-primary/50'
@@ -67,30 +67,30 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
             >
               <CardContent className="p-0 relative overflow-hidden h-full flex flex-col">
                 {/* Clean Header */}
-                <div className={`flex-shrink-0 relative ${type.bgColor} border-b border-border p-6`}>
+                <div className={`flex-shrink-0 relative ${type.bgColor} border-b border-border p-4`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="p-2 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
-                        <Icon className={`h-5 w-5 ${type.iconColor}`} />
+                        <Icon className={`h-4 w-4 ${type.iconColor}`} />
                       </div>
                       <h4 className="font-semibold text-sm text-foreground">{type.name}</h4>
                     </div>
                     {isSelected && (
-                      <div className="w-3 h-3 bg-primary rounded-full shadow-sm"></div>
+                      <div className="w-2 h-2 bg-primary rounded-full shadow-sm"></div>
                     )}
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-4 space-y-3 flex-1 flex flex-col justify-center">
-                  <p className="text-xs text-muted-foreground leading-relaxed text-center">
+                <div className="p-3 space-y-2 flex-1 flex flex-col justify-center">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     {type.description}
                   </p>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {type.details.map((detail, index) => (
                       <div key={index} className="flex items-start space-x-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
+                        <div className="w-1 h-1 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
                         <span className="text-xs text-muted-foreground leading-relaxed">{detail}</span>
                       </div>
                     ))}

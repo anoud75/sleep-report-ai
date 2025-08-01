@@ -301,15 +301,17 @@ const Index = () => {
                 selectedStudyType={selectedStudyType}
               />
               
-              {/* Start Analysis Button - Moved closer to upload */}
-              <div className="text-center mt-8">
-                <button 
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
-                  onClick={scrollToUpload}
-                >
-                  Start Analysis
-                </button>
-              </div>
+              {/* Start Analysis Button - Show only when file is uploaded and ready */}
+              {selectedStudyType && (
+                <div className="text-center mt-8">
+                  <button 
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+                    onClick={scrollToUpload}
+                  >
+                    Start Analysis
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
