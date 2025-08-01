@@ -238,21 +238,6 @@ const Index = () => {
                 selectedType={selectedStudyType}
                 onTypeSelect={setSelectedStudyType}
               />
-              
-              {/* Who It's For */}
-              <div className="mt-12 bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Who It's For</h4>
-                <div className="space-y-4">
-                  <div>
-                    <h5 className="text-white font-medium mb-1">Sleep Centers</h5>
-                    <p className="text-white/70 text-sm">Reduce workload and improve accuracy with automated reports</p>
-                  </div>
-                  <div>
-                    <h5 className="text-white font-medium mb-1">Hospital Units</h5>
-                    <p className="text-white/70 text-sm">Generate consistent reports instantly without manual effort</p>
-                  </div>
-                </div>
-              </div>
             </div>
             
             {/* Upload Section */}
@@ -263,44 +248,62 @@ const Index = () => {
                 selectedStudyType={selectedStudyType}
               />
               
-              {/* Supported Studies */}
-              <div className="mt-8">
-                <h4 className="text-lg font-semibold text-white mb-4">Supported Studies</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                    <div>
-                      <span className="text-white font-medium">PSG – Diagnostic Studies</span>
-                      <p className="text-white/70 text-sm">Complete polysomnography</p>
-                    </div>
+              {/* Start Analysis Button - Moved closer to upload */}
+              <div className="text-center mt-8">
+                <button 
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+                  onClick={scrollToUpload}
+                >
+                  Start Analysis
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Grid - Supported Studies and Who It's For */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto mt-20">
+            {/* Supported Studies */}
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-4">Supported Studies</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                  <div>
+                    <span className="text-white font-medium">PSG – Diagnostic Studies</span>
+                    <p className="text-white/70 text-sm">Complete polysomnography</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <div>
-                      <span className="text-white font-medium">TIT – CPAP Titration</span>
-                      <p className="text-white/70 text-sm">Pressure optimization</p>
-                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <div>
+                    <span className="text-white font-medium">TIT – CPAP Titration</span>
+                    <p className="text-white/70 text-sm">Pressure optimization</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                    <div>
-                      <span className="text-white font-medium">SPL – Split-Night</span>
-                      <p className="text-white/70 text-sm">Hybrid diagnostic + titration</p>
-                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <div>
+                    <span className="text-white font-medium">SPL – Split-Night</span>
+                    <p className="text-white/70 text-sm">Hybrid diagnostic + titration</p>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          {/* Second Start Analysis Button */}
-          <div className="text-center mt-16">
-            <button 
-              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
-              onClick={scrollToUpload}
-            >
-              Start Analysis
-            </button>
+
+            {/* Who It's For */}
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-4">Who It's For</h4>
+              <div className="space-y-4">
+                <div>
+                  <h5 className="text-white font-medium mb-1">Sleep Centers</h5>
+                  <p className="text-white/70 text-sm">Reduce workload and improve accuracy with automated reports</p>
+                </div>
+                <div>
+                  <h5 className="text-white font-medium mb-1">Hospital Units</h5>
+                  <p className="text-white/70 text-sm">Generate consistent reports instantly without manual effort</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
