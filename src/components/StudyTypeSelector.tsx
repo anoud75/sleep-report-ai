@@ -50,7 +50,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
         )}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {studyTypes.map((type) => {
           const Icon = type.icon;
           const isSelected = selectedType === type.id;
@@ -58,22 +58,22 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           return (
             <Card
               key={type.id}
-              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${
+              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] min-h-[200px] ${
                 isSelected 
                   ? 'ring-2 ring-primary shadow-lg scale-[1.02]' 
                   : 'hover:border-primary/50'
               }`}
               onClick={() => onTypeSelect(type.id)}
             >
-              <CardContent className="p-0 relative overflow-hidden">
+              <CardContent className="p-0 relative overflow-hidden h-full">
                 {/* Clean Header */}
-                <div className={`h-16 relative ${type.bgColor} border-b border-border`}>
-                  <div className="absolute top-3 left-4 right-4 flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
-                        <Icon className={`h-5 w-5 ${type.iconColor}`} />
+                <div className={`h-18 relative ${type.bgColor} border-b border-border`}>
+                  <div className="absolute top-4 left-6 right-6 flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="p-3 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
+                        <Icon className={`h-6 w-6 ${type.iconColor}`} />
                       </div>
-                      <h4 className="font-semibold text-sm text-foreground">{type.name}</h4>
+                      <h4 className="font-semibold text-base text-foreground">{type.name}</h4>
                     </div>
                     {isSelected && (
                       <div className="w-3 h-3 bg-primary rounded-full shadow-sm"></div>
@@ -82,16 +82,16 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                 </div>
 
                 {/* Content */}
-                <div className="p-4 space-y-3">
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+                <div className="p-6 space-y-4 flex-1">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {type.description}
                   </p>
                   
-                  <div className="space-y-1">
+                  <div className="space-y-3">
                     {type.details.map((detail, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                        <span className="text-xs text-muted-foreground">{detail}</span>
+                      <div key={index} className="flex items-start space-x-3">
+                        <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
+                        <span className="text-sm text-muted-foreground leading-relaxed">{detail}</span>
                       </div>
                     ))}
                   </div>

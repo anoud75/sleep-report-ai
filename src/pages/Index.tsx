@@ -58,6 +58,24 @@ const Index = () => {
                 <p className="text-sm text-white/70">Smarter reporting for sleep centers</p>
               </div>
             </div>
+            
+            {/* Header Badges */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 bg-blue-500/20 px-3 py-1.5 rounded-full border border-blue-500/30">
+                <Shield className="h-4 w-4 text-blue-400" />
+                <span className="text-sm text-blue-300 font-medium">HIPAA Compliant</span>
+              </div>
+              <div className="flex items-center gap-2 bg-purple-500/20 px-3 py-1.5 rounded-full border border-purple-500/30">
+                <Zap className="h-4 w-4 text-purple-400" />
+                <span className="text-sm text-purple-300 font-medium">5-Second Processing</span>
+              </div>
+              <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1.5 rounded-full border border-green-500/30">
+                <div className="w-4 h-4 rounded-full bg-green-400/20 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                </div>
+                <span className="text-sm text-green-300 font-medium">99.8% Accuracy</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -216,6 +234,31 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Who It's For Section */}
+      <section className="py-20 bg-black">
+        <div className="container mx-auto px-6">
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold">
+              <span className="text-white">Who It's </span>
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">For</span>
+            </h2>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div>
+                <h5 className="text-white font-semibold text-xl mb-4">Sleep Centers</h5>
+                <p className="text-white/70 text-lg leading-relaxed">Reduce workload and improve accuracy with automated reports</p>
+              </div>
+              <div>
+                <h5 className="text-white font-semibold text-xl mb-4">Hospital Units</h5>
+                <p className="text-white/70 text-lg leading-relaxed">Generate consistent reports instantly without manual effort</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Upload Section */}
       <section id="upload-section" className="py-20 bg-black">
         <div className="container mx-auto px-6">
@@ -260,51 +303,6 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Bottom Grid - Supported Studies and Who It's For */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto mt-20">
-            {/* Supported Studies */}
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-4">Supported Studies</h4>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                  <div>
-                    <span className="text-white font-medium">PSG – Diagnostic Studies</span>
-                    <p className="text-white/70 text-sm">Complete polysomnography</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <div>
-                    <span className="text-white font-medium">TIT – CPAP Titration</span>
-                    <p className="text-white/70 text-sm">Pressure optimization</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                  <div>
-                    <span className="text-white font-medium">SPL – Split-Night</span>
-                    <p className="text-white/70 text-sm">Hybrid diagnostic + titration</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Who It's For */}
-            <div>
-              <h4 className="text-lg font-semibold text-white mb-4">Who It's For</h4>
-              <div className="space-y-4">
-                <div>
-                  <h5 className="text-white font-medium mb-1">Sleep Centers</h5>
-                  <p className="text-white/70 text-sm">Reduce workload and improve accuracy with automated reports</p>
-                </div>
-                <div>
-                  <h5 className="text-white font-medium mb-1">Hospital Units</h5>
-                  <p className="text-white/70 text-sm">Generate consistent reports instantly without manual effort</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
