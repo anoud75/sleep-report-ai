@@ -11,6 +11,7 @@ const Index = () => {
   const [selectedStudyType, setSelectedStudyType] = useState('');
   const [processedData, setProcessedData] = useState(null);
   const [reportCount, setReportCount] = useState(0);
+  const [hasUploadedFile, setHasUploadedFile] = useState(false);
 
   const handleFileProcessed = (data: any) => {
     setProcessedData(data);
@@ -20,6 +21,7 @@ const Index = () => {
   const handleNewReport = () => {
     setProcessedData(null);
     setReportCount(0);
+    setHasUploadedFile(false);
   };
 
   const scrollToUpload = () => {
@@ -299,10 +301,11 @@ const Index = () => {
               <FileUpload
                 onFileProcessed={handleFileProcessed}
                 selectedStudyType={selectedStudyType}
+                onFileUploaded={setHasUploadedFile}
               />
               
-              {/* Start Analysis Button - Show only when file is uploaded and ready */}
-              {selectedStudyType && (
+              {/* Start Analysis Button - Show only when file is uploaded */}
+              {hasUploadedFile && selectedStudyType && (
                 <div className="text-center mt-8">
                   <button 
                     className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"

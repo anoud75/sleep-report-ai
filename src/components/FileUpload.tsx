@@ -10,9 +10,10 @@ import mammoth from 'mammoth';
 interface FileUploadProps {
   onFileProcessed: (data: any) => void;
   selectedStudyType: string;
+  onFileUploaded?: (hasFile: boolean) => void;
 }
 
-export const FileUpload = ({ onFileProcessed, selectedStudyType }: FileUploadProps) => {
+export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded }: FileUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -124,6 +125,7 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType }: FileUploadPro
 
       setFile(droppedFile);
       setError(null);
+      onFileUploaded?.(true);
     }
   }, []);
 
@@ -139,6 +141,7 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType }: FileUploadPro
 
       setFile(selectedFile);
       setError(null);
+      onFileUploaded?.(true);
     }
   };
 
@@ -158,6 +161,7 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType }: FileUploadPro
     setProgress(0);
     setError(null);
     setSuccess(false);
+    onFileUploaded?.(false);
   };
 
   return (
