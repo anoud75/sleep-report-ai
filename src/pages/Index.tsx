@@ -85,13 +85,9 @@ const Index = () => {
           <div className="container mx-auto px-6 pb-20">
             <div className="max-w-4xl">
               <div className="space-y-6">
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight hero-text">
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight hero-text bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 bg-clip-text text-transparent">
                   AI Sleep Report Analysis.
                 </h1>
-                
-                <p className="text-xl md:text-2xl hero-text max-w-3xl leading-relaxed font-light">
-                  Upload your file. Get a clean summary. <span className="text-blue-400">Instantly.</span>
-                </p>
                 
                 <p className="text-lg text-white/80 max-w-2xl leading-relaxed">
                   Sleep Report AI is a web-based tool that helps sleep centers turn long, technical sleep study reports from G3 and other platforms into clean, accurate 2-page summaries in seconds.
