@@ -245,13 +245,23 @@ const Index = () => {
           </div>
           
           <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              <div>
-                <h5 className="text-white font-semibold text-xl mb-4">Sleep Centers</h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
+                    <Heart className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <h5 className="text-white font-semibold text-xl">Sleep Centers</h5>
+                </div>
                 <p className="text-white/70 text-lg leading-relaxed">Reduce workload and improve accuracy with automated reports</p>
               </div>
-              <div>
-                <h5 className="text-white font-semibold text-xl mb-4">Hospital Units</h5>
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center">
+                    <Activity className="h-6 w-6 text-purple-400" />
+                  </div>
+                  <h5 className="text-white font-semibold text-xl">Hospital Units</h5>
+                </div>
                 <p className="text-white/70 text-lg leading-relaxed">Generate consistent reports instantly without manual effort</p>
               </div>
             </div>
@@ -306,27 +316,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer Tags */}
-      <section className="py-12 bg-black border-t border-gray-800">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-wrap justify-center gap-8 text-center">
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-green-400" />
-              <span className="text-white/70">🔒 HIPAA Compliant</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-blue-400" />
-              <span className="text-white/70">⚡ 5-Second Processing</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-purple-400/20 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-              </div>
-              <span className="text-white/70">🎯 99.8% Accuracy</span>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

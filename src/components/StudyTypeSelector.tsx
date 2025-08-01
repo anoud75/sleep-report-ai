@@ -50,7 +50,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
         )}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {studyTypes.map((type) => {
           const Icon = type.icon;
           const isSelected = selectedType === type.id;
@@ -58,7 +58,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           return (
             <Card
               key={type.id}
-              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] min-h-[200px] ${
+              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] min-h-[280px] ${
                 isSelected 
                   ? 'ring-2 ring-primary shadow-lg scale-[1.02]' 
                   : 'hover:border-primary/50'
@@ -82,15 +82,15 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-4 flex-1">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                <div className="p-8 space-y-6 flex-1">
+                  <p className="text-base text-muted-foreground leading-relaxed">
                     {type.description}
                   </p>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {type.details.map((detail, index) => (
-                      <div key={index} className="flex items-start space-x-3">
-                        <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
+                      <div key={index} className="flex items-start space-x-4">
+                        <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
                         <span className="text-sm text-muted-foreground leading-relaxed">{detail}</span>
                       </div>
                     ))}
