@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Activity, Clock, FileText } from "lucide-react";
-import { FileUpload } from "@/components/FileUpload";
+import { useState } from "react";
+import { Upload, Brain, Shield, Zap, Clock, Award, ArrowRight, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { StudyTypeSelector } from "@/components/StudyTypeSelector";
+import { FileUpload } from "@/components/FileUpload";
 import { ProcessedResults } from "@/components/ProcessedResults";
+import heroImage from "@/assets/hero-bg.jpg";
 
 const Index = () => {
   const [selectedStudyType, setSelectedStudyType] = useState('');
@@ -21,287 +22,243 @@ const Index = () => {
     setSelectedStudyType('');
   };
 
+  if (processedData) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <ProcessedResults 
+          data={processedData} 
+          onNewReport={handleNewReport}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="bg-primary p-3 rounded-xl shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] transition-shadow duration-200">
-                <Activity className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold gradient-text">Sleep Report AI</h1>
-                <p className="text-sm professional-text">Smarter reporting for sleep centers</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="trust-badge">
-                <div className="w-2 h-2 bg-success rounded-full mr-2 animate-pulse"></div>
-                AI-Powered
-              </div>
-              <Badge variant="secondary" className="px-3 py-1 hover-scale">
-                <Clock className="h-3 w-3 mr-1" />
-                Ready
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="max-w-5xl mx-auto text-center space-y-8">
-          <div className="space-y-4">
-            <div className="flex justify-center space-x-4 mb-6">
-              <div className="trust-badge">
-                <span className="text-xs">🔒 HIPAA Compliant</span>
-              </div>
-              <div className="trust-badge">
-                <span className="text-xs">⚡ 5-Second Processing</span>
-              </div>
-              <div className="trust-badge">
-                <span className="text-xs">🎯 99.8% Accuracy</span>
-              </div>
-            </div>
-            <h2 className="text-5xl font-bold gradient-text mb-6 leading-tight">
-              Transform sleep studies into clean summaries instantly
-            </h2>
-          </div>
-          
-          <div className="max-w-4xl mx-auto space-y-6">
-            <p className="text-xl professional-text mb-8 leading-relaxed">
-              Sleep Report AI is a web-based tool that helps sleep centers turn long, technical sleep study reports from G3 and other platforms into clean, accurate 2-page summaries in seconds.
-            </p>
-            <div className="premium-card p-6 rounded-xl">
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Instead of manually going through 20+ pages, extracting values, and writing the final summary, the AI does it for you. Just upload the report, review the AI-generated summary, and download your final PDF.
-              </p>
-            </div>
+      <section className="relative h-screen flex items-end">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroImage})` }}
+        >
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]" />
+        </div>
+        
+        {/* Logo */}
+        <div className="absolute top-8 left-8 z-20">
+          <div className="flex items-center space-x-2">
+            <Brain className="h-8 w-8 text-secondary" />
+            <span className="text-xl font-bold text-soft-white">Sleep Report AI</span>
           </div>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-          <Card className="glass-card hover-scale">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2">
-                <FileText className="h-5 w-5 text-primary" />
-                <span>Smart Reading</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Reads .docx reports from G3 and other sleep systems automatically
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card hover-scale">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2">
-                <Activity className="h-5 w-5 text-primary" />
-                <span>Key Value Extraction</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Finds key values (AHI, sleep time, oxygen, arousals…) precisely
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card hover-scale">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2">
-                <FileText className="h-5 w-5 text-primary" />
-                <span>Professional Summary</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Writes a professional summary based on study type
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card hover-scale">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2">
-                <Activity className="h-5 w-5 text-primary" />
-                <span>Review & Edit</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Lets you edit the final report before saving
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card hover-scale">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2">
-                <FileText className="h-5 w-5 text-primary" />
-                <span>PDF Generation</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Generates a ready-to-print PDF in seconds
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card hover-scale">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center space-x-2">
-                <Clock className="h-5 w-5 text-primary" />
-                <span>Time Savings</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Fast, consistent, and professional reports without manual effort
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Who it's for section */}
-        <div className="mt-20 text-center">
-          <h3 className="text-3xl font-bold gradient-text mb-8">Who it's for</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <Card className="trust-card">
-              <CardContent className="p-6">
-                <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto shadow-[var(--shadow-button)]">
-                    <Activity className="h-6 w-6 text-white" />
-                  </div>
-                  <h4 className="text-lg font-semibold text-foreground">Sleep Centers</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Reduce workload and improve accuracy with automated report generation
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="trust-card">
-              <CardContent className="p-6">
-                <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto shadow-[var(--shadow-button)]">
-                    <FileText className="h-6 w-6 text-white" />
-                  </div>
-                  <h4 className="text-lg font-semibold text-foreground">Hospital Units</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Fast, consistent, and professional reports without manual effort
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Hero Content - Bottom Left */}
+        <div className="relative z-10 p-12 pb-24 max-w-2xl">
+          <h1 className="text-6xl font-light text-soft-white mb-6 leading-tight">
+            AI-Powered
+            <span className="block gradient-text font-normal">Sleep Study</span>
+            <span className="block text-soft-white">Analysis</span>
+          </h1>
+          <p className="text-xl text-soft-white/90 mb-8 font-light leading-relaxed">
+            Transform complex sleep data into precise, clinical insights. 
+            Our AI whispers through data in the dark, delivering professional reports in seconds.
+          </p>
+          <div className="flex space-x-4">
+            <Button 
+              size="lg" 
+              className="glow-button rounded-full px-8 py-3 text-lg font-light"
+            >
+              Start Analysis
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="accent-glow-button rounded-full px-8 py-3 text-lg font-light bg-transparent"
+            >
+              <Play className="mr-2 h-5 w-5" />
+              Watch Demo
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {processedData ? (
-          <ProcessedResults data={processedData} onNewReport={handleNewReport} />
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Upload Section */}
-            <div className="lg:col-span-2 space-y-6">
-              <StudyTypeSelector 
-                selectedType={selectedStudyType}
-                onTypeSelect={setSelectedStudyType}
-              />
-              
-              <FileUpload 
-                onFileProcessed={handleFileProcessed}
-                selectedStudyType={selectedStudyType}
-              />
+      <div className="relative z-10 -mt-16">
+        {/* Features Section */}
+        <section className="py-24 px-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-light text-foreground mb-4">
+                Digital Sleep Lab <span className="gradient-text">Intelligence</span>
+              </h2>
+              <p className="text-xl medical-text max-w-2xl mx-auto">
+                Advanced AI algorithms designed for clinical precision and seamless integration 
+                into your medical practice workflow.
+              </p>
             </div>
 
-            {/* Side Panel */}
-            <div className="space-y-6">
-              
-              {/* Quick Stats */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Today's Activity</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Reports Generated</span>
-                    <span className="font-semibold">{reportCount}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Processing Time</span>
-                    <span className="font-semibold">~5.5s</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Success Rate</span>
-                    <span className="font-semibold">100%</span>
-                  </div>
+            <div className="grid md:grid-cols-3 gap-8 mb-16">
+              <Card className="feature-card">
+                <CardContent className="p-8 text-center">
+                  <Brain className="h-12 w-12 text-primary mx-auto mb-4" />
+                  <h3 className="text-xl font-medium text-foreground mb-3">AI Analysis</h3>
+                  <p className="medical-text">
+                    Deep learning models trained on thousands of sleep studies for 
+                    unparalleled accuracy and insight.
+                  </p>
                 </CardContent>
               </Card>
 
-              {/* Recent Reports */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Recent Reports</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {reportCount === 0 ? (
-                    <div className="text-center py-8">
-                      <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground">No reports generated yet</p>
-                      <p className="text-xs text-muted-foreground mt-1">Upload your first sleep study to get started</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="text-sm text-muted-foreground">
-                        {reportCount} report{reportCount !== 1 ? 's' : ''} processed today
-                      </div>
-                    </div>
-                  )}
+              <Card className="feature-card">
+                <CardContent className="p-8 text-center">
+                  <Shield className="h-12 w-12 text-secondary mx-auto mb-4" />
+                  <h3 className="text-xl font-medium text-foreground mb-3">HIPAA Compliant</h3>
+                  <p className="medical-text">
+                    Enterprise-grade security ensuring patient data protection 
+                    and regulatory compliance.
+                  </p>
                 </CardContent>
               </Card>
 
-              {/* Help & Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Supported Studies</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-green-100 text-green-700 p-1 rounded text-xs font-semibold">PSG</div>
-                    <div className="text-sm">
-                      <p className="font-medium">Diagnostic Studies</p>
-                      <p className="text-muted-foreground text-xs">Complete polysomnography</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-blue-100 text-blue-700 p-1 rounded text-xs font-semibold">TIT</div>
-                    <div className="text-sm">
-                      <p className="font-medium">CPAP Titration</p>
-                      <p className="text-muted-foreground text-xs">Pressure optimization</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-purple-100 text-purple-700 p-1 rounded text-xs font-semibold">SPL</div>
-                    <div className="text-sm">
-                      <p className="font-medium">Split-Night</p>
-                      <p className="text-muted-foreground text-xs">Hybrid diagnostic + titration</p>
-                    </div>
-                  </div>
+              <Card className="feature-card">
+                <CardContent className="p-8 text-center">
+                  <Zap className="h-12 w-12 text-accent mx-auto mb-4" />
+                  <h3 className="text-xl font-medium text-foreground mb-3">Instant Results</h3>
+                  <p className="medical-text">
+                    Generate comprehensive reports in seconds, not hours. 
+                    Streamline your diagnostic workflow.
+                  </p>
                 </CardContent>
               </Card>
             </div>
           </div>
-        )}
-      </main>
+        </section>
+
+        {/* Upload Section */}
+        <section className="py-24 px-8 bg-muted/20">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-light text-foreground mb-4">
+                Begin Your <span className="gradient-text">Analysis</span>
+              </h2>
+              <p className="text-lg medical-text">
+                Upload your sleep study file and select the study type for instant AI analysis.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+              {/* Study Type Selection */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-medium text-foreground mb-4">Study Type</h3>
+                  <StudyTypeSelector
+                    selectedType={selectedStudyType}
+                    onTypeSelect={setSelectedStudyType}
+                  />
+                </div>
+
+                {/* Stats */}
+                <Card className="glow-card">
+                  <CardContent className="p-6">
+                    <h4 className="text-lg font-medium text-foreground mb-4">Quick Stats</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="medical-text">Reports Processed</span>
+                        <span className="text-secondary font-medium">{reportCount.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="medical-text">Average Processing Time</span>
+                        <span className="text-accent font-medium">&lt; 30 seconds</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="medical-text">Accuracy Rate</span>
+                        <span className="text-primary font-medium">99.7%</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* File Upload */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-medium text-foreground mb-4">Upload Study File</h3>
+                  <FileUpload
+                    selectedStudyType={selectedStudyType}
+                    onFileProcessed={handleFileProcessed}
+                  />
+                </div>
+
+                {/* Supported Formats */}
+                <Card className="premium-card">
+                  <CardContent className="p-6">
+                    <h4 className="text-lg font-medium text-foreground mb-4">Supported Studies</h4>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-primary rounded-full" />
+                        <span className="medical-text">PSG Studies</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-secondary rounded-full" />
+                        <span className="medical-text">Home Sleep Tests</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-accent rounded-full" />
+                        <span className="medical-text">Split Night</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-primary rounded-full" />
+                        <span className="medical-text">MSLT Studies</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trust Section */}
+        <section className="py-24 px-8">
+          <div className="max-w-6xl mx-auto text-center">
+            <h2 className="text-3xl font-light text-foreground mb-4">
+              Trusted by <span className="gradient-text">Leading Medical Centers</span>
+            </h2>
+            <p className="text-lg medical-text mb-12 max-w-2xl mx-auto">
+              Sleep Report AI is trusted by sleep medicine professionals worldwide 
+              for accurate, reliable, and fast sleep study analysis.
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <Card className="glow-card text-center">
+                <CardContent className="p-6">
+                  <Clock className="h-8 w-8 text-primary mx-auto mb-3" />
+                  <div className="text-2xl font-light text-foreground mb-1">10,000+</div>
+                  <div className="medical-text">Studies Analyzed</div>
+                </CardContent>
+              </Card>
+
+              <Card className="glow-card text-center">
+                <CardContent className="p-6">
+                  <Award className="h-8 w-8 text-secondary mx-auto mb-3" />
+                  <div className="text-2xl font-light text-foreground mb-1">500+</div>
+                  <div className="medical-text">Medical Centers</div>
+                </CardContent>
+              </Card>
+
+              <Card className="glow-card text-center">
+                <CardContent className="p-6">
+                  <Shield className="h-8 w-8 text-accent mx-auto mb-3" />
+                  <div className="text-2xl font-light text-foreground mb-1">99.7%</div>
+                  <div className="medical-text">Accuracy Rate</div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };
