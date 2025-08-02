@@ -50,7 +50,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
         )}
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {studyTypes.map((type) => {
           const Icon = type.icon;
           const isSelected = selectedType === type.id;
@@ -58,43 +58,40 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           return (
             <Card
               key={type.id}
-              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] h-48 ${
+              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.01] h-32 ${
                 isSelected 
-                  ? 'ring-2 ring-primary shadow-lg scale-[1.02]' 
+                  ? 'ring-2 ring-primary shadow-lg scale-[1.01] bg-primary/5' 
                   : 'hover:border-primary/50'
               }`}
               onClick={() => onTypeSelect(type.id)}
             >
-              <CardContent className="p-0 relative overflow-hidden h-full flex flex-col">
-                {/* Header */}
-                <div className={`flex-shrink-0 relative ${type.bgColor} border-b border-border p-3`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="p-1.5 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
-                        <Icon className={`h-4 w-4 ${type.iconColor}`} />
-                      </div>
-                      <h4 className="font-semibold text-sm text-foreground">{type.name}</h4>
+              <CardContent className="p-6 h-full flex flex-col justify-between">
+                {/* Header with icon and title */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-lg ${type.bgColor}`}>
+                      <Icon className={`h-5 w-5 ${type.iconColor}`} />
                     </div>
-                    {isSelected && (
-                      <div className="w-2 h-2 bg-primary rounded-full shadow-sm"></div>
-                    )}
+                    <div>
+                      <h4 className="font-semibold text-base text-foreground">{type.name}</h4>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        {type.description}
+                      </p>
+                    </div>
                   </div>
+                  {isSelected && (
+                    <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>
+                  )}
                 </div>
 
-                {/* Content */}
-                <div className="p-4 space-y-3 flex-1">
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {type.description}
-                  </p>
-                  
-                  <div className="space-y-2">
-                    {type.details.map((detail, index) => (
-                      <div key={index} className="flex items-start space-x-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
-                        <span className="text-xs text-muted-foreground leading-relaxed">{detail}</span>
-                      </div>
-                    ))}
-                  </div>
+                {/* Key features */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+                  {type.details.map((detail, index) => (
+                    <div key={index} className="flex items-center space-x-1.5">
+                      <div className="w-1 h-1 rounded-full bg-primary/60"></div>
+                      <span className="text-xs text-muted-foreground">{detail}</span>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
