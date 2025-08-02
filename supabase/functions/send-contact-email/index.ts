@@ -25,6 +25,35 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { fullName, email, inquiryType, message }: ContactRequest = await req.json();
 
+    // Input validation and sanitization
+    if (!fullName || typeof fullName !== 'string' || fullName.trim().length === 0) {
+      return new Response(JSON.stringify({ error: 'Full name is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return new Response(JSON.stringify({ error: 'Valid email is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return new Response(JSON.stringify({ error: 'Message is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Sanitize inputs
+    const sanitizedFullName = fullName.replace(/<[^>]*>/g, '').trim();
+    const sanitizedEmail = email.trim().toLowerCase();
+    const sanitizedMessage = message.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').trim();
+    
+    const recipientEmail = Deno.env.get('CONTACT_EMAIL') || 'alanoudsaud75@gmail.com';
+
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px;">
@@ -35,15 +64,15 @@ const handler = async (req: Request): Promise<Response> => {
           <h3 style="margin: 0 0 15px 0; color: #374151;">Contact Details</h3>
           
           <div style="margin-bottom: 15px;">
-            <strong>Name:</strong> ${fullName}<br>
-            <strong>Email:</strong> ${email}<br>
+            <strong>Name:</strong> ${sanitizedFullName}<br>
+            <strong>Email:</strong> ${sanitizedEmail}<br>
             <strong>Type of Inquiry:</strong> ${inquiryType}
           </div>
           
           <div>
             <strong>Message:</strong>
             <div style="background: white; padding: 15px; border-radius: 4px; margin-top: 10px; border-left: 4px solid #1e40af;">
-              ${message.replace(/\n/g, '<br>')}
+              ${sanitizedMessage.replace(/\n/g, '<br>')}
             </div>
           </div>
         </div>
@@ -56,10 +85,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: "Sleep Report AI <onboarding@resend.dev>",
-      to: ["alanoudsaud75@gmail.com"],
-      subject: `Contact Form: ${inquiryType} - ${fullName}`,
+      to: [recipientEmail],
+      subject: `Contact Form: ${inquiryType} - ${sanitizedFullName}`,
       html: emailHtml,
-      replyTo: email,
+      replyTo: sanitizedEmail,
     });
 
     console.log("Contact email sent successfully:", emailResponse);

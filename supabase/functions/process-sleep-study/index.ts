@@ -13,7 +13,55 @@ serve(async (req) => {
   }
 
   try {
-    const { fileContent, studyType } = await req.json();
+    // Validate request method
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate content type
+    const contentType = req.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return new Response(JSON.stringify({ error: 'Invalid content type' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const requestBody = await req.json();
+    const { fileContent, studyType } = requestBody;
+
+    // Input validation
+    if (!fileContent || typeof fileContent !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid file content' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!studyType || typeof studyType !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid study type' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate study type
+    const validStudyTypes = ['Diagnostic', 'Titration', 'Split-Night'];
+    if (!validStudyTypes.includes(studyType)) {
+      return new Response(JSON.stringify({ error: 'Invalid study type. Must be Diagnostic, Titration, or Split-Night' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Sanitize file content
+    const sanitizedContent = fileContent
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<[^>]*>/g, '')
+      .trim();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     
@@ -23,11 +71,11 @@ serve(async (req) => {
 
     // Truncate file content if too long to avoid token limits
     const maxContentLength = 15000;
-    const truncatedContent = fileContent.length > maxContentLength 
-      ? fileContent.substring(0, maxContentLength) + "\n\n[Content truncated...]"
-      : fileContent;
+    const truncatedContent = sanitizedContent.length > maxContentLength 
+      ? sanitizedContent.substring(0, maxContentLength) + "\n\n[Content truncated...]"
+      : sanitizedContent;
 
-    console.log('Processing file content length:', fileContent.length);
+    console.log('Processing file content length:', sanitizedContent.length);
 
     const prompt = `🧠 Purpose of the Tool:
 

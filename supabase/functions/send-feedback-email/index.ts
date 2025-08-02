@@ -28,6 +28,26 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { rating, feedback, reportData }: FeedbackRequest = await req.json();
 
+    // Input validation
+    if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
+      return new Response(JSON.stringify({ error: 'Rating must be between 1 and 5' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (feedback && typeof feedback !== 'string') {
+      return new Response(JSON.stringify({ error: 'Feedback must be a string' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Sanitize feedback
+    const sanitizedFeedback = feedback ? feedback.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').trim() : '';
+    
+    const recipientEmail = Deno.env.get('FEEDBACK_EMAIL') || 'alanoudsaud75@gmail.com';
+
     const stars = "⭐".repeat(rating);
     const formattedDate = new Date(reportData.timestamp).toLocaleString();
 
@@ -49,11 +69,11 @@ const handler = async (req: Request): Promise<Response> => {
             </ul>
           </div>
           
-          ${feedback ? `
+          ${sanitizedFeedback ? `
             <div>
               <strong>User Feedback:</strong>
               <div style="background: white; padding: 15px; border-radius: 4px; margin-top: 10px; border-left: 4px solid #1e40af;">
-                "${feedback}"
+                "${sanitizedFeedback}"
               </div>
             </div>
           ` : ''}
@@ -67,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: "Sleep Report AI <onboarding@resend.dev>",
-      to: ["alanoudsaud75@gmail.com"],
+      to: [recipientEmail],
       subject: `Sleep Report Feedback - ${stars} Rating`,
       html: emailHtml,
     });
