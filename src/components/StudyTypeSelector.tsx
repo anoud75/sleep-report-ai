@@ -50,7 +50,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
         )}
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
         {studyTypes.map((type) => {
           const Icon = type.icon;
           const isSelected = selectedType === type.id;
@@ -58,40 +58,45 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           return (
             <Card
               key={type.id}
-              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.01] h-32 ${
+              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.01] h-[320px] ${
                 isSelected 
                   ? 'ring-2 ring-primary shadow-lg scale-[1.01] bg-primary/5' 
                   : 'hover:border-primary/50'
               }`}
               onClick={() => onTypeSelect(type.id)}
             >
-              <CardContent className="p-6 h-full flex flex-col justify-between">
-                {/* Header with icon and title */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${type.bgColor}`}>
-                      <Icon className={`h-5 w-5 ${type.iconColor}`} />
+              <CardContent className="p-0 h-full flex flex-col">
+                {/* Header section with icon */}
+                <div className={`flex-shrink-0 ${type.bgColor} p-6 rounded-t-lg border-b border-border/20`}>
+                  <div className="flex items-center justify-between">
+                    <div className={`p-3 rounded-lg bg-background/80 backdrop-blur-sm border border-border/40`}>
+                      <Icon className={`h-6 w-6 ${type.iconColor}`} />
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-base text-foreground">{type.name}</h4>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {type.description}
-                      </p>
-                    </div>
+                    {isSelected && (
+                      <div className="w-3 h-3 bg-primary rounded-full shadow-sm"></div>
+                    )}
                   </div>
-                  {isSelected && (
-                    <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>
-                  )}
                 </div>
 
-                {/* Key features */}
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
-                  {type.details.map((detail, index) => (
-                    <div key={index} className="flex items-center space-x-1.5">
-                      <div className="w-1 h-1 rounded-full bg-primary/60"></div>
-                      <span className="text-xs text-muted-foreground">{detail}</span>
-                    </div>
-                  ))}
+                {/* Content section */}
+                <div className="flex-1 p-6 flex flex-col space-y-4">
+                  {/* Title */}
+                  <h4 className="font-semibold text-lg text-foreground">{type.name}</h4>
+                  
+                  {/* Description */}
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {type.description}
+                  </p>
+                  
+                  {/* Features list */}
+                  <div className="space-y-2 flex-1">
+                    {type.details.map((detail, index) => (
+                      <div key={index} className="flex items-start space-x-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                        <span className="text-sm text-muted-foreground leading-relaxed">{detail}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
