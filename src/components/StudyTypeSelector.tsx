@@ -57,7 +57,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
               key={type.id}
               className={`group relative overflow-hidden cursor-pointer transition-all duration-500 ease-out border-2 animate-fade-in-up hover:scale-[1.02] ${
                 isSelected 
-                  ? `border-${type.themeColor} bg-${type.themeColor}-light shadow-[var(--shadow-elegant)] scale-[1.02] animate-pulse-glow`
+                  ? `border-${type.themeColor} bg-${type.themeColor}-light shadow-[var(--shadow-elegant)] scale-[1.02]`
                   : 'border-border bg-card hover:border-muted-foreground/50 hover:shadow-[var(--shadow-card-hover)]'
               }`}
               style={{animationDelay: `${index * 0.1}s`}}
@@ -73,7 +73,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                   {/* Icon Container */}
                   <div className={`relative p-4 rounded-2xl transition-all duration-500 hover:scale-110 ${
                     isSelected 
-                      ? `bg-${type.themeColor}/20 shadow-[var(--shadow-glow)] animate-float` 
+                      ? `bg-${type.themeColor}/20 shadow-[var(--shadow-glow)]` 
                       : 'bg-muted/50 group-hover:bg-muted'
                   }`}>
                     <Icon className={`h-7 w-7 transition-all duration-300 ${
@@ -115,7 +115,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                             : 'bg-muted/30 border border-transparent group-hover:bg-muted/50'
                         }`} style={{animationDelay: `${index * 0.1}s`}}>
                           <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all duration-300 ${
-                            isSelected ? `bg-${type.themeColor} animate-pulse` : 'bg-muted-foreground/50'
+                            isSelected ? `bg-${type.themeColor}` : 'bg-muted-foreground/50'
                           }`}></div>
                           <span className={`text-xs font-medium leading-tight transition-colors duration-300 ${
                             isSelected ? 'text-foreground/90' : 'text-muted-foreground group-hover:text-foreground/80'
