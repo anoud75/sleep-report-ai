@@ -29,94 +29,116 @@ serve(async (req) => {
 
     console.log('Processing file content length:', fileContent.length);
 
-    const prompt = `You are a medical AI specialist analyzing G3 sleep study reports. Extract EXACT values from specific sections as detailed below.
+    const prompt = `🧠 PURPOSE OF THE TOOL:
+You are an AI sleep study report generator. Your task is to:
+- Read raw .docx sleep study reports exported from G3 systems
+- Extract and calculate key clinical metrics
+- Generate a professional, clinical-grade sleep report
+- Write clear, structured diagnostic summaries based on extracted data
 
-🚫 CRITICAL RULES:
-1. Do NOT rely on color highlighting - extract from document structure only
-2. Only extract specific values listed below from their exact locations
-3. Do NOT calculate or include any value that is 0
-4. Extract EXACT numbers as they appear - do not estimate
-5. Look for tabular format with "Events" and "Reports" columns
+📁 UPLOAD LOGIC & VALIDATION:
+- Only accept .docx files exported from G3 sleep systems
+- Extract diagnostic interpretation for all study types
+- For Split-Night studies: Use diagnostic data from first file, treatment data from second file
 
-📍 EXTRACTION LOCATIONS & RULES:
+🧮 DATA EXTRACTION (All values found in structured tables):
+Extract the following metrics exactly as they appear in the document:
 
-SLEEP TIMING (from "Study Information" section):
-- Light Off: Look for "Lights Off:" or "Light off" → extract time (e.g., "10:01 PM")
-- Light On: Look for "Lights On:" or "Light on" → extract time (e.g., "4:25 AM")
-- Time in Bed: Look for "Time in Bed" → extract minutes (e.g., "384.1")
-- Total Sleep Time: Look for "Total Sleep Time" → extract minutes (e.g., "301")
+🛏️ SLEEP PARAMETERS:
+- Light Off: Time the recording starts (e.g., "22:15")
+- Light On: Time the recording ends (e.g., "06:30") 
+- Time in Bed (min): Total recording time
+- Total Sleep Time (min): Actual sleep duration
+- Sleep Latency (min): Time to fall asleep
+- REM Latency (min): Time to first REM
+- Sleep Efficiency (%): TST/TIB ratio
 
-SLEEP QUALITY:
-- Sleep Latency: Extract from sleep latency field (e.g., "27.5")
-- REM Latency: Extract from REM latency field (e.g., "279")
-- Sleep Efficiency: Extract percentage (e.g., "78.4")
+🧠 SLEEP ARCHITECTURE:
+- Sleep Stage 1 (%)
+- Sleep Stage 2 (%)
+- Slow Wave Sleep (SWS, %)
+- REM Sleep (%)
 
-SLEEP STAGES (from "Sleep Stages" table):
-- Sleep Stage 1 (%): Extract exact percentage (e.g., "3")
-- Sleep Stage 2 (%): Extract exact percentage (e.g., "76.2")
-- Slow Wave Sleep (%): Extract exact percentage (e.g., "14")
-- REM Sleep (%): Extract exact percentage (e.g., "6.8")
+😴 RESPIRATORY DATA:
+- AHI overall: Main apnea-hypopnea index
+- AHI NREM/REM: Separate values for each sleep stage
+- AHI Supine/Lateral: Position-specific values (if available)
+- Central Apnea Index (/hr)
+- Obstructive Apnea Index (/hr)
+- Mixed Apnea Index (/hr)
+- Hypopnea Index (/hr)
+- Hypopnea Mean Duration (sec)
 
-RESPIRATORY EVENTS (from "Respiratory Events" table):
-- AHI (NREM/REM): Extract the main AHI value (e.g., "23.7" from "23.7 (22.7/29.3)")
-- AHI (Supine/Lateral): Extract supine value and lateral value (e.g., "25.2/15.35")
-- Central Apnea Index: Extract exact value
-- Obstructive Apnea Index: Extract exact value  
-- Mixed Apnea Index: Extract exact value
-- Hypopnea Index: Extract exact value
-- Hypopnea Mean Duration: Extract duration in seconds
+💓 CARDIAC & OXYGENATION:
+- Heart Rate (NREM/REM): Both values
+- Oxygen Desaturation Index (/hr)
+- % Time SpO2 < 90%
+- % Time SpO2 < 95%
+- Lowest O2 Saturation (%)
+- Average O2 Saturation (%)
 
-OXYGEN & HEART RATE:
-- Heart Rate (NREM/REM): Extract both values (e.g., "58/59")
-- Desaturation Index: Extract exact value (e.g., "2.8")
-- % Time with O2 < 90%: Extract percentage (e.g., "0")
-- % Time with O2 < 95%: Extract percentage (e.g., "0.36")
-- Lowest O2/Average O2: Extract both values (e.g., "92%/97%")
+⚡ AROUSALS & MOVEMENT:
+- Arousal Index (/hr)
+- Snoring (% time)
+- Leg Movement Index (/hr)
+- If PLM index > 15/hr → note presence of Periodic Limb Movements (PLMS)
 
-OTHER METRICS:
-- Arousal Index: Extract from arousal events section (e.g., "34.9")
-- Snoring (%): Extract from snoring events (e.g., "2.7")
-- Leg Movement Index: Extract from limb movements (e.g., "2.8")
+🧠 INTERPRETATION RULES:
+Follow AASM guidelines:
 
-CPAP/BPAP/O2: Look for any mention of CPAP, BPAP, or oxygen use. If not mentioned, use "---"
+AHI Classification:
+- Normal: < 5/hr
+- Mild OSA: 5–14/hr  
+- Moderate OSA: 15–29/hr
+- Severe OSA: ≥ 30/hr
+
+PLMS:
+- If Leg Movement Index > 15/hr, include: "There were periodic limb movements during sleep."
 
 Study Type: ${studyType}
 
 FILE CONTENT TO ANALYZE:
 ${truncatedContent}
 
-RETURN EXACT VALUES AS FOUND IN THE DOCUMENT. Use the exact format shown in examples above.
+🚫 CRITICAL EXTRACTION RULES:
+1. Extract EXACT values as they appear in the document
+2. Do NOT estimate or calculate missing values
+3. Use "---" for any values not found
+4. Look for structured tables with clear metric labels
+5. Follow medical terminology exactly
 
 Return ONLY valid JSON with these exact field names:
 {
   "lightOff": "exact time value",
   "lightOn": "exact time value", 
-  "timeInBed": "exact number",
-  "totalSleepTime": "exact number",
-  "cpapBpapO2": "search document or use ---",
-  "sleepLatency": "exact number",
-  "remLatency": "exact number (should be 279)",
+  "timeInBed": "exact number in minutes",
+  "totalSleepTime": "exact number in minutes",
+  "sleepLatency": "exact number in minutes",
+  "remLatency": "exact number in minutes",
   "sleepEfficiency": "exact percentage number",
-  "stage1": "exact percentage (should be 3)",
-  "stage2": "exact percentage (should be 76.2)", 
-  "slowWave": "exact percentage (should be 14)",
-  "rem": "exact percentage (should be 6.8)",
-  "ahiNremRem": "main AHI value (should be 23.7)",
-  "ahiSupineLateral": "supine/lateral format like 25.2/15.35",
-  "centralApneaIndex": "exact value",
-  "obstructiveApneaIndex": "exact value",
-  "mixedApneaIndex": "exact value", 
-  "hypopneaIndex": "exact value",
-  "hypopneaMeanDuration": "duration in seconds (should be 17.55)",
-  "heartRateNremRem": {"NREM": "58", "REM": "59"},
-  "desaturationIndex": "exact value (should be 2.8)",
-  "timeO2Below90": "percentage (should be 0)",
-  "timeO2Below95": "percentage (should be 0.36)",
-  "lowestO2AverageO2": {"lowest": "92", "average": "97"},
-  "arousalIndex": "exact value (should be 34.9)",
-  "snoring": "percentage (should be 2.7)",
-  "legMovementIndex": "exact value (should be 2.8)",
-  "summary": "Generate summary using this EXACT template: 'Overnight sleep study shows evidence of [Severity] Obstructive Sleep Apnea. The patient slept for a total sleep time of [X hours and Y minutes] with an AHI of [Z] events per hour associated with [minimal/significant] desaturation and repetitive sleep interruptions. However, she progressed into all sleep stages. Otherwise, no unusual events were noted.' Use these rules: AHI <5=Normal, 5-14.9=Mild, 15-29.9=Moderate, ≥30=Severe. Use 'significant' if lowest O2 <88% or Desaturation Index >15, else use 'minimal'. Convert total sleep time from minutes to hours+minutes format."
+  "stage1": "exact percentage",
+  "stage2": "exact percentage", 
+  "slowWave": "exact percentage",
+  "rem": "exact percentage",
+  "ahiOverall": "main AHI value",
+  "ahiNremRem": "NREM/REM format or main value if not split",
+  "ahiSupineLateral": "supine/lateral format if available, else use main AHI",
+  "centralApneaIndex": "exact value or ---",
+  "obstructiveApneaIndex": "exact value or ---",
+  "mixedApneaIndex": "exact value or ---", 
+  "hypopneaIndex": "exact value or ---",
+  "hypopneaMeanDuration": "duration in seconds or ---",
+  "heartRateNremRem": {"NREM": "value", "REM": "value"} or "single value if not split",
+  "desaturationIndex": "exact value",
+  "timeO2Below90": "percentage",
+  "timeO2Below95": "percentage",
+  "lowestO2": "percentage value",
+  "averageO2": "percentage value",
+  "arousalIndex": "exact value",
+  "snoring": "percentage",
+  "legMovementIndex": "exact value",
+  "cpapBpapO2": "any CPAP/BPAP settings mentioned or ---",
+  "summary": "Generate professional clinical summary following this structure: 'This [study type] study revealed [severity classification] with an AHI of [X]/hr. Total sleep time was [X] minutes with a sleep efficiency of [X]%. Sleep architecture showed [brief stage distribution]. Oxygen desaturation index was [X]/hr with [X]% of sleep time below 90% saturation. Arousal index was [X]/hr. [Add PLMS note if leg movement index >15]. [Add treatment summary if applicable].' Use proper medical terminology and OSA severity classification based on AHI values."
 }`;
 
     console.log('Sending request to OpenAI...');
