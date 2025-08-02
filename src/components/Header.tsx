@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SleepLogo } from './SleepLogo';
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -40,12 +41,10 @@ export const Header = () => {
           {/* Logo */}
           <button 
             onClick={() => scrollToSection('home')}
-            className="flex items-center space-x-2 hover:scale-105 transition-transform duration-300"
+            className="flex items-center space-x-3 hover:scale-105 transition-transform duration-300 group"
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">S</span>
-            </div>
-            <span className="text-white font-semibold text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <SleepLogo size="md" className="group-hover:animate-float" />
+            <span className="text-white font-semibold text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Sleep Report AI
             </span>
           </button>
