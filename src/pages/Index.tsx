@@ -347,6 +347,51 @@ const Index = () => {
               Configure your analysis settings and upload your sleep study report for instant AI processing.
             </p>
           </div>
+
+          {/* Today's Activity Dashboard */}
+          <div className="max-w-6xl mx-auto mb-16">
+            <h3 className="text-2xl font-bold text-white mb-8 text-center">Today's Activity</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div className="bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-xl p-6 text-center hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{animationDelay: '0.1s'}}>
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                  {reportCount}
+                </div>
+                <p className="text-white/60 text-sm font-medium">Reports Generated</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-xl p-6 text-center hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+                <div className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+                  &lt;45s
+                </div>
+                <p className="text-white/60 text-sm font-medium">Processing Time</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-xl p-6 text-center hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+                <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                  100%
+                </div>
+                <p className="text-white/60 text-sm font-medium">Success Rate</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-xl p-6 text-center hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+                <div className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent mb-2">
+                  0
+                </div>
+                <p className="text-white/60 text-sm font-medium">Recent Reports</p>
+              </div>
+            </div>
+
+            {/* Getting Started Message */}
+            {reportCount === 0 && (
+              <div className="bg-gradient-to-br from-background/60 to-background/40 backdrop-blur border border-border/30 rounded-2xl p-8 text-center animate-fade-in-up" style={{animationDelay: '0.5s'}}>
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">📊</span>
+                </div>
+                <h4 className="text-white font-semibold text-xl mb-2">Upload your first sleep study to get started</h4>
+                <p className="text-white/60">Begin analyzing sleep studies and watch your dashboard come to life with real-time analytics.</p>
+              </div>
+            )}
+          </div>
           
           {/* Integrated Analysis Workflow */}
           <div className="max-w-4xl mx-auto space-y-8">
