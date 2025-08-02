@@ -165,17 +165,24 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Error alert */}
+      {error && (
+        <Alert variant="destructive" className="border-red-500/50 bg-red-500/10">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-red-400">{error}</AlertDescription>
+        </Alert>
+      )}
+
       <Card className={`border transition-all duration-200 ${
         dragActive ? 'border-blue-500/50 bg-blue-500/5 shadow-lg' : 
         success ? 'border-green-500/50 bg-green-500/5 shadow-lg' :
-        error ? 'border-red-500/50 bg-red-500/5' :
         'border-gray-700 bg-gray-900/50 hover:border-gray-600 hover:shadow-md'
       }`}>
         {!file && !processing && !success && (
-          <CardContent className="p-8">
+          <CardContent className="p-6">
             <div
-              className={`flex flex-col items-center justify-center py-12 space-y-6 rounded-lg border-2 border-dashed transition-all duration-200 ${
+              className={`flex flex-col items-center justify-center py-8 space-y-4 rounded-lg border-2 border-dashed transition-all duration-200 ${
                 dragActive 
                   ? 'border-blue-500/50 bg-blue-500/5' 
                   : 'border-gray-600 hover:border-gray-500 hover:bg-gray-800/30'
@@ -186,22 +193,22 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
               onDrop={handleDrop}
             >
               {/* Icon */}
-              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                <Upload className="h-8 w-8 text-blue-400" />
+              <div className="p-3 rounded-lg bg-blue-500/10">
+                <Upload className="h-6 w-6 text-blue-400" />
               </div>
               
-              {/* Title and description */}
+              {/* Content */}
               <div className="text-center space-y-2">
-                <h4 className="text-xl font-semibold text-white">Upload Sleep Study Report</h4>
-                <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
+                <h4 className="font-semibold text-lg text-white">Upload Sleep Study Report</h4>
+                <p className="text-gray-400 text-sm leading-relaxed">
                   Upload your G3 sleep study report (.docx format) to generate a professional PDF summary
                 </p>
               </div>
               
-              {/* Upload instruction */}
-              <div className="text-center space-y-3">
-                <p className="text-gray-300 font-medium">Drop your .docx file here</p>
-                <p className="text-sm text-gray-500">or click to browse files</p>
+              {/* Drop instruction */}
+              <div className="text-center space-y-2">
+                <p className="text-gray-300 text-sm">Drop your .docx file here</p>
+                <p className="text-xs text-gray-500">or click to browse files</p>
               </div>
               
               {/* File input and button */}
@@ -214,8 +221,7 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
               />
               <label htmlFor="file-upload">
                 <Button 
-                  size="lg" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                   asChild
                 >
                   <span>Select File</span>
@@ -226,17 +232,17 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
         )}
 
         {file && !processing && !success && (
-          <CardContent className="p-8">
-            <div className="space-y-6">
+          <CardContent className="p-6">
+            <div className="space-y-4">
               {/* File info */}
               <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-3">
                   <div className="p-2 rounded-lg bg-blue-500/10">
-                    <FileText className="h-6 w-6 text-blue-400" />
+                    <FileText className="h-5 w-5 text-blue-400" />
                   </div>
                   <div>
-                    <p className="font-semibold text-white">{file.name}</p>
-                    <p className="text-sm text-gray-400">
+                    <p className="font-medium text-white text-sm">{file.name}</p>
+                    <p className="text-xs text-gray-400">
                       {(file.size / 1024 / 1024).toFixed(2)} MB • Ready to process
                     </p>
                   </div>
@@ -245,25 +251,23 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
                   variant="ghost" 
                   size="sm" 
                   onClick={resetUpload}
-                  className="text-gray-400 hover:text-white hover:bg-gray-700"
+                  className="text-gray-400 hover:text-white hover:bg-gray-700 h-8 w-8 p-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
               
               {/* Process button */}
-              <div className="flex space-x-3">
-                <Button 
-                  onClick={handleProcessFile} 
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 font-medium"
-                  disabled={!selectedStudyType}
-                >
-                  Process Report
-                </Button>
-              </div>
+              <Button 
+                onClick={handleProcessFile} 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 font-medium"
+                disabled={!selectedStudyType}
+              >
+                Process Report
+              </Button>
               
               {!selectedStudyType && (
-                <p className="text-sm text-yellow-400 text-center">
+                <p className="text-xs text-yellow-400 text-center">
                   Please select a study type first
                 </p>
               )}
@@ -272,25 +276,23 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
         )}
 
         {processing && (
-          <CardContent className="p-8">
-            <div className="space-y-6 text-center">
+          <CardContent className="p-6">
+            <div className="space-y-4 text-center">
               {/* Processing icon */}
-              <div className="p-4 rounded-lg bg-blue-500/10 w-fit mx-auto">
-                <Upload className="h-8 w-8 text-blue-400 animate-pulse" />
+              <div className="p-3 rounded-lg bg-blue-500/10 w-fit mx-auto">
+                <Upload className="h-6 w-6 text-blue-400 animate-pulse" />
               </div>
               
               {/* Processing info */}
-              <div className="space-y-2">
-                <h4 className="font-semibold text-white text-lg">Processing {file?.name}</h4>
-                <p className="text-gray-400">
-                  Analyzing sleep study data...
-                </p>
+              <div className="space-y-1">
+                <h4 className="font-medium text-white">Processing {file?.name}</h4>
+                <p className="text-sm text-gray-400">Analyzing sleep study data...</p>
               </div>
               
               {/* Progress bar */}
-              <div className="space-y-3">
-                <Progress value={progress} className="h-3 bg-gray-800" />
-                <p className="text-sm text-gray-400">
+              <div className="space-y-2">
+                <Progress value={progress} className="h-2 bg-gray-800" />
+                <p className="text-xs text-gray-400">
                   {progress < 25 ? 'Reading document...' :
                    progress < 50 ? 'Extracting clinical data...' :
                    progress < 75 ? 'Analyzing sleep parameters...' :
@@ -302,17 +304,17 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
         )}
 
         {success && (
-          <CardContent className="p-8">
-            <div className="text-center space-y-6">
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
               {/* Success icon */}
-              <div className="p-4 rounded-lg bg-green-500/10 w-fit mx-auto">
-                <CheckCircle className="h-8 w-8 text-green-400" />
+              <div className="p-3 rounded-lg bg-green-500/10 w-fit mx-auto">
+                <CheckCircle className="h-6 w-6 text-green-400" />
               </div>
               
               {/* Success message */}
-              <div className="space-y-2">
-                <h4 className="font-semibold text-white text-lg">Report Generated Successfully</h4>
-                <p className="text-gray-400">Your sleep study analysis is ready</p>
+              <div className="space-y-1">
+                <h4 className="font-medium text-white">Report Generated Successfully</h4>
+                <p className="text-sm text-gray-400">Your sleep study analysis is ready</p>
               </div>
               
               {/* Action button */}
@@ -327,14 +329,6 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
           </CardContent>
         )}
       </Card>
-
-      {/* Error alert */}
-      {error && (
-        <Alert variant="destructive" className="border-red-500/50 bg-red-500/10">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="text-red-400">{error}</AlertDescription>
-        </Alert>
-      )}
     </div>
   );
 };
