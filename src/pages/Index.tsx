@@ -381,16 +381,6 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Getting Started Message */}
-            {reportCount === 0 && (
-              <div className="bg-gradient-to-br from-background/60 to-background/40 backdrop-blur border border-border/30 rounded-2xl p-8 text-center animate-fade-in-up" style={{animationDelay: '0.5s'}}>
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">📊</span>
-                </div>
-                <h4 className="text-white font-semibold text-xl mb-2">Upload your first sleep study to get started</h4>
-                <p className="text-white/60">Begin analyzing sleep studies and watch your dashboard come to life with real-time analytics.</p>
-              </div>
-            )}
           </div>
           
           {/* Integrated Analysis Workflow */}
