@@ -40,17 +40,8 @@ const studyTypes = [
 
 export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelectorProps) => {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Select Study Type</h3>
-        {selectedType && (
-          <Badge variant="secondary">
-            {studyTypes.find(type => type.id === selectedType)?.name}
-          </Badge>
-        )}
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-4">
         {studyTypes.map((type) => {
           const Icon = type.icon;
           const isSelected = selectedType === type.id;
@@ -58,44 +49,44 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           return (
             <Card
               key={type.id}
-              className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.01] h-[320px] ${
+              className={`cursor-pointer transition-all duration-200 hover:shadow-md border ${
                 isSelected 
-                  ? 'ring-2 ring-primary shadow-lg scale-[1.01] bg-primary/5' 
-                  : 'hover:border-primary/50'
+                  ? 'ring-2 ring-blue-500 border-blue-500/30 bg-blue-500/5' 
+                  : 'border-gray-700 hover:border-gray-600 bg-gray-900/50'
               }`}
               onClick={() => onTypeSelect(type.id)}
             >
-              <CardContent className="p-0 h-full flex flex-col">
-                {/* Header section with icon */}
-                <div className={`flex-shrink-0 ${type.bgColor} p-6 rounded-t-lg border-b border-border/20`}>
-                  <div className="flex items-center justify-between">
-                    <div className={`p-3 rounded-lg bg-background/80 backdrop-blur-sm border border-border/40`}>
-                      <Icon className={`h-6 w-6 ${type.iconColor}`} />
-                    </div>
-                    {isSelected && (
-                      <div className="w-3 h-3 bg-primary rounded-full shadow-sm"></div>
-                    )}
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-4">
+                  {/* Icon */}
+                  <div className={`p-3 rounded-lg ${type.bgColor} flex-shrink-0`}>
+                    <Icon className={`h-6 w-6 ${type.iconColor}`} />
                   </div>
-                </div>
-
-                {/* Content section */}
-                <div className="flex-1 p-6 flex flex-col space-y-4">
-                  {/* Title */}
-                  <h4 className="font-semibold text-lg text-foreground">{type.name}</h4>
                   
-                  {/* Description */}
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {type.description}
-                  </p>
-                  
-                  {/* Features list */}
-                  <div className="space-y-2 flex-1">
-                    {type.details.map((detail, index) => (
-                      <div key={index} className="flex items-start space-x-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                        <span className="text-sm text-muted-foreground leading-relaxed">{detail}</span>
-                      </div>
-                    ))}
+                  {/* Content */}
+                  <div className="flex-1 space-y-3">
+                    {/* Title */}
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-lg text-white">{type.name}</h4>
+                      {isSelected && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      )}
+                    </div>
+                    
+                    {/* Description */}
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      {type.description}
+                    </p>
+                    
+                    {/* Features list */}
+                    <div className="space-y-1.5">
+                      {type.details.map((detail, index) => (
+                        <div key={index} className="flex items-start space-x-2">
+                          <div className="w-1 h-1 rounded-full bg-blue-400 mt-2 flex-shrink-0"></div>
+                          <span className="text-sm text-gray-400 leading-relaxed">{detail}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </CardContent>
