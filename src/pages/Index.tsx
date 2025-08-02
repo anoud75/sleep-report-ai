@@ -65,16 +65,6 @@ const Index = () => {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          {/* Company Badge */}
-          <div className="animate-fade-in-up mb-8" style={{animationDelay: '0.2s'}}>
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-500 hover:scale-105">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-white/90 text-sm font-medium">
-                Sleep Report AI - Powered by Advanced Machine Learning
-              </span>
-            </div>
-          </div>
-
           {/* Main Heading */}
           <div className="space-y-6 mb-12">
             <h1 className="text-5xl md:text-7xl font-bold animate-fade-in-up" style={{animationDelay: '0.4s'}}>
