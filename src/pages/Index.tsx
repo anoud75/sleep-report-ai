@@ -8,6 +8,7 @@ import { FileUpload } from "@/components/FileUpload";
 import { ProcessedResults } from "@/components/ProcessedResults";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
 import { ContactForm } from "@/components/ContactForm";
+import { Header } from "@/components/Header";
 
 const Index = () => {
   const [selectedStudyType, setSelectedStudyType] = useState('');
@@ -44,6 +45,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
+      <Header />
+      
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
         {/* Background Video */}
@@ -163,6 +166,21 @@ const Index = () => {
           </div>
           
           <HowItWorksCarousel />
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about-section" className="py-20 bg-black">
+        <div className="container mx-auto px-6">
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold">
+              <span className="text-white">About </span>
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Sleep Report AI</span>
+            </h2>
+            <p className="text-lg text-white/70 max-w-3xl mx-auto">
+              We're revolutionizing sleep medicine with cutting-edge AI technology that transforms complex sleep study data into comprehensive, professional reports in under 60 seconds.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -286,7 +304,7 @@ const Index = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 bg-black relative overflow-hidden">
+      <section id="contact-section" className="py-20 bg-black relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/3 rounded-full blur-3xl animate-float"></div>
           <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-500/3 rounded-full blur-3xl animate-float" style={{animationDelay: '1.5s'}}></div>
