@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -15,6 +15,7 @@ interface FileUploadProps {
 }
 
 export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded }: FileUploadProps) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -165,6 +166,10 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
     onFileUploaded?.(false);
   };
 
+  const handleFileButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="space-y-6">
 
@@ -186,7 +191,7 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
 
             {/* Advanced Drop Zone */}
             <div
-              className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-500 cursor-pointer overflow-hidden group ${
+              className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-500 overflow-hidden group ${
                 dragActive 
                   ? 'border-primary bg-primary/5 scale-105 shadow-[var(--shadow-glow)] animate-pulse-glow' 
                   : 'border-border hover:border-primary/50 hover:bg-primary/2'
@@ -220,7 +225,8 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
                 <Button 
                   variant="secondary" 
                   size="lg"
-                  className="pointer-events-none shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] transition-all duration-300 hover:scale-105"
+                  onClick={handleFileButtonClick}
+                  className="shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] transition-all duration-300 hover:scale-105"
                 >
                   <FileText className="h-5 w-5 mr-3" />
                   Select File
@@ -228,12 +234,13 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
               </div>
             </div>
             
-            {/* File input */}
+            {/* Hidden File input */}
             <input
+              ref={fileInputRef}
               type="file"
               accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={handleFileSelect}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+              className="hidden"
               id="file-upload"
             />
           </CardContent>
