@@ -56,19 +56,12 @@ const Index = () => {
             muted
             loop
             playsInline
-            className="w-full h-full object-cover opacity-30"
+            className="w-full h-full object-cover opacity-50"
+            style={{ filter: 'brightness(0.7) contrast(1.1)' }}
           >
             <source src="https://cdn.midjourney.com/video/f6cee227-c4ac-48f9-acf8-eb9b1b060864/1.mp4" type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70"></div>
-          
-          {/* Animated Background Particles */}
-          <div className="absolute inset-0">
-            <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400/20 rounded-full animate-float"></div>
-            <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-purple-400/30 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
-            <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-blue-300/10 rounded-full animate-float" style={{animationDelay: '2s'}}></div>
-            <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-purple-300/20 rounded-full animate-float" style={{animationDelay: '0.5s'}}></div>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
@@ -92,43 +85,6 @@ const Index = () => {
                 Into Professional Reports
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-              Upload your .docx sleep study files and instantly generate comprehensive, 
-              professional PDF reports with AI-powered analysis and clinical insights.
-            </p>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
-            <div className="group p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-500 hover:scale-105 hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.8s'}}>
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-3 rounded-xl bg-green-500/20 group-hover:bg-green-500/30 transition-colors duration-300">
-                  <Shield className="h-8 w-8 text-green-400 group-hover:scale-110 transition-transform duration-300" />
-                </div>
-              </div>
-              <h3 className="text-white font-semibold mb-2 group-hover:text-green-100 transition-colors duration-300">HIPAA Compliant</h3>
-              <p className="text-white/70 text-sm">Secure processing with enterprise-grade privacy protection</p>
-            </div>
-
-            <div className="group p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-500 hover:scale-105 hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '1s'}}>
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-3 rounded-xl bg-blue-500/20 group-hover:bg-blue-500/30 transition-colors duration-300">
-                  <Clock className="h-8 w-8 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
-                </div>
-              </div>
-              <h3 className="text-white font-semibold mb-2 group-hover:text-blue-100 transition-colors duration-300">Under 60 Seconds</h3>
-              <p className="text-white/70 text-sm">Lightning-fast AI processing for immediate results</p>
-            </div>
-
-            <div className="group p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-500 hover:scale-105 hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '1.2s'}}>
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-3 rounded-xl bg-purple-500/20 group-hover:bg-purple-500/30 transition-colors duration-300">
-                  <Brain className="h-8 w-8 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
-                </div>
-              </div>
-              <h3 className="text-white font-semibold mb-2 group-hover:text-purple-100 transition-colors duration-300">99.7% Accuracy</h3>
-              <p className="text-white/70 text-sm">Clinical-grade precision in every analysis</p>
-            </div>
           </div>
 
           {/* CTA Buttons */}
