@@ -129,13 +129,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Bottom text */}
-        <div className="relative z-10 text-center pb-8">
-          <h3 className="text-2xl font-light">
-            <span className="text-white">Digital Sleep Lab </span>
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Intelligence</span>
-          </h3>
-        </div>
       </section>
 
       {/* Features Section */}
@@ -346,6 +339,18 @@ const Index = () => {
 
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-black border-t border-white/10 py-8">
+        <div className="container mx-auto px-6">
+          <div className="text-center">
+            <h3 className="text-2xl font-light">
+              <span className="text-white">Digital Sleep Lab </span>
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Intelligence</span>
+            </h3>
+          </div>
+        </div>
+      </footer>
 
     </div>
   );
