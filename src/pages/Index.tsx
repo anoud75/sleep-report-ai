@@ -163,93 +163,63 @@ const Index = () => {
         <div className="container mx-auto px-6 relative z-10">
           <div className="text-center space-y-6 mb-20 animate-fade-in-up">
             <h2 className="text-4xl md:text-5xl font-bold">
-              <span className="text-white">About </span>
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
-                Sleep Report AI
+              🧠 <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
+                About Sleep Report AI
               </span>
             </h2>
             <p className="text-xl text-white/80 max-w-4xl mx-auto leading-relaxed">
-              We're revolutionizing sleep medicine with cutting-edge AI technology that transforms 
-              complex sleep study data into comprehensive, professional reports in under 60 seconds.
+              Sleep Report AI simplifies the way healthcare professionals handle sleep study data. Using reliable AI models, 
+              the system extracts core metrics and produces clear, structured reports — all within seconds.
             </p>
           </div>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-            {/* AI-Powered Analysis */}
-            <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-8 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-              <div className="flex items-center justify-center mb-6">
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all duration-300">
-                  <Brain className="h-10 w-10 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+          <div className="mb-20">
+            <h3 className="text-3xl font-bold text-white mb-10 text-center">Key Features</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Accurate Analysis */}
+              <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-8 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+                <div className="flex items-center justify-center mb-6">
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all duration-300">
+                    <Brain className="h-10 w-10 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                  </div>
                 </div>
+                <h4 className="text-white font-bold text-xl mb-4 group-hover:text-blue-100 transition-colors duration-300">
+                  Accurate Analysis
+                </h4>
+                <p className="text-white/70 leading-relaxed">
+                  Identifies key sleep metrics like AHI, oxygen levels, arousals, and sleep stages using structured extraction.
+                </p>
               </div>
-              <h3 className="text-white font-bold text-xl mb-4 group-hover:text-blue-100 transition-colors duration-300">
-                AI-Powered Analysis
-              </h3>
-              <p className="text-white/70 leading-relaxed">
-                Advanced machine learning algorithms analyze sleep study data with clinical-grade precision, 
-                extracting key insights and patterns that enhance diagnostic accuracy.
-              </p>
-            </div>
 
-            {/* Enterprise Security */}
-            <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-8 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-              <div className="flex items-center justify-center mb-6">
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 group-hover:from-green-500/30 group-hover:to-emerald-500/30 transition-all duration-300">
-                  <Shield className="h-10 w-10 text-green-400 group-hover:scale-110 transition-transform duration-300" />
+              {/* Secure by Design */}
+              <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-8 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+                <div className="flex items-center justify-center mb-6">
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 group-hover:from-green-500/30 group-hover:to-emerald-500/30 transition-all duration-300">
+                    <Shield className="h-10 w-10 text-green-400 group-hover:scale-110 transition-transform duration-300" />
+                  </div>
                 </div>
+                <h4 className="text-white font-bold text-xl mb-4 group-hover:text-green-100 transition-colors duration-300">
+                  Secure by Design
+                </h4>
+                <p className="text-white/70 leading-relaxed">
+                  End-to-end encrypted. HIPAA-ready. Built with patient data privacy at the core.
+                </p>
               </div>
-              <h3 className="text-white font-bold text-xl mb-4 group-hover:text-green-100 transition-colors duration-300">
-                Enterprise Security
-              </h3>
-              <p className="text-white/70 leading-relaxed">
-                HIPAA-compliant infrastructure ensures patient data protection with end-to-end encryption, 
-                secure processing, and strict privacy controls for healthcare professionals.
-              </p>
-            </div>
 
-            {/* Lightning Fast */}
-            <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-8 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-              <div className="flex items-center justify-center mb-6">
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-yellow-500/20 to-orange-500/20 group-hover:from-yellow-500/30 group-hover:to-orange-500/30 transition-all duration-300">
-                  <Zap className="h-10 w-10 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
+              {/* Streamlined Output */}
+              <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-8 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+                <div className="flex items-center justify-center mb-6">
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all duration-300">
+                    <Clock className="h-10 w-10 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+                  </div>
                 </div>
+                <h4 className="text-white font-bold text-xl mb-4 group-hover:text-purple-100 transition-colors duration-300">
+                  Streamlined Output
+                </h4>
+                <p className="text-white/70 leading-relaxed">
+                  Designed to reduce manual entry, shorten turnaround time, and maintain clinical consistency.
+                </p>
               </div>
-              <h3 className="text-white font-bold text-xl mb-4 group-hover:text-yellow-100 transition-colors duration-300">
-                Lightning Fast
-              </h3>
-              <p className="text-white/70 leading-relaxed">
-                Transform hours of manual report generation into seconds of automated processing, 
-                allowing healthcare teams to focus on patient care rather than paperwork.
-              </p>
-            </div>
-          </div>
-
-          {/* Stats Section */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 animate-fade-in-up" style={{animationDelay: '0.8s'}}>
-            <div className="text-center group">
-              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300">
-                99.7%
-              </div>
-              <p className="text-white/60 text-sm uppercase tracking-wider">Accuracy Rate</p>
-            </div>
-            <div className="text-center group">
-              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300">
-                &lt;60s
-              </div>
-              <p className="text-white/60 text-sm uppercase tracking-wider">Processing Time</p>
-            </div>
-            <div className="text-center group">
-              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300">
-                100%
-              </div>
-              <p className="text-white/60 text-sm uppercase tracking-wider">HIPAA Compliant</p>
-            </div>
-            <div className="text-center group">
-              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300">
-                24/7
-              </div>
-              <p className="text-white/60 text-sm uppercase tracking-wider">Availability</p>
             </div>
           </div>
         </div>
@@ -266,19 +236,47 @@ const Index = () => {
         <div className="container mx-auto px-6 text-center relative z-10">
           <div className="max-w-4xl mx-auto mb-16 animate-fade-in-up">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="text-white">How It </span>
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">Works</span>
+              ⚙️ <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
+                How It Works – In 3 Easy Steps
+              </span>
             </h2>
-            <p className="text-xl text-white/70 leading-relaxed">
-              Transform your sleep study reporting workflow with our automated AI processing system.
-            </p>
           </div>
           
-          <HowItWorksCarousel />
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="text-center animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform duration-300">
+                <span className="text-white font-bold text-2xl">1</span>
+              </div>
+              <h3 className="text-white font-bold text-2xl mb-4">Smart Reading</h3>
+              <p className="text-white/70 leading-relaxed">
+                Reads .docx reports from G3 and similar systems.
+              </p>
+            </div>
+
+            <div className="text-center animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+              <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform duration-300">
+                <span className="text-white font-bold text-2xl">2</span>
+              </div>
+              <h3 className="text-white font-bold text-2xl mb-4">Key Extraction & Summary</h3>
+              <p className="text-white/70 leading-relaxed">
+                Extracts essential sleep metrics and generates a clear summary.
+              </p>
+            </div>
+
+            <div className="text-center animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+              <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform duration-300">
+                <span className="text-white font-bold text-2xl">3</span>
+              </div>
+              <h3 className="text-white font-bold text-2xl mb-4">Review & Export</h3>
+              <p className="text-white/70 leading-relaxed">
+                Lets you review, edit, and export a ready-to-print PDF — in seconds.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Who It's For Section */}
+      {/* Who Uses It Section */}
       <section className="py-24 bg-black relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0">
@@ -289,73 +287,41 @@ const Index = () => {
         <div className="container mx-auto px-6 relative z-10">
           <div className="text-center space-y-6 mb-16 animate-fade-in-up">
             <h2 className="text-4xl md:text-5xl font-bold">
-              <span className="text-white">Who It's </span>
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">For</span>
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
+                Who Uses It
+              </span>
             </h2>
-            <p className="text-xl text-white/70 max-w-3xl mx-auto leading-relaxed">
-              Designed for healthcare professionals who demand accuracy, efficiency, and reliability in sleep medicine.
-            </p>
           </div>
           
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Sleep Centers */}
-              <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-10 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all duration-300">
-                    <Heart className="h-8 w-8 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
-                  </div>
-                  <h3 className="text-white font-bold text-2xl group-hover:text-blue-100 transition-colors duration-300">
-                    Sleep Centers
-                  </h3>
+          <div className="max-w-4xl mx-auto">
+            <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-10 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all duration-300">
+                  <Building2 className="h-8 w-8 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <p className="text-white/70 text-lg leading-relaxed mb-6">
-                  Streamline your workflow with automated report generation that reduces manual workload 
-                  and improves diagnostic accuracy for better patient outcomes.
-                </p>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-white/60">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
-                    <span className="text-sm">Reduce report generation time by 95%</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-white/60">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
-                    <span className="text-sm">Improve diagnostic consistency</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-white/60">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
-                    <span className="text-sm">Focus more time on patient care</span>
-                  </div>
-                </div>
+                <h3 className="text-white font-bold text-3xl group-hover:text-blue-100 transition-colors duration-300">
+                  Sleep Centers
+                </h3>
               </div>
-
-              {/* Hospital Units */}
-              <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-10 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all duration-300">
-                    <Building2 className="h-8 w-8 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
-                  </div>
-                  <h3 className="text-white font-bold text-2xl group-hover:text-purple-100 transition-colors duration-300">
-                    Hospital Units
-                  </h3>
+              <p className="text-white/70 text-lg leading-relaxed mb-8">
+                Designed to help labs deliver accurate reports — faster, with less manual effort.
+              </p>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-400 font-bold text-lg">•</span>
+                  <span className="text-white/70">Minimize human error</span>
                 </div>
-                <p className="text-white/70 text-lg leading-relaxed mb-6">
-                  Generate consistent, professional reports instantly without manual effort, 
-                  ensuring standardized documentation across your healthcare system.
-                </p>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-white/60">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
-                    <span className="text-sm">Standardize reporting protocols</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-white/60">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
-                    <span className="text-sm">Integrate with existing workflows</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-white/60">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
-                    <span className="text-sm">Scale across multiple departments</span>
-                  </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-400 font-bold text-lg">•</span>
+                  <span className="text-white/70">Ensure consistent diagnostics</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-400 font-bold text-lg">•</span>
+                  <span className="text-white/70">Standardize output across technicians</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-400 font-bold text-lg">•</span>
+                  <span className="text-white/70">Free up time for patient care</span>
                 </div>
               </div>
             </div>

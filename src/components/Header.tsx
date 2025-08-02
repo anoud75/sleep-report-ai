@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
 
 export const Header = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -22,7 +19,6 @@ export const Header = () => {
     } else if (sectionId === 'home') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    setIsOpen(false);
   };
 
   const navLinks = [
@@ -54,8 +50,8 @@ export const Header = () => {
             </span>
           </button>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Navigation */}
+          <div className="flex items-center space-x-8">
             {navLinks.map((link) => (
               <button
                 key={link.id}
@@ -67,34 +63,7 @@ export const Header = () => {
               </button>
             ))}
           </div>
-
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden text-white hover:bg-white/10"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
         </div>
-
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden mt-4 py-4 border-t border-white/10 animate-fade-in-up">
-            <div className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
-                <button
-                  key={link.id}
-                  onClick={() => scrollToSection(link.id)}
-                  className="text-white/80 hover:text-white transition-colors duration-300 font-medium text-left py-2 hover:bg-white/5 rounded-lg px-4"
-                >
-                  {link.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </nav>
     </header>
   );
