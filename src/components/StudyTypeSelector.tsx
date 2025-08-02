@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Activity, Zap, GitBranch, CheckCircle2, Sparkles } from "lucide-react";
+import { Activity, Zap, GitBranch, CheckCircle, Sparkles } from "lucide-react";
 
 interface StudyTypeSelectorProps {
   selectedType: string;
@@ -14,8 +13,7 @@ const studyTypes = [
     description: 'Comprehensive baseline sleep assessment',
     icon: Activity,
     themeColor: 'diagnostic',
-    details: ['Complete polysomnography', 'Sleep architecture analysis', 'Respiratory event scoring'],
-    badge: 'Standard'
+    details: ['Complete polysomnography', 'Sleep architecture analysis', 'Respiratory event scoring']
   },
   {
     id: 'Titration',
@@ -23,8 +21,7 @@ const studyTypes = [
     description: 'Optimal CPAP pressure determination',
     icon: Zap,
     themeColor: 'titration',
-    details: ['CPAP pressure optimization', 'Leak assessment', 'Efficacy evaluation'],
-    badge: 'Advanced'
+    details: ['CPAP pressure optimization', 'Leak assessment', 'Efficacy evaluation']
   },
   {
     id: 'Split-Night',
@@ -32,8 +29,7 @@ const studyTypes = [
     description: 'Hybrid diagnostic and therapeutic study',
     icon: GitBranch,
     themeColor: 'split-night',
-    details: ['Initial diagnostic phase', 'Real-time CPAP titration', 'Combined analysis'],
-    badge: 'Premium'
+    details: ['Initial diagnostic phase', 'Real-time CPAP titration', 'Combined analysis']
   }
 ];
 
@@ -84,7 +80,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                     }`} />
                     {isSelected && (
                       <div className="absolute -top-1 -right-1">
-                        <CheckCircle2 className={`h-5 w-5 text-${type.themeColor} bg-background rounded-full`} />
+                        <CheckCircle className={`h-5 w-5 text-${type.themeColor} bg-background rounded-full`} />
                       </div>
                     )}
                   </div>
@@ -100,11 +96,6 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                           }`}>
                             {type.name}
                           </h3>
-                          <Badge variant={isSelected ? "default" : "secondary"} className={`text-xs font-medium ${
-                            isSelected ? `bg-${type.themeColor}/20 text-${type.themeColor} border-${type.themeColor}/30` : ''
-                          }`}>
-                            {type.badge}
-                          </Badge>
                         </div>
                         <p className={`text-sm leading-relaxed transition-colors duration-300 ${
                           isSelected ? 'text-foreground/90' : 'text-muted-foreground'

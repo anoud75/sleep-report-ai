@@ -167,15 +167,6 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-full"></div>
-          <h2 className="text-2xl font-bold text-foreground">Document Upload</h2>
-          <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-        </div>
-        <p className="text-muted-foreground ml-7">Upload your sleep study report for AI-powered analysis</p>
-      </div>
 
       {/* Error alert */}
       {error && (
@@ -192,33 +183,6 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
       }`}>
         {!file && !processing && !success && (
           <CardContent className="p-8">
-            {/* AI Features Grid */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="group text-center p-4 rounded-2xl bg-success-light border border-success/20 transition-all duration-300 hover:shadow-[var(--shadow-trust)]">
-                <div className="relative mb-3">
-                  <FileSpreadsheet className="h-6 w-6 text-success mx-auto" />
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-success rounded-full animate-pulse"></div>
-                </div>
-                <Badge variant="secondary" className="text-xs bg-success/10 text-success border-success/20">Professional</Badge>
-                <p className="text-xs font-medium text-foreground/80 mt-2">PDF Summary</p>
-              </div>
-              <div className="group text-center p-4 rounded-2xl bg-primary/5 border border-primary/20 transition-all duration-300 hover:shadow-[var(--shadow-elegant)]">
-                <div className="relative mb-3">
-                  <Brain className="h-6 w-6 text-primary mx-auto" />
-                  <Sparkles className="h-3 w-3 text-primary/60 absolute -top-1 -right-1 animate-spin" />
-                </div>
-                <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">AI-Powered</Badge>
-                <p className="text-xs font-medium text-foreground/80 mt-2">Smart Analysis</p>
-              </div>
-              <div className="group text-center p-4 rounded-2xl bg-trust-light border border-trust/20 transition-all duration-300 hover:shadow-[var(--shadow-glow)]">
-                <div className="relative mb-3">
-                  <Zap className="h-6 w-6 text-trust mx-auto" />
-                  <div className="absolute inset-0 bg-trust/20 rounded-full animate-ping"></div>
-                </div>
-                <Badge variant="secondary" className="text-xs bg-trust/10 text-trust border-trust/20">Lightning</Badge>
-                <p className="text-xs font-medium text-foreground/80 mt-2">Fast Processing</p>
-              </div>
-            </div>
 
             {/* Advanced Drop Zone */}
             <div
