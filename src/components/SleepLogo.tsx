@@ -20,57 +20,87 @@ export const SleepLogo: React.FC<SleepLogoProps> = ({ size = 'md', className = '
         xmlns="http://www.w3.org/2000/svg"
         className="w-full h-full"
       >
-        {/* Bear/Panda head outline */}
-        <circle
+        {/* Koala head outline */}
+        <ellipse
           cx="50"
-          cy="55"
-          r="28"
+          cy="58"
+          rx="22"
+          ry="26"
           stroke="url(#gradient)"
           strokeWidth="4"
           fill="none"
           className="drop-shadow-lg"
         />
         
-        {/* Left ear */}
-        <circle
+        {/* Left ear (koala style - oval) */}
+        <ellipse
           cx="35"
-          cy="35"
-          r="12"
+          cy="40"
+          rx="8"
+          ry="12"
           stroke="url(#gradient)"
           strokeWidth="4"
           fill="none"
           className="drop-shadow-lg"
         />
         
-        {/* Right ear */}
-        <circle
+        {/* Right ear (koala style - oval) */}
+        <ellipse
           cx="65"
-          cy="35"
-          r="12"
+          cy="40"
+          rx="8"
+          ry="12"
           stroke="url(#gradient)"
           strokeWidth="4"
           fill="none"
           className="drop-shadow-lg"
         />
         
-        {/* Sleep mask/eye area */}
-        <ellipse
-          cx="50"
-          cy="52"
-          rx="18"
-          ry="8"
+        {/* Brain pattern inside head */}
+        <path
+          d="M38 52 Q42 48 46 52 Q50 48 54 52 Q58 48 62 52"
           stroke="url(#gradient)"
-          strokeWidth="3"
-          fill="url(#maskGradient)"
-          className="drop-shadow-md"
+          strokeWidth="2"
+          fill="none"
+          className="opacity-70"
+        />
+        <path
+          d="M40 58 Q44 54 48 58 Q52 54 56 58 Q60 54 64 58"
+          stroke="url(#gradient)"
+          strokeWidth="2"
+          fill="none"
+          className="opacity-70"
+        />
+        <path
+          d="M42 64 Q46 60 50 64 Q54 60 58 64"
+          stroke="url(#gradient)"
+          strokeWidth="2"
+          fill="none"
+          className="opacity-70"
         />
         
-        {/* Closed eye/sleep symbol */}
+        {/* Closed sleepy eyes */}
+        <path
+          d="M42 50 Q44 48 46 50"
+          stroke="url(#gradient)"
+          strokeWidth="2"
+          fill="none"
+          className="opacity-90"
+        />
+        <path
+          d="M54 50 Q56 48 58 50"
+          stroke="url(#gradient)"
+          strokeWidth="2"
+          fill="none"
+          className="opacity-90"
+        />
+        
+        {/* Small koala nose */}
         <ellipse
           cx="50"
-          cy="52"
-          rx="3"
-          ry="2"
+          cy="56"
+          rx="2"
+          ry="1.5"
           fill="url(#gradient)"
           className="opacity-80"
         />
@@ -114,10 +144,6 @@ export const SleepLogo: React.FC<SleepLogoProps> = ({ size = 'md', className = '
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="hsl(var(--primary))" />
             <stop offset="100%" stopColor="hsl(var(--secondary))" />
-          </linearGradient>
-          <linearGradient id="maskGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="hsl(var(--primary) / 0.2)" />
-            <stop offset="100%" stopColor="hsl(var(--secondary) / 0.3)" />
           </linearGradient>
         </defs>
       </svg>
