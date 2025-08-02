@@ -163,7 +163,7 @@ const Index = () => {
         <div className="container mx-auto px-6 relative z-10">
           <div className="text-center space-y-6 mb-20 animate-fade-in-up">
             <h2 className="text-4xl md:text-5xl font-bold">
-              🧠 <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
                 About Sleep Report AI
               </span>
             </h2>
@@ -236,7 +236,7 @@ const Index = () => {
         <div className="container mx-auto px-6 text-center relative z-10">
           <div className="max-w-4xl mx-auto mb-16 animate-fade-in-up">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              ⚙️ <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
                 How It Works – In 3 Easy Steps
               </span>
             </h2>
