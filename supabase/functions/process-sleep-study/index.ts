@@ -29,71 +29,138 @@ serve(async (req) => {
 
     console.log('Processing file content length:', fileContent.length);
 
-    const prompt = `🧠 PURPOSE OF THE TOOL:
-You are an AI sleep study report generator. Your task is to:
-- Read raw .docx sleep study reports exported from G3 systems
-- Extract and calculate key clinical metrics
-- Generate a professional, clinical-grade sleep report
-- Write clear, structured diagnostic summaries based on extracted data
+    const prompt = `You are an AI engine designed to read raw G3-format sleep study reports in .docx format and generate a clean, 2-page PDF summary for clinical use in sleep centers. This prompt includes all detailed instructions for:
 
-📁 UPLOAD LOGIC & VALIDATION:
-- Only accept .docx files exported from G3 sleep systems
-- Extract diagnostic interpretation for all study types
-- For Split-Night studies: Use diagnostic data from first file, treatment data from second file
+Extracting key values from raw tables
+Interpreting and calculating metrics
+Generating standardized summaries
+Following professional formatting
+Structuring a final PDF in a precise, modern layout
 
-🧮 DATA EXTRACTION (All values found in structured tables):
-Extract the following metrics exactly as they appear in the document:
+No uploaded files can be referenced — everything must be implemented based on the instructions below.
 
-🛏️ SLEEP PARAMETERS:
-- Light Off: Time the recording starts (e.g., "22:15")
-- Light On: Time the recording ends (e.g., "06:30") 
-- Time in Bed (min): Total recording time
-- Total Sleep Time (min): Actual sleep duration
-- Sleep Latency (min): Time to fall asleep
-- REM Latency (min): Time to first REM
-- Sleep Efficiency (%): TST/TIB ratio
+🧾 INPUT FORMAT (.docx)
+The uploaded raw file follows G3 standard format used in sleep labs. All key data appears in structured tables with clearly labeled rows and columns. The AI must scan for these fields and extract values based on the exact field name.
 
-🧠 SLEEP ARCHITECTURE:
-- Sleep Stage 1 (%)
-- Sleep Stage 2 (%)
-- Slow Wave Sleep (SWS, %)
-- REM Sleep (%)
+🔍 Extract These Key Values (Must be present in the final report)
+Locate these values directly from the G3 .docx tables and extract them precisely. If a value is not found, insert "—" in its place.
 
-😴 RESPIRATORY DATA:
-- AHI overall: Main apnea-hypopnea index
-- AHI NREM/REM: Separate values for each sleep stage
-- AHI Supine/Lateral: Position-specific values (if available)
-- Central Apnea Index (/hr)
-- Obstructive Apnea Index (/hr)
-- Mixed Apnea Index (/hr)
-- Hypopnea Index (/hr)
-- Hypopnea Mean Duration (sec)
+🔍 DATA EXTRACTION LOCATIONS
+From the raw G3 reports, extract the following values from clearly labeled tables or highlighted fields in the document:
 
-💓 CARDIAC & OXYGENATION:
-- Heart Rate (NREM/REM): Both values
-- Oxygen Desaturation Index (/hr)
-- % Time SpO2 < 90%
-- % Time SpO2 < 95%
-- Lowest O2 Saturation (%)
-- Average O2 Saturation (%)
+Field	How to Locate
+Light Off / Light On	Found near "Study Start" and "Study End" under Time
+Time in Bed (min)	Labelled directly as such in the summary table
+Total Sleep Time (min)	Same section as "Sleep Efficiency"
+CPAP/BPAP/O2 Used	Found in settings or notes area – If none used, write "---"
+Sleep Latency	Near Sleep Architecture
+REM Latency	Same table as above
+Sleep Efficiency (%)	Near total time calculations
+Sleep Stage 1/2/SWS/REM (%)	Table titled "Sleep Architecture by Stage" or similar
+AHI – NREM/REM/Supine/Lateral	Look in AHI by Sleep Stage/Position table
+Central/Obstructive/Mixed Apnea Index	Table labeled "Apnea Index Breakdown"
+Hypopnea Index	Found under event index tables
+Hypopnea Mean Duration (sec)	If not stated, calculate average of durations listed
+Heart Rate (NREM/REM)	Found in cardiovascular section
+Desaturation Index	Labelled or calculated from SpO₂ events
+% Time O2 <90% / <95%	Found under oxygen summary
+Lowest/Avg O2 Saturation	Found in same section as above
+Arousal Index	Table titled "Arousal Summary"
+Snoring (%)	If available, from "Snoring Index" or "Snore Summary"
+Leg Movement Index	Table titled "Limb Movement" or similar
 
-⚡ AROUSALS & MOVEMENT:
-- Arousal Index (/hr)
-- Snoring (% time)
-- Leg Movement Index (/hr)
-- If PLM index > 15/hr → note presence of Periodic Limb Movements (PLMS)
+➕ CALCULATIONS & INTERPRETATION
+Use sleep guidelines to classify AHI:
 
-🧠 INTERPRETATION RULES:
-Follow AASM guidelines:
+Normal < 5/hr
+Mild 5–14/hr
+Moderate 15–29/hr
+Severe ≥ 30/hr
 
-AHI Classification:
-- Normal: < 5/hr
-- Mild OSA: 5–14/hr  
-- Moderate OSA: 15–29/hr
-- Severe OSA: ≥ 30/hr
+If Leg Movement Index ≥ 15/hr, add to final summary:
+"Periodic limb movements noted."
 
-PLMS:
-- If Leg Movement Index > 15/hr, include: "There were periodic limb movements during sleep."
+If desaturation < 90% > 10%, mention "significant oxygen desaturation events."
+
+Mask Type and Size: Must be selected manually from a dropdown by the user
+Final pressure reached: extracted from titration section
+
+🧠 INTERPRETATION & SUMMARY RULES
+Use predefined text templates from the following logic and apply values accordingly. Do not hallucinate or overstate.
+
+If AHI < 5, state: "No significant evidence of sleep-disordered breathing."
+If AHI 5–15, state: "Mild obstructive sleep apnea was observed."
+If AHI 15–30, state: "Moderate obstructive sleep apnea was observed."
+If AHI > 30, state: "Severe obstructive sleep apnea was observed."
+
+If Central Apnea Index > 5, note: "Frequent central apneas present."
+If Leg Movement Index > 15, note: "Abnormal periodic limb movement disorder observed."
+If Sleep Efficiency < 85%, note: "Low sleep efficiency."
+
+✅ Include final diagnosis statement
+✅ Include recommendations based on findings using phrasing from approved templates
+✅ Mention mask and pressure only for titration/split-night cases (not diagnostic)
+✅ Summary tone should be clinical, neutral, professional
+
+📋 SPLIT-NIGHT STUDIES (Important Logic)
+If study type is split-night:
+
+User must upload two files:
+File 1 = Diagnostic
+File 2 = Titration
+
+Diagnosis must be derived from diagnostic part (AHI, desats, PLM)
+Titration data (pressure reached, response, mask used) must be taken from second part only
+AI must ignore titration part when calculating diagnostic metrics
+Final summary must mention pressure reached and user-selected mask type/size
+
+🛑 STRICT RULES
+Do NOT include:
+Any numbers like "10,000+ reports processed"
+"Trusted by experts" or similar marketing claims
+"Deep learning," "GPT," or any mention of internal model logic
+Any testimonial quotes
+MSLT or Home Sleep Study options
+
+📄 PDF STRUCTURE (2 Pages Max)
+The final report should match the following exact visual layout, using clear spacing and grid alignment. No crowded sections. Font: clean, sans-serif.
+
+🧷 PAGE 1
+Section 1: Header
+Placeholder fields for user to manually enter:
+Patient Name
+MRN
+Study Date
+Technician
+Sleep Center
+
+Section 2: Summary Table (Left-Aligned Grid, Clear Borders)
+Include all extracted key values (see above) in two-column layout:
+Left: Metric
+Right: Value
+
+Section 3: Final Summary (Full-width paragraph)
+Generated by AI using strict guideline-based logic and template tone
+
+Section 4: Recommendations
+Short, numbered clinical recommendations based on extracted values
+
+🧾 PAGE 2 (Optional if needed)
+Only added if space is needed for full summary or if user toggles "View Extended Metrics."
+Otherwise, default to single-page report.
+
+📤 FINAL USER FLOW
+User selects study type (Diagnostic, Titration, Split)
+If Titration/Split: dropdown to select Mask Type and Size (required)
+User uploads 1 or 2 files
+AI extracts values, applies rules, and generates PDF
+User can review summary, edit if needed, then download PDF
+
+⚠️ FILE VALIDATION
+If the uploaded .docx file does not match expected G3 table format:
+Return error: "Invalid sleep study format. Please upload a valid G3 .docx sleep report."
+
+This AI tool is built for medical professionals and must maintain 99% clinical-grade accuracy. Use all logic above for every output. Do not improvise formatting or summaries. Follow the grid, spacing, value locations, and templates exactly as written here.
 
 Study Type: ${studyType}
 
