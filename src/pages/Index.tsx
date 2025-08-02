@@ -7,6 +7,7 @@ import { StudyTypeSelector } from "@/components/StudyTypeSelector";
 import { FileUpload } from "@/components/FileUpload";
 import { ProcessedResults } from "@/components/ProcessedResults";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
+import { ContactForm } from "@/components/ContactForm";
 
 const Index = () => {
   const [selectedStudyType, setSelectedStudyType] = useState('');
@@ -281,6 +282,19 @@ const Index = () => {
             )}
           </div>
 
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-20 bg-black relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/3 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-500/3 rounded-full blur-3xl animate-float" style={{animationDelay: '1.5s'}}></div>
+        </div>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <ContactForm />
+          </div>
         </div>
       </section>
 
