@@ -58,7 +58,7 @@ const Index = () => {
             playsInline
             className="w-full h-full object-cover opacity-30"
           >
-            <source src="/src/assets/hero-video-bg.jpg" type="video/mp4" />
+            <source src="https://cdn.midjourney.com/video/f6cee227-c4ac-48f9-acf8-eb9b1b060864/1.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70"></div>
           
