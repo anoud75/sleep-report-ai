@@ -165,127 +165,176 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
   };
 
   return (
-    <Card className={`border-2 transition-colors ${
-      dragActive ? 'border-primary bg-primary/5' : 
-      success ? 'border-green-500 bg-green-50' :
-      'border-dashed border-primary/20 hover:border-primary/40'
-    }`}>
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center space-x-2">
-          {success ? (
-            <>
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <span>Processing Complete</span>
-            </>
-          ) : (
-            <>
-              <Upload className="h-5 w-5" />
-              <span>Upload Sleep Study Report</span>
-            </>
-          )}
-        </CardTitle>
-        <CardDescription>
-          Upload your G3 sleep study report (.docx format) to generate a professional PDF summary
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
+    <div className="space-y-6">
+      <Card className={`border transition-all duration-200 ${
+        dragActive ? 'border-blue-500/50 bg-blue-500/5 shadow-lg' : 
+        success ? 'border-green-500/50 bg-green-500/5 shadow-lg' :
+        error ? 'border-red-500/50 bg-red-500/5' :
+        'border-gray-700 bg-gray-900/50 hover:border-gray-600 hover:shadow-md'
+      }`}>
         {!file && !processing && !success && (
-          <div
-            className={`flex flex-col items-center justify-center py-12 space-y-4 rounded-lg transition-colors ${
-              dragActive ? 'bg-primary/10' : 'hover:bg-muted/50'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <div className="bg-primary/10 p-4 rounded-full">
-              <FileText className="h-12 w-12 text-primary" />
+          <CardContent className="p-8">
+            <div
+              className={`flex flex-col items-center justify-center py-12 space-y-6 rounded-lg border-2 border-dashed transition-all duration-200 ${
+                dragActive 
+                  ? 'border-blue-500/50 bg-blue-500/5' 
+                  : 'border-gray-600 hover:border-gray-500 hover:bg-gray-800/30'
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              {/* Icon */}
+              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <Upload className="h-8 w-8 text-blue-400" />
+              </div>
+              
+              {/* Title and description */}
+              <div className="text-center space-y-2">
+                <h4 className="text-xl font-semibold text-white">Upload Sleep Study Report</h4>
+                <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
+                  Upload your G3 sleep study report (.docx format) to generate a professional PDF summary
+                </p>
+              </div>
+              
+              {/* Upload instruction */}
+              <div className="text-center space-y-3">
+                <p className="text-gray-300 font-medium">Drop your .docx file here</p>
+                <p className="text-sm text-gray-500">or click to browse files</p>
+              </div>
+              
+              {/* File input and button */}
+              <input
+                type="file"
+                accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="file-upload"
+              />
+              <label htmlFor="file-upload">
+                <Button 
+                  size="lg" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+                  asChild
+                >
+                  <span>Select File</span>
+                </Button>
+              </label>
             </div>
-            <div className="text-center space-y-2">
-              <p className="text-lg font-medium">Drop your .docx file here</p>
-              <p className="text-sm text-muted-foreground">or click to browse files</p>
-            </div>
-            <input
-              type="file"
-              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              onChange={handleFileSelect}
-              className="hidden"
-              id="file-upload"
-            />
-            <label htmlFor="file-upload">
-              <Button size="lg" className="mt-4" asChild>
-                <span>Select File</span>
-              </Button>
-            </label>
-          </div>
+          </CardContent>
         )}
 
         {file && !processing && !success && (
-          <div className="border rounded-lg p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <FileText className="h-8 w-8 text-primary" />
-                <div>
-                  <p className="font-medium">{file.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+          <CardContent className="p-8">
+            <div className="space-y-6">
+              {/* File info */}
+              <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 rounded-lg bg-blue-500/10">
+                    <FileText className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white">{file.name}</p>
+                    <p className="text-sm text-gray-400">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB • Ready to process
+                    </p>
+                  </div>
                 </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={resetUpload}
+                  className="text-gray-400 hover:text-white hover:bg-gray-700"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <Button variant="ghost" size="sm" onClick={resetUpload}>
-                <X className="h-4 w-4" />
-              </Button>
+              
+              {/* Process button */}
+              <div className="flex space-x-3">
+                <Button 
+                  onClick={handleProcessFile} 
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 font-medium"
+                  disabled={!selectedStudyType}
+                >
+                  Process Report
+                </Button>
+              </div>
+              
+              {!selectedStudyType && (
+                <p className="text-sm text-yellow-400 text-center">
+                  Please select a study type first
+                </p>
+              )}
             </div>
-            <div className="flex space-x-2">
-              <Button onClick={handleProcessFile} className="flex-1">
-                Process Report
-              </Button>
-            </div>
-          </div>
+          </CardContent>
         )}
 
         {processing && (
-          <div className="space-y-4">
-            <div className="text-center">
-              <p className="font-medium">Processing {file?.name}</p>
-              <p className="text-sm text-muted-foreground">
-                Analyzing sleep study data...
-              </p>
+          <CardContent className="p-8">
+            <div className="space-y-6 text-center">
+              {/* Processing icon */}
+              <div className="p-4 rounded-lg bg-blue-500/10 w-fit mx-auto">
+                <Upload className="h-8 w-8 text-blue-400 animate-pulse" />
+              </div>
+              
+              {/* Processing info */}
+              <div className="space-y-2">
+                <h4 className="font-semibold text-white text-lg">Processing {file?.name}</h4>
+                <p className="text-gray-400">
+                  Analyzing sleep study data...
+                </p>
+              </div>
+              
+              {/* Progress bar */}
+              <div className="space-y-3">
+                <Progress value={progress} className="h-3 bg-gray-800" />
+                <p className="text-sm text-gray-400">
+                  {progress < 25 ? 'Reading document...' :
+                   progress < 50 ? 'Extracting clinical data...' :
+                   progress < 75 ? 'Analyzing sleep parameters...' :
+                   'Generating report...'}
+                </p>
+              </div>
             </div>
-            <Progress value={progress} className="h-2" />
-            <p className="text-xs text-center text-muted-foreground">
-              {progress < 25 ? 'Reading document...' :
-               progress < 50 ? 'Extracting clinical data...' :
-               progress < 75 ? 'Analyzing sleep parameters...' :
-               'Generating report...'}
-            </p>
-          </div>
+          </CardContent>
         )}
 
         {success && (
-          <div className="text-center space-y-4">
-            <div className="bg-green-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+          <CardContent className="p-8">
+            <div className="text-center space-y-6">
+              {/* Success icon */}
+              <div className="p-4 rounded-lg bg-green-500/10 w-fit mx-auto">
+                <CheckCircle className="h-8 w-8 text-green-400" />
+              </div>
+              
+              {/* Success message */}
+              <div className="space-y-2">
+                <h4 className="font-semibold text-white text-lg">Report Generated Successfully</h4>
+                <p className="text-gray-400">Your sleep study analysis is ready</p>
+              </div>
+              
+              {/* Action button */}
+              <Button 
+                onClick={resetUpload} 
+                variant="outline"
+                className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+              >
+                Process Another Report
+              </Button>
             </div>
-            <div>
-              <p className="font-medium text-green-800">Report Generated Successfully</p>
-              <p className="text-sm text-green-600">Your sleep study analysis is ready</p>
-            </div>
-            <Button onClick={resetUpload} variant="outline">
-              Process Another Report
-            </Button>
-          </div>
+          </CardContent>
         )}
-      </CardContent>
-    </Card>
+      </Card>
+
+      {/* Error alert */}
+      {error && (
+        <Alert variant="destructive" className="border-red-500/50 bg-red-500/10">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-red-400">{error}</AlertDescription>
+        </Alert>
+      )}
+    </div>
   );
 };
