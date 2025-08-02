@@ -280,42 +280,68 @@ const Index = () => {
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Analysis</span>
             </h2>
             <p className="text-lg text-white/70 max-w-2xl mx-auto">
-              Upload your sleep study file and select the study type for instant AI analysis.
+              Configure your analysis settings and upload your sleep study report for instant AI processing.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
-            {/* Study Type Section */}
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-4">Study Type</h3>
-              <p className="text-white/70 mb-6">Select Study Type</p>
-              <StudyTypeSelector
-                selectedType={selectedStudyType}
-                onTypeSelect={setSelectedStudyType}
-              />
-            </div>
+          {/* Integrated Analysis Workflow */}
+          <div className="max-w-4xl mx-auto space-y-8">
+            {/* Study Type Selection */}
+            <StudyTypeSelector
+              selectedType={selectedStudyType}
+              onTypeSelect={setSelectedStudyType}
+            />
             
-            {/* Upload Section */}
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-4">Upload Study File</h3>
-              <FileUpload
-                onFileProcessed={handleFileProcessed}
-                selectedStudyType={selectedStudyType}
-                onFileUploaded={setHasUploadedFile}
-              />
-              
-              {/* Start Analysis Button - Show only when file is uploaded */}
-              {hasUploadedFile && selectedStudyType && (
-                <div className="text-center mt-8">
-                  <button 
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
-                    onClick={scrollToUpload}
-                  >
-                    Start Analysis
-                  </button>
+            {/* File Upload - Only show after study type is selected */}
+            {selectedStudyType && (
+              <div className="animate-fade-in">
+                <FileUpload
+                  onFileProcessed={handleFileProcessed}
+                  selectedStudyType={selectedStudyType}
+                  onFileUploaded={setHasUploadedFile}
+                />
+              </div>
+            )}
+            
+            {/* Progress Indicator */}
+            {!selectedStudyType && (
+              <div className="text-center py-8">
+                <div className="flex items-center justify-center gap-4 text-white/40">
+                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">1</div>
+                  <div className="w-16 h-px bg-white/20"></div>
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white/40 text-sm font-bold">2</div>
+                  <div className="w-16 h-px bg-white/20"></div>
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white/40 text-sm font-bold">3</div>
                 </div>
-              )}
-            </div>
+                <p className="text-white/60 mt-4 text-sm">Select study type to continue</p>
+              </div>
+            )}
+            
+            {selectedStudyType && !hasUploadedFile && (
+              <div className="text-center py-8">
+                <div className="flex items-center justify-center gap-4 text-white/40">
+                  <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">✓</div>
+                  <div className="w-16 h-px bg-green-500"></div>
+                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">2</div>
+                  <div className="w-16 h-px bg-white/20"></div>
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white/40 text-sm font-bold">3</div>
+                </div>
+                <p className="text-white/60 mt-4 text-sm">Upload your sleep study report</p>
+              </div>
+            )}
+            
+            {selectedStudyType && hasUploadedFile && (
+              <div className="text-center py-8">
+                <div className="flex items-center justify-center gap-4 text-white/40">
+                  <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">✓</div>
+                  <div className="w-16 h-px bg-green-500"></div>
+                  <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">✓</div>
+                  <div className="w-16 h-px bg-green-500"></div>
+                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">3</div>
+                </div>
+                <p className="text-white/60 mt-4 text-sm">Ready for analysis</p>
+              </div>
+            )}
           </div>
 
         </div>
