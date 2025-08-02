@@ -1,9 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Zap } from "lucide-react";
 
 export const HowItWorksCarousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = 2;
+
+  // Auto-play functionality
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    }, 4000); // Change slide every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [totalSlides]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
@@ -121,8 +130,7 @@ export const HowItWorksCarousel = () => {
       <div className="flex justify-center items-center mt-8 gap-4">
         <button 
           onClick={prevSlide}
-          disabled={currentSlide === 0}
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-300"
         >
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -143,8 +151,7 @@ export const HowItWorksCarousel = () => {
         
         <button 
           onClick={nextSlide}
-          disabled={currentSlide === totalSlides - 1}
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-300"
         >
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
