@@ -233,10 +233,9 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
               type="file"
               accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={handleFileSelect}
-              className="hidden"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
               id="file-upload"
             />
-            <label htmlFor="file-upload" className="cursor-pointer absolute inset-0"></label>
           </CardContent>
         )}
 
