@@ -188,7 +188,7 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
             <div
               className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-500 cursor-pointer overflow-hidden group ${
                 dragActive 
-                  ? 'border-primary bg-primary/5 scale-105 shadow-[var(--shadow-glow)]' 
+                  ? 'border-primary bg-primary/5 scale-105 shadow-[var(--shadow-glow)] animate-pulse-glow' 
                   : 'border-border hover:border-primary/50 hover:bg-primary/2'
               }`}
               onDragEnter={handleDrag}
@@ -197,12 +197,12 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
               onDrop={handleDrop}
             >
               {/* Background Gradient Effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer bg-[length:200%_100%]"></div>
               
-              <div className="relative z-10">
+              <div className="relative z-10 animate-fade-in-up">
                 <div className="relative mb-6">
                   <Upload className={`mx-auto h-16 w-16 mb-4 transition-all duration-500 ${
-                    dragActive ? 'text-primary scale-110 animate-bounce' : 'text-muted-foreground group-hover:text-primary group-hover:scale-110'
+                    dragActive ? 'text-primary scale-110 animate-float' : 'text-muted-foreground group-hover:text-primary group-hover:scale-110'
                   }`} />
                   {dragActive && (
                     <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
@@ -220,7 +220,7 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
                 <Button 
                   variant="secondary" 
                   size="lg"
-                  className="pointer-events-none shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] transition-all duration-300"
+                  className="pointer-events-none shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] transition-all duration-300 hover:scale-105"
                 >
                   <FileText className="h-5 w-5 mr-3" />
                   Select File

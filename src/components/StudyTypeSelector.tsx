@@ -37,49 +37,50 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-3">
+      <div className="space-y-3 animate-fade-in-up">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-full"></div>
+          <div className="h-8 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-full animate-pulse"></div>
           <h2 className="text-2xl font-bold text-foreground">Study Type Selection</h2>
-          <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+          <Sparkles className="h-5 w-5 text-primary animate-float" />
         </div>
         <p className="text-muted-foreground ml-7">Choose the appropriate study protocol for analysis</p>
       </div>
 
       {/* Study Type Cards */}
       <div className="grid gap-4">
-        {studyTypes.map((type) => {
+        {studyTypes.map((type, index) => {
           const Icon = type.icon;
           const isSelected = selectedType === type.id;
           
           return (
             <Card
               key={type.id}
-              className={`group relative overflow-hidden cursor-pointer transition-all duration-500 ease-out border-2 ${
+              className={`group relative overflow-hidden cursor-pointer transition-all duration-500 ease-out border-2 animate-fade-in-up hover:scale-[1.02] ${
                 isSelected 
-                  ? `border-${type.themeColor} bg-${type.themeColor}-light shadow-[var(--shadow-elegant)] scale-[1.02]`
+                  ? `border-${type.themeColor} bg-${type.themeColor}-light shadow-[var(--shadow-elegant)] scale-[1.02] animate-pulse-glow`
                   : 'border-border bg-card hover:border-muted-foreground/50 hover:shadow-[var(--shadow-card-hover)]'
               }`}
+              style={{animationDelay: `${index * 0.1}s`}}
               onClick={() => onTypeSelect(type.id)}
             >
               {/* Selection Glow Effect */}
               {isSelected && (
-                <div className={`absolute inset-0 bg-gradient-to-r from-${type.themeColor}/5 to-transparent opacity-50`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-r from-${type.themeColor}/5 to-transparent opacity-50 animate-shimmer bg-[length:200%_100%]`}></div>
               )}
               
               <CardContent className="p-6 relative">
                 <div className="flex items-start gap-6">
                   {/* Icon Container */}
-                  <div className={`relative p-4 rounded-2xl transition-all duration-300 ${
+                  <div className={`relative p-4 rounded-2xl transition-all duration-500 hover:scale-110 ${
                     isSelected 
-                      ? `bg-${type.themeColor}/20 shadow-[var(--shadow-glow)]` 
+                      ? `bg-${type.themeColor}/20 shadow-[var(--shadow-glow)] animate-float` 
                       : 'bg-muted/50 group-hover:bg-muted'
                   }`}>
                     <Icon className={`h-7 w-7 transition-all duration-300 ${
                       isSelected ? `text-${type.themeColor}` : 'text-muted-foreground group-hover:text-foreground'
                     }`} />
                     {isSelected && (
-                      <div className="absolute -top-1 -right-1">
+                      <div className="absolute -top-1 -right-1 animate-scale-in">
                         <CheckCircle className={`h-5 w-5 text-${type.themeColor} bg-background rounded-full`} />
                       </div>
                     )}
@@ -108,13 +109,13 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                     {/* Features Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {type.details.map((detail, index) => (
-                        <div key={index} className={`flex items-center gap-2 p-3 rounded-xl transition-all duration-300 ${
+                        <div key={index} className={`flex items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 ${
                           isSelected 
-                            ? `bg-${type.themeColor}/10 border border-${type.themeColor}/20` 
+                            ? `bg-${type.themeColor}/10 border border-${type.themeColor}/20 animate-fade-in` 
                             : 'bg-muted/30 border border-transparent group-hover:bg-muted/50'
-                        }`}>
-                          <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors duration-300 ${
-                            isSelected ? `bg-${type.themeColor}` : 'bg-muted-foreground/50'
+                        }`} style={{animationDelay: `${index * 0.1}s`}}>
+                          <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all duration-300 ${
+                            isSelected ? `bg-${type.themeColor} animate-pulse` : 'bg-muted-foreground/50'
                           }`}></div>
                           <span className={`text-xs font-medium leading-tight transition-colors duration-300 ${
                             isSelected ? 'text-foreground/90' : 'text-muted-foreground group-hover:text-foreground/80'
