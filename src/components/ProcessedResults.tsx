@@ -124,48 +124,48 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     
     // Organize data into logical sections
     const sleepTimingFields = [
-      ['Light Off', data.lightOff],
-      ['Light On', data.lightOn],
-      ['Time in Bed (min)', data.timeInBed],
-      ['Total Sleep Time (min)', data.totalSleepTime],
-      ['CPAP/BPAP/O2', data.cpapBpapO2]
+      ['Light Off', data.studyInfo?.lightsOff],
+      ['Light On', data.studyInfo?.lightsOn],
+      ['Time in Bed (min)', data.studyInfo?.timeInBed],
+      ['Total Sleep Time (min)', data.studyInfo?.totalSleepTime],
+      ['CPAP/BPAP/O2', data.titrationData?.pressureType]
     ];
     
     const sleepQualityFields = [
-      ['Sleep Latency (min)', data.sleepLatency],
-      ['REM Latency (min)', data.remLatency],
-      ['Sleep Efficiency (%)', data.sleepEfficiency]
+      ['Sleep Latency (min)', data.studyInfo?.sleepLatency],
+      ['REM Latency (min)', data.studyInfo?.remLatency],
+      ['Sleep Efficiency (%)', data.sleepArchitecture?.sleepEfficiency]
     ];
     
     const sleepStagesFields = [
-      ['Sleep Stage 1 (%)', data.stage1],
-      ['Sleep Stage 2 (%)', data.stage2],
-      ['Slow Wave Sleep (%)', data.slowWave],
-      ['REM Sleep (%)', data.rem]
+      ['Sleep Stage 1 (%)', data.sleepArchitecture?.stage1Percent],
+      ['Sleep Stage 2 (%)', data.sleepArchitecture?.stage2Percent],
+      ['Slow Wave Sleep (%)', data.sleepArchitecture?.stage3Percent],
+      ['REM Sleep (%)', data.sleepArchitecture?.remPercent]
     ];
     
     const respiratoryFields = [
-      ['AHI (NREM/REM)', data.ahiNremRem],
-      ['AHI (Supine/Lateral)', data.ahiSupineLateral],
-      ['Central Apnea Index', data.centralApneaIndex],
-      ['Obstructive Apnea Index (/hr)', data.obstructiveApneaIndex],
-      ['Mixed Apnea Index', data.mixedApneaIndex],
-      ['Hypopnea Index (/hr)', data.hypopneaIndex],
-      ['Hypopnea Mean Duration (sec)', data.hypopneaMeanDuration]
+      ['AHI (NREM/REM)', `${data.respiratoryEvents?.ahiNrem || '---'} / ${data.respiratoryEvents?.ahiRem || '---'}`],
+      ['AHI (Supine/Lateral)', `${data.respiratoryEvents?.ahiSupine || '---'} / ${data.respiratoryEvents?.ahiLateral || '---'}`],
+      ['Central Apnea Index', data.respiratoryEvents?.centralApneaIndex],
+      ['Obstructive Apnea Index (/hr)', data.respiratoryEvents?.obstructiveApneaIndex],
+      ['Mixed Apnea Index', data.respiratoryEvents?.mixedApneaIndex],
+      ['Hypopnea Index (/hr)', data.respiratoryEvents?.hypopneaIndex],
+      ['Hypopnea Mean Duration (sec)', data.respiratoryEvents?.meanHypopneaDuration]
     ];
     
     const vitalSignsFields = [
-      ['Heart Rate (NREM/REM)', data.heartRateNremRem],
-      ['Desaturation Index (/hr)', data.desaturationIndex],
-      ['% Time with O2 < 90%', data.timeO2Below90],
-      ['% Time with O2 < 95%', data.timeO2Below95],
-      ['Lowest O2 / Average O2', data.lowestO2AverageO2]
+      ['Heart Rate (NREM/REM)', `${data.cardiacData?.meanHeartRateNrem || '---'} / ${data.cardiacData?.meanHeartRateRem || '---'}`],
+      ['Desaturation Index (/hr)', data.oxygenation?.desaturationIndex],
+      ['% Time with O2 < 90%', data.oxygenation?.timeBelow90Percent],
+      ['% Time with O2 < 95%', data.oxygenation?.timeBelow95Percent],
+      ['Lowest O2 / Average O2', `${data.oxygenation?.lowestSpO2 || '---'} / ${data.oxygenation?.averageSpO2 || '---'}`]
     ];
     
     const additionalFields = [
-      ['Arousal Index (/hr)', data.arousalIndex],
-      ['Snoring (%)', data.snoring],
-      ['Leg Movement Index (/hr)', data.legMovementIndex]
+      ['Arousal Index (/hr)', data.additionalMetrics?.arousalIndex],
+      ['Snoring (%)', data.additionalMetrics?.snoringPercent],
+      ['Leg Movement Index (/hr)', data.additionalMetrics?.legMovementIndex]
     ];
     
     // Create sections
@@ -177,7 +177,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     yPos = createSection('Additional Metrics', additionalFields, yPos);
     
     // Clinical Summary Section
-    if (data.summary) {
+    if (data.clinicalSummary) {
       if (yPos > pageHeight - 80) {
         doc.addPage();
         yPos = 40;
@@ -191,7 +191,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       
       // Summary box
       yPos += 10;
-      const summaryLines = doc.splitTextToSize(data.summary, contentWidth - 10);
+      const summaryLines = doc.splitTextToSize(data.clinicalSummary, contentWidth - 10);
       const summaryHeight = summaryLines.length * 6 + 10;
       
       doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
@@ -251,12 +251,12 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
                 <span>Sleep Study Analysis Complete</span>
               </CardTitle>
               <CardDescription>
-                Report generated for {data.patientInfo.name} • {data.patientInfo.studyDate}
+                Report generated for {data.patientInfo?.name || 'Patient'} • {data.studyInfo?.studyDate || 'N/A'}
               </CardDescription>
             </div>
             <Badge variant="secondary" className="bg-green-100 text-green-800">
               <Activity className="h-3 w-3 mr-1" />
-              {data.studyType}
+              {data.studyInfo?.studyType || data.studyType || 'Diagnostic'}
             </Badge>
           </div>
         </CardHeader>
@@ -290,23 +290,23 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Light Off</span>
-              <span className="font-medium">{data.lightOff || '---'}</span>
+              <span className="font-medium">{data.studyInfo?.lightsOff || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Light On</span>
-              <span className="font-medium">{data.lightOn || '---'}</span>
+              <span className="font-medium">{data.studyInfo?.lightsOn || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Time in Bed (min)</span>
-              <span className="font-medium">{data.timeInBed || '---'}</span>
+              <span className="font-medium">{data.studyInfo?.timeInBed || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Total Sleep Time (min)</span>
-              <span className="font-medium">{data.totalSleepTime || '---'}</span>
+              <span className="font-medium">{data.studyInfo?.totalSleepTime || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">CPAP/BPAP/O2</span>
-              <span className="font-medium">{data.cpapBpapO2 || '---'}</span>
+              <span className="font-medium">{data.titrationData?.pressureType || '---'}</span>
             </div>
           </CardContent>
         </Card>
@@ -322,19 +322,19 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Sleep Latency (min)</span>
-              <span className="font-medium">{data.sleepLatency || '---'}</span>
+              <span className="font-medium">{data.studyInfo?.sleepLatency || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">REM Latency (min)</span>
-              <span className="font-medium">{data.remLatency || '---'}</span>
+              <span className="font-medium">{data.studyInfo?.remLatency || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Sleep Efficiency (%)</span>
-              <span className="font-medium">{data.sleepEfficiency || '---'}</span>
+              <span className="font-medium">{data.sleepArchitecture?.sleepEfficiency || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Arousal Index (/hr)</span>
-              <span className="font-medium">{data.arousalIndex || '---'}</span>
+              <span className="font-medium">{data.additionalMetrics?.arousalIndex || '---'}</span>
             </div>
           </CardContent>
         </Card>
@@ -350,19 +350,19 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Sleep Stage 1 (%)</span>
-              <span className="font-medium">{data.stage1 || '---'}</span>
+              <span className="font-medium">{data.sleepArchitecture?.stage1Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Sleep Stage 2 (%)</span>
-              <span className="font-medium">{data.stage2 || '---'}</span>
+              <span className="font-medium">{data.sleepArchitecture?.stage2Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Slow Wave Sleep (%)</span>
-              <span className="font-medium">{data.slowWave || '---'}</span>
+              <span className="font-medium">{data.sleepArchitecture?.stage3Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">REM Sleep (%)</span>
-              <span className="font-medium">{data.rem || '---'}</span>
+              <span className="font-medium">{data.sleepArchitecture?.remPercent || '---'}</span>
             </div>
           </CardContent>
         </Card>
@@ -378,27 +378,27 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">AHI (NREM/REM)</span>
-              <span className="font-medium">{data.ahiNremRem || '---'}</span>
+              <span className="font-medium">{data.respiratoryEvents?.ahiNrem || '---'} / {data.respiratoryEvents?.ahiRem || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">AHI (supine/lateral)</span>
-              <span className="font-medium">{data.ahiSupineLateral || '---'}</span>
+              <span className="font-medium">{data.respiratoryEvents?.ahiSupine || '---'} / {data.respiratoryEvents?.ahiLateral || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Central Apnea Index</span>
-              <span className="font-medium">{data.centralApneaIndex || '---'}</span>
+              <span className="font-medium">{data.respiratoryEvents?.centralApneaIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Obstructive Apnea Index (/hr)</span>
-              <span className="font-medium">{data.obstructiveApneaIndex || '---'}</span>
+              <span className="font-medium">{data.respiratoryEvents?.obstructiveApneaIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Mixed Apnea Index</span>
-              <span className="font-medium">{data.mixedApneaIndex || '---'}</span>
+              <span className="font-medium">{data.respiratoryEvents?.mixedApneaIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Hypopnea Index (/hr)</span>
-              <span className="font-medium">{data.hypopneaIndex || '---'}</span>
+              <span className="font-medium">{data.respiratoryEvents?.hypopneaIndex || '---'}</span>
             </div>
           </CardContent>
         </Card>
@@ -414,27 +414,25 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Hypopnea Mean Duration (sec)</span>
-              <span className="font-medium">{data.hypopneaMeanDuration || '---'}</span>
+              <span className="font-medium">{data.respiratoryEvents?.meanHypopneaDuration || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Heart Rate (NREM/REM)</span>
               <span className="font-medium">
-                {typeof data.heartRateNremRem === 'object' && data.heartRateNremRem 
-                  ? `NREM: ${data.heartRateNremRem.NREM || '---'}, REM: ${data.heartRateNremRem.REM || '---'}`
-                  : data.heartRateNremRem || '---'}
+                {data.cardiacData?.meanHeartRateNrem || '---'} / {data.cardiacData?.meanHeartRateRem || '---'}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Desaturation Index (/hr)</span>
-              <span className="font-medium">{data.desaturationIndex || '---'}</span>
+              <span className="font-medium">{data.oxygenation?.desaturationIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Snoring (%)</span>
-              <span className="font-medium">{data.snoring || '---'}</span>
+              <span className="font-medium">{data.additionalMetrics?.snoringPercent || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Leg Movement Index (/hr)</span>
-              <span className="font-medium">{data.legMovementIndex || '---'}</span>
+              <span className="font-medium">{data.additionalMetrics?.legMovementIndex || '---'}</span>
             </div>
           </CardContent>
         </Card>
@@ -450,18 +448,16 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">% Time with O2 &lt; 90%</span>
-              <span className="font-medium">{data.timeO2Below90 || '---'}</span>
+              <span className="font-medium">{data.oxygenation?.timeBelow90Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">% Time with O2 &lt; 95%</span>
-              <span className="font-medium">{data.timeO2Below95 || '---'}</span>
+              <span className="font-medium">{data.oxygenation?.timeBelow95Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Lowest O2 / Average O2</span>
               <span className="font-medium">
-                {typeof data.lowestO2AverageO2 === 'object' && data.lowestO2AverageO2 
-                  ? `${data.lowestO2AverageO2.lowest || '---'} / ${data.lowestO2AverageO2.average || '---'}`
-                  : data.lowestO2AverageO2 || '---'}
+                {data.oxygenation?.lowestSpO2 || '---'} / {data.oxygenation?.averageSpO2 || '---'}
               </span>
             </div>
           </CardContent>
@@ -469,14 +465,14 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       </div>
 
       {/* AI Generated Summary */}
-      {data.summary && (
+      {data.clinicalSummary && (
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
             <CardTitle>Clinical Summary</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {data.summary}
+              {data.clinicalSummary}
             </p>
           </CardContent>
         </Card>
