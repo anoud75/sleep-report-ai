@@ -154,15 +154,90 @@ Extract from **titration** or **split therapeutic part**:
 - **O2 <95% =** ((REM + NREM oxygen below 95%) * 100) / Total Sleep Time
 - **Mean Hypopnea Duration =** If values exist → (CA + OA + MA + HYP) / 4
 
-## 📋 CLINICAL SUMMARY GENERATION
+## 📋 CLINICAL SUMMARY GENERATION - STRUCTURED LOGIC
 
-Generate clinical summary using this structure:
-1. Study Type and Diagnosis → "This (study type) sleep study shows evidence of (diagnosis)."
-2. AHI + TST → "The patient slept for a total of Xh Ymin with AHI of Z/hr…"
-3. Oxygen & Sleep Quality → "…associated with (minimal/significant/no) oxygen desaturation and (normal/repetitive) sleep continuity."
-4. CPAP/BPAP Use → "CPAP was applied and titration was (done/not tolerated/attempted)…"
-5. Sleep Staging → "(He/She) progressed into (all sleep stages / missing REM / N3)…"
-6. Final Line → "Otherwise, no unusual events were noted during the study."
+### A. 📅 STUDY TYPE & TIMING (OVERNIGHT vs DAYTIME)
+Use AM/PM to determine:
+- Start time between 5 PM – 9 AM → "overnight sleep study"
+- Start time between 9 AM – 5 PM → "daytime sleep study"
+
+Generate: "This (overnight/daytime) (split-night / therapeutic / repeated) sleep study shows evidence of (diagnosis)."
+
+### B. 🛌 TOTAL SLEEP TIME CONVERSION
+Convert minutes to hours/minutes:
+- hours = minutes // 60
+- remaining minutes = minutes % 60
+Example: 262 min → 4 hours and 22 minutes
+
+### C. 😴 AHI CLASSIFICATION (Apnea-Hypopnea Index)
+- AHI < 5 → Normal
+- 5 ≤ AHI < 15 → Mild OSA
+- 15 ≤ AHI < 30 → Moderate OSA
+- AHI ≥ 30 → Severe OSA
+
+Add: "…with an AHI of [X] events/hr, consistent with (mild/moderate/severe) Obstructive Sleep Apnea…"
+
+### D. 🫁 CPAP / BPAP INTERVENTION
+If CPAP used:
+"Conventional CPAP was (applied / attempted / refused). Titration was (acceptable / unacceptable). At CPAP pressure of [X] cmH2O, respiratory events were (eliminated / improved / persisted)."
+
+If CPAP failed and BPAP applied:
+"Titration was escalated to BPAP at [IPAP]/[EPAP] cmH2O where respiratory events were eliminated."
+
+### E. 😷 MASK AND ACCESSORIES DETAILS
+If CPAP/BPAP applied, and study is therapeutic or split-night:
+"CPAP was delivered via [Mask Type – Size], with (headgear / chin strap) used."
+Example: "CPAP was delivered via ResMed AirFit F20 Full Face Mask – Medium, with headgear and chin strap."
+
+### F. 🧪 CO2 MONITORING (OPTIONAL)
+If values present:
+"EtCO2 was monitored and values showed: – mmHg while awake, – mmHg in NREM, and – mmHg in REM."
+"TcCO2 values showed: – mmHg while awake, – mmHg in NREM, – mmHg in REM."
+
+### G. 💊 MEDICATION (OPTIONAL)
+"Tab. Zolpidem __ mg was given at __ PM per doctor's order. Sleep latency was __ minutes."
+"Tab. Sinemet __ mg was given at __ PM."
+"Patient refused to take Sinemet." (if applicable)
+
+### H. 🦵 LEG MOVEMENTS AND RLS
+PLM Index ≥15/hr (adult) → PLM present
+PLM Index <15/hr → PLM not clinically significant
+
+If PLM index ≥ 15/hr:
+"Frequent leg movements were noted during sleep meeting PLM criteria, with an index of [XX], suggesting Periodic Limb Movements (PLMs)."
+
+If RLS (leg movement while awake):
+"Frequent leg movements were observed while awake, suggesting the possibility of Restless Legs Syndrome (RLS)."
+
+### I. 🔉 SNORING
+If snoring present: "Snoring was noted."
+(Do not say "routine snoring" and do not mention snoring if absent.)
+
+### J. 🧠 SLEEP ARCHITECTURE
+"The patient progressed into (all sleep stages / missed REM / missed N3 / did not reach any stages)."
+
+### K. 🗣 PATIENT COMMENT (OPTIONAL)
+Include if provided. Example:
+"Patient reported sleeping better in the center and is willing to use CPAP at home."
+
+### L. 🔚 CLOSING STATEMENT LOGIC
+Only include "Otherwise, no unusual events were noted during the study." 
+IF all of the following are absent: Snoring, PLM, RLS
+
+Combinations:
+- ❌ No snoring, no PLMs, no RLS → "Otherwise, no unusual events were noted during the study."
+- ✅ Snoring only → "Snoring was noted. Otherwise, no unusual events were noted during the study."
+- ✅ PLMs only → "Frequent leg movements were noted during sleep meeting PLM criteria, with an index of [XX], suggesting PLMs. Otherwise, no unusual events were noted during the study."
+- ✅ RLS + PLMs → "Frequent leg movements were observed while awake, suggesting RLS. Frequent leg movements were also noted during sleep meeting PLM criteria, with an index of [XX], suggesting PLMs."
+- ✅ Snoring + PLMs → "Snoring was noted. Frequent leg movements were also noted during sleep meeting PLM criteria, with an index of [XX], suggesting PLMs."
+- ✅ Snoring + RLS + PLMs → "Snoring was noted. Frequent leg movements were observed while awake, suggesting RLS. Frequent leg movements were also noted during sleep meeting PLM criteria, with an index of [XX], suggesting PLMs."
+
+### EXAMPLE OUTPUT:
+"This overnight split sleep study shows evidence of Severe Obstructive Sleep Apnea. The patient had a total sleep time of 4 hours and 56 minutes with an AHI of 70.7 events per hour associated with minimal desaturations and repetitive sleep interruptions. Conventional CPAP was applied and titration was done. At CPAP pressure of 10 cmH2O, respiratory events were eliminated on supine REM sleep. He progressed into all sleep stages.
+
+EtCO2 was monitored and values showed: 31–46 mmHg while awake, 30–47 mmHg in NREM, and 30–48 mmHg in REM sleep. TcCO2 values showed: 60–64 mmHg while awake and 60–63 mmHg in NREM sleep.
+
+Otherwise, no unusual events were noted during the study."
 
 CRITICAL: Return ONLY valid JSON. Extract exact values when available. Use null for missing data.
 
