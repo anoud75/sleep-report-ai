@@ -35,7 +35,8 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
   const { toast } = useToast();
 
   const isSplitNight = selectedStudyType === 'Split-Night';
-  const needsMaskSelection = selectedStudyType === 'Titration' || selectedStudyType === 'Split-Night';
+  const needsMaskSelection = selectedStudyType === 'Titration' || 
+    (selectedStudyType === 'Split-Night' && files.some(f => f.type === 'therapeutic'));
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -109,7 +110,8 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
     }
 
     // Validate mask selection for titration studies
-    if (needsMaskSelection && !maskData) {
+    if ((selectedStudyType === 'Titration' || 
+         (selectedStudyType === 'Split-Night' && files.some(f => f.type === 'therapeutic'))) && !maskData) {
       setError('Please select mask type and size for titration study.');
       return;
     }
@@ -150,7 +152,8 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
         body: JSON.stringify({
           fileContent,
           studyType: selectedStudyType,
-          maskData: needsMaskSelection ? maskData : null
+          maskData: (selectedStudyType === 'Titration' || 
+                    (selectedStudyType === 'Split-Night' && files.some(f => f.type === 'therapeutic'))) ? maskData : null
         }),
       });
 
@@ -480,7 +483,9 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
             <Button 
               onClick={processFiles} 
               className="w-full shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] transition-all duration-300"
-              disabled={!selectedStudyType || (needsMaskSelection && !maskData)}
+              disabled={!selectedStudyType || 
+                       (selectedStudyType === 'Titration' && !maskData) ||
+                       (selectedStudyType === 'Split-Night' && (!files.some(f => f.type === 'diagnostic') || !files.some(f => f.type === 'therapeutic') || !maskData))}
               size="lg"
             >
               <Brain className="h-5 w-5 mr-3" />
