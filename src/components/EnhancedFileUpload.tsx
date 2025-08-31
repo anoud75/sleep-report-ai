@@ -311,7 +311,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
         success ? 'border-success bg-success-light shadow-[var(--shadow-trust)]' :
         'border-border bg-card hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]'
       }`}>
-        {((files.length === 0) || (isSplitNight && files.length < 2)) && !processing && !success && (
+        {((files.length === 0) || (isSplitNight && files.length <= 2)) && !processing && !success && (
           <CardContent className="p-8">
             {isSplitNight ? (
               // Split Night Protocol - Two Upload Areas
