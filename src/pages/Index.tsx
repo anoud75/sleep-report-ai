@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Shield, Zap, Heart, Building2, Brain, Clock, CheckCircle } from "lucide-react";
 import { StudyTypeSelector } from "@/components/StudyTypeSelector";
-import { FileUpload } from "@/components/FileUpload";
+import { EnhancedFileUpload } from "@/components/EnhancedFileUpload";
 import { ProcessedResults } from "@/components/ProcessedResults";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
 import { ContactForm } from "@/components/ContactForm";
@@ -342,7 +342,7 @@ const Index = () => {
             {/* File Upload - Only show after study type is selected */}
             {selectedStudyType && (
               <div className="animate-scale-in">
-                <FileUpload
+                <EnhancedFileUpload
                   onFileProcessed={handleFileProcessed}
                   selectedStudyType={selectedStudyType}
                   onFileUploaded={setHasUploadedFile}

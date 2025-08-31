@@ -77,293 +77,178 @@ serve(async (req) => {
 
     console.log('Processing file content length:', sanitizedContent.length);
 
-    const prompt = `🧠 Purpose of the Tool:
-
-You are an AI sleep study report generator. Your task is to:
-
-Read raw .docx sleep study reports exported from G3 systems.
-
-Extract and calculate key clinical metrics.
-
-Generate a professional, clinical-grade sleep report in a fixed 2-page format.
-
-Write clear, structured diagnostic summaries based on extracted data.
-
-Output a PDF report that follows a specific layout.
-
-This tool is intended for professional use by sleep centers and hospital units. You must follow strict formatting, logic, and medical writing standards.
-
-📁 UPLOAD LOGIC & VALIDATION
-Only accept .docx files exported from G3 sleep systems.
-
-Reject all other file formats or corrupted structures.
-
-Error message: ❌ "Invalid file. Please upload a valid G3 report in .docx format."
-
-If the user selects Split-Night Study, require two file uploads:
-
-First file: Diagnostic portion
-
-Second file: Therapeutic portion
-
-For Split-Night:
-
-Extract diagnostic interpretation only from the first file.
-
-Use the second file to extract:
-
-Final CPAP/BPAP pressure
-
-Treatment outcome (e.g., improved AHI, desaturation reduced)
-
-For Titration or Split-Night:
-
-Ask the user to choose:
-
-Mask Type: Nasal, Oronasal, Nasal Pillows, Full Face
-
-Mask Size: Small, Medium, Large
-
-🧮 DATA EXTRACTION (All values found in structured tables):
-You must extract the following metrics:
-
-🛏️ Sleep Parameters
-Light Off — time the recording starts
-
-Light On — time the recording ends
-
-Time in Bed (min)
-
-Total Sleep Time (min)
-
-Sleep Latency (min)
-
-REM Latency (min)
-
-Sleep Efficiency (%)
-
-🧠 Sleep Architecture
-Sleep Stage 1 (%)
-
-Sleep Stage 2 (%)
-
-Slow Wave Sleep (SWS, %)
-
-REM Sleep (%)
-
-😴 Respiratory Data
-AHI overall
-
-AHI NREM / REM
-
-AHI Supine / Lateral (if available)
-
-Central Apnea Index (/hr)
-
-Obstructive Apnea Index (/hr)
-
-Mixed Apnea Index
-
-Hypopnea Index (/hr)
-
-Hypopnea Mean Duration (sec)
-
-💓 Cardiac & Oxygenation
-Heart Rate (NREM/REM)
-
-Oxygen Desaturation Index (/hr)
-
-% Time SpO2 < 90%
-
-% Time SpO2 < 95%
-
-Lowest O2 Saturation (%)
-
-Average O2 Saturation (%)
-
-⚡ Arousals & Movement
-Arousal Index (/hr)
-
-Snoring (% time)
-
-Leg Movement Index (/hr)
-
-If PLM index > 15/hr → note presence of Periodic Limb Movements (PLMS)
-
-🧠 INTERPRETATION RULES:
-Follow AASM guidelines:
-
-AHI Classification:
-Normal: < 5/hr
-
-Mild OSA: 5–14/hr
-
-Moderate OSA: 15–29/hr
-
-Severe OSA: ≥ 30/hr
-
-PLMS:
-If Leg Movement Index > 15/hr, include:
-
-"There were periodic limb movements during sleep."
-
-Diagnosis is only based on the diagnostic portion of the report.
-
-📑 PDF REPORT STRUCTURE
-The final output must be a 2-page, printable PDF with the following exact sections:
-
-🔷 HEADER (top of page 1)
-Patient Name: (leave blank)
-
-MRN: (leave blank)
-
-Date of Study: (from report)
-
-Study Type: (Diagnostic, Titration, or Split-Night)
-
-Technician Name: (leave blank)
-
-🟦 SECTION 1: SLEEP PARAMETERS
-Parameter	Value
-Light Off	e.g., 22:15
-Light On	e.g., 06:30
-Time in Bed (min)	e.g., 495
-Total Sleep Time (min)	e.g., 380
-Sleep Latency (min)	e.g., 12
-REM Latency (min)	e.g., 90
-Sleep Efficiency (%)	e.g., 76.8%
-
-🟩 SECTION 2: SLEEP STAGES
-Stage	Percentage
-N1	%
-N2	%
-SWS	%
-REM	%
-
-🟥 SECTION 3: RESPIRATORY EVENTS
-Metric	Value
-AHI (overall)	
-AHI NREM / REM	
-AHI Supine / Lateral	
-Obstructive Apnea Index	
-Central Apnea Index	
-Mixed Apnea Index	
-Hypopnea Index	
-Hypopnea Mean Duration (sec)	
-
-🟨 SECTION 4: OXYGENATION
-Metric	Value
-Desaturation Index (/hr)	
-% Time SpO2 < 90%	
-% Time SpO2 < 95%	
-Lowest Oxygen Saturation (%)	
-Average Oxygen Saturation (%)	
-
-🟧 SECTION 5: OTHER FINDINGS
-Metric	Value
-Arousal Index	
-Snoring (% time)	
-PLM Index (/hr)	
-PLM Interpretation	If > 15/hr, add "PLMS noted"
-
-🟪 SECTION 6: FINAL SUMMARY (WRITTEN BY AI)
-Generate a professional summary using clear clinical tone. Do not exaggerate.
-
-Structure:
-
-Type of study (diagnostic, titration, split-night)
-
-Severity of OSA based on AHI
-
-Sleep efficiency and architecture
-
-Oxygenation findings
-
-Arousal index and PLMs (if present)
-
-Treatment summary (if titration or split-night)
-
-CPAP pressure used (from titration file)
-
-Mask type and size (from user input)
-
-Example:
-
-"This diagnostic study revealed moderate OSA with an AHI of 18/hr, primarily due to obstructive apneas and hypopneas. Total sleep time was 375 minutes with a sleep efficiency of 78%. REM latency was prolonged at 120 minutes. Oxygen desaturation index was 15/hr, with 6% of sleep time spent below 90% saturation. There were no significant periodic limb movements."
-
-If titration:
-
-"The patient was titrated with a nasal mask (size M) and achieved optimal pressure at 10 cm H2O, reducing the AHI to 4/hr."
-
-🖥️ USER EXPERIENCE FLOW
-User selects study type (Diagnostic, Titration, Split-Night)
-
-User uploads one or two .docx files
-
-If Titration or Split-Night, show mask type + size dropdowns
-
-Show "Start Analysis" button only after upload complete
-
-After AI finishes, allow user to:
-
-Review final report
-
-Edit the summary (optional)
-
-Export to PDF
-
-Pay attention to the grid and spacing and layout of the PDF report.
-
-Tone:
-Professional, clear, medical.
-No exaggeration.
-No AI or technical explanations.
-No branding claims.
+    const MEDICAL_GRADE_PROMPT = `You are a medical-grade AI sleep study assistant. Your task is to extract and summarize **key clinical metrics** from uploaded sleep study files and generate a **clean, modern, and medically accurate** summary based on approved formats and logic.
+
+## 🔍 PAGE-BY-PAGE EXTRACTION RULES
+
+### 📄 Page 1: General Parameters
+- Patient Name, First Name, Age
+- Start Time, Light Off, Light On
+- Time in Bed, Total Sleep Time
+- Sleep Latency (from Light Off)
+- REM Latency (from Sleep Onset)
+
+### 📄 Page 2: Sleep Architecture
+- Sleep Efficiency
+- Sleep Stage %: S1, S2, S3, REM
+- REM Cycles: start time, duration, %TST
+
+### 📄 Page 4: Respiratory Summary
+- Mean Hypopnea Duration (seconds)
+- Index values:
+  - CA (Central Apnea Index)
+  - OA (Obstructive Apnea Index)
+  - MA (Mixed Apnea Index)
+  - HYP (Hypopnea Index)
+- AHI by:
+  - Supine, Lateral, NREM, REM, Overall
+
+### 📄 Page 5: Heart Rate
+- Mean HR in NREM and REM
+
+### 📄 Page 6: Oxygenation
+- SpO2 REM row
+- SpO2 NREM row
+- Average SpO2
+- Desaturation Index
+- Lowest SpO2
+- Arousal Index
+
+### 📄 Page 7: Additional Metrics
+- Snoring (minutes and %)
+- Leg Movement Index
+- Body Position Indices:
+  - L (Left)
+  - R (Right)
+  - S (Supine)
+
+## 💨 CPAP/BPAP PRESSURE & MASK DETAILS
+
+Extract from **titration** or **split therapeutic part**:
+- Pressure Type: CPAP or BPAP
+- Starting Pressure
+- Max Pressure Reached
+- Was Pressure Effective? (based on AHI drop, oxygenation improvement)
+
+## 🧮 CALCULATIONS & INTERPRETATIONS
+
+### 🩺 AHI Classification
+- AHI < 5 → Normal Study
+- 5–15 → Mild OSA
+- 15–30 → Moderate OSA
+- >30 → Severe OSA
+
+### 💡 Sleep Efficiency
+- ≥85% → Normal
+- <85% → Reduced
+
+### 🫁 Oxygen Desaturation
+- Avg SpO2 90–94% → Mild
+- 85–89% → Moderate
+- <85% → Severe
+- If % time with SpO₂ <90% >5% of TST → "Critical desaturation"
+
+### 📊 Custom Calculations
+- **AHI Lateral =** (Right + Left) / 2
+- **O2 <90% =** ((REM + NREM oxygen below 90%) * 100) / Total Sleep Time
+- **O2 <95% =** ((REM + NREM oxygen below 95%) * 100) / Total Sleep Time
+- **Mean Hypopnea Duration =** If values exist → (CA + OA + MA + HYP) / 4
+
+## 📋 CLINICAL SUMMARY GENERATION
+
+Generate clinical summary using this structure:
+1. Study Type and Diagnosis → "This (study type) sleep study shows evidence of (diagnosis)."
+2. AHI + TST → "The patient slept for a total of Xh Ymin with AHI of Z/hr…"
+3. Oxygen & Sleep Quality → "…associated with (minimal/significant/no) oxygen desaturation and (normal/repetitive) sleep continuity."
+4. CPAP/BPAP Use → "CPAP was applied and titration was (done/not tolerated/attempted)…"
+5. Sleep Staging → "(He/She) progressed into (all sleep stages / missing REM / N3)…"
+6. Final Line → "Otherwise, no unusual events were noted during the study."
+
+CRITICAL: Return ONLY valid JSON. Extract exact values when available. Use null for missing data.
 
 Study Type: ${studyType}
 
 FILE CONTENT TO ANALYZE:
 ${truncatedContent}
 
-🚫 CRITICAL EXTRACTION RULES:
-1. Extract EXACT values as they appear in the document
-2. Do NOT estimate or calculate missing values
-3. Use "---" for any values not found
-4. Look for structured tables with clear metric labels
-5. Follow medical terminology exactly
-
-Return ONLY valid JSON with these exact field names:
+Expected JSON structure:
 {
-  "lightOff": "exact time value",
-  "lightOn": "exact time value", 
-  "timeInBed": "exact number in minutes",
-  "totalSleepTime": "exact number in minutes",
-  "sleepLatency": "exact number in minutes",
-  "remLatency": "exact number in minutes",
-  "sleepEfficiency": "exact percentage number",
-  "stage1": "exact percentage",
-  "stage2": "exact percentage", 
-  "slowWave": "exact percentage",
-  "rem": "exact percentage",
-  "ahiOverall": "main AHI value",
-  "ahiNremRem": "NREM/REM format or main value if not split",
-  "ahiSupineLateral": "supine/lateral format if available, else use main AHI",
-  "centralApneaIndex": "exact value or ---",
-  "obstructiveApneaIndex": "exact value or ---",
-  "mixedApneaIndex": "exact value or ---", 
-  "hypopneaIndex": "exact value or ---",
-  "hypopneaMeanDuration": "duration in seconds or ---",
-  "heartRateNremRem": {"NREM": "value", "REM": "value"} or "single value if not split",
-  "desaturationIndex": "exact value",
-  "timeO2Below90": "percentage",
-  "timeO2Below95": "percentage",
-  "lowestO2": "percentage value",
-  "averageO2": "percentage value",
-  "arousalIndex": "exact value",
-  "snoring": "percentage",
-  "legMovementIndex": "exact value",
-  "cpapBpapO2": "any CPAP/BPAP settings mentioned or ---",
-  "summary": "Generate professional clinical summary following this structure: 'This [study type] study revealed [severity classification] with an AHI of [X]/hr. Total sleep time was [X] minutes with a sleep efficiency of [X]%. Sleep architecture showed [brief stage distribution]. Oxygen desaturation index was [X]/hr with [X]% of sleep time below 90% saturation. Arousal index was [X]/hr. [Add PLMS note if leg movement index >15]. [Add treatment summary if applicable].' Use proper medical terminology and OSA severity classification based on AHI values."
+  "patientInfo": {
+    "name": "string or null",
+    "firstName": "string or null",
+    "age": "number or null",
+    "gender": "string or null"
+  },
+  "studyInfo": {
+    "studyType": "diagnostic|titration|split_night",
+    "studyDate": "string or null",
+    "startTime": "string or null",
+    "lightsOff": "string or null",
+    "lightsOn": "string or null",
+    "timeInBed": "number (minutes) or null",
+    "totalSleepTime": "number (minutes) or null",
+    "sleepLatency": "number (minutes) or null",
+    "remLatency": "number (minutes) or null"
+  },
+  "sleepArchitecture": {
+    "sleepEfficiency": "number (percentage) or null",
+    "stage1Percent": "number or null",
+    "stage2Percent": "number or null",
+    "stage3Percent": "number or null",
+    "remPercent": "number or null",
+    "remCycles": {
+      "count": "number or null",
+      "startTimes": "array of strings or null",
+      "durations": "array of numbers or null"
+    }
+  },
+  "respiratoryEvents": {
+    "ahiOverall": "number or null",
+    "ahiSupine": "number or null",
+    "ahiLateral": "number or null",
+    "ahiLeft": "number or null",
+    "ahiRight": "number or null",
+    "ahiNrem": "number or null",
+    "ahiRem": "number or null",
+    "centralApneaIndex": "number or null",
+    "obstructiveApneaIndex": "number or null",
+    "mixedApneaIndex": "number or null",
+    "hypopneaIndex": "number or null",
+    "meanHypopneaDuration": "number (seconds) or null"
+  },
+  "oxygenation": {
+    "averageSpO2": "number or null",
+    "averageSpO2Nrem": "number or null",
+    "averageSpO2Rem": "number or null",
+    "lowestSpO2": "number or null",
+    "desaturationIndex": "number or null",
+    "timeBelow90Percent": "number (percentage) or null",
+    "timeBelow95Percent": "number (percentage) or null"
+  },
+  "cardiacData": {
+    "meanHeartRateNrem": "number or null",
+    "meanHeartRateRem": "number or null"
+  },
+  "additionalMetrics": {
+    "arousalIndex": "number or null",
+    "snoringMinutes": "number or null",
+    "snoringPercent": "number or null",
+    "legMovementIndex": "number or null",
+    "leftPositionIndex": "number or null",
+    "rightPositionIndex": "number or null",
+    "supinePositionIndex": "number or null"
+  },
+  "titrationData": {
+    "pressureType": "string or null",
+    "startingPressure": "number or null",
+    "maxPressure": "number or null",
+    "effectivePressure": "number or null",
+    "pressureEffective": "boolean or null"
+  },
+  "clinicalSummary": "Auto-generated clinical interpretation following the medical structure above",
+  "ahiClassification": "Normal Study|Mild OSA|Moderate OSA|Severe OSA",
+  "sleepEfficiencyStatus": "Normal|Reduced",
+  "oxygenationSeverity": "Normal|Mild|Moderate|Severe|Critical desaturation"
 }`;
 
     console.log('Sending request to OpenAI...');
@@ -381,7 +266,7 @@ Return ONLY valid JSON with these exact field names:
             role: 'system', 
             content: 'You are a medical AI expert specializing in sleep study analysis. Your task is to extract exact numerical values from sleep study reports. Search thoroughly through the entire document for each requested metric. Extract ONLY the exact values as they appear in the document - do not estimate or interpolate. Return only valid JSON with actual extracted values.' 
           },
-          { role: 'user', content: prompt }
+          { role: 'user', content: MEDICAL_GRADE_PROMPT }
         ],
         temperature: 0,
         max_tokens: 3000,
@@ -414,48 +299,90 @@ Return ONLY valid JSON with these exact field names:
     } catch (parseError) {
       console.error('Failed to parse OpenAI JSON response:', parseError);
       console.error('Raw response:', analysisResult);
-      // Fallback to empty data if parsing fails
+      // Fallback to structured empty data if parsing fails
       extractedData = {
-        lightOff: "---",
-        lightOn: "---",
-        timeInBed: "---",
-        totalSleepTime: "---",
-        cpapBpapO2: "---",
-        sleepLatency: "---",
-        remLatency: "---",
-        sleepEfficiency: "---",
-        stage1: "---",
-        stage2: "---",
-        slowWave: "---",
-        rem: "---",
-        ahiNremRem: "---",
-        ahiSupineLateral: "---",
-        centralApneaIndex: "---",
-        obstructiveApneaIndex: "---",
-        mixedApneaIndex: "---",
-        hypopneaIndex: "---",
-        hypopneaMeanDuration: "---",
-        heartRateNremRem: "---",
-        desaturationIndex: "---",
-        timeO2Below90: "---",
-        timeO2Below95: "---",
-        lowestO2AverageO2: "---",
-        arousalIndex: "---",
-        snoring: "---",
-        legMovementIndex: "---",
-        summary: "Unable to parse sleep study report. Please check the file format."
+        patientInfo: {
+          name: null,
+          firstName: null,
+          age: null,
+          gender: null
+        },
+        studyInfo: {
+          studyType: studyType.toLowerCase().replace('-', '_'),
+          studyDate: null,
+          startTime: null,
+          lightsOff: null,
+          lightsOn: null,
+          timeInBed: null,
+          totalSleepTime: null,
+          sleepLatency: null,
+          remLatency: null
+        },
+        sleepArchitecture: {
+          sleepEfficiency: null,
+          stage1Percent: null,
+          stage2Percent: null,
+          stage3Percent: null,
+          remPercent: null,
+          remCycles: {
+            count: null,
+            startTimes: null,
+            durations: null
+          }
+        },
+        respiratoryEvents: {
+          ahiOverall: null,
+          ahiSupine: null,
+          ahiLateral: null,
+          ahiLeft: null,
+          ahiRight: null,
+          ahiNrem: null,
+          ahiRem: null,
+          centralApneaIndex: null,
+          obstructiveApneaIndex: null,
+          mixedApneaIndex: null,
+          hypopneaIndex: null,
+          meanHypopneaDuration: null
+        },
+        oxygenation: {
+          averageSpO2: null,
+          averageSpO2Nrem: null,
+          averageSpO2Rem: null,
+          lowestSpO2: null,
+          desaturationIndex: null,
+          timeBelow90Percent: null,
+          timeBelow95Percent: null
+        },
+        cardiacData: {
+          meanHeartRateNrem: null,
+          meanHeartRateRem: null
+        },
+        additionalMetrics: {
+          arousalIndex: null,
+          snoringMinutes: null,
+          snoringPercent: null,
+          legMovementIndex: null,
+          leftPositionIndex: null,
+          rightPositionIndex: null,
+          supinePositionIndex: null
+        },
+        titrationData: {
+          pressureType: null,
+          startingPressure: null,
+          maxPressure: null,
+          effectivePressure: null,
+          pressureEffective: null
+        },
+        clinicalSummary: "Unable to parse sleep study report. Please check the file format.",
+        ahiClassification: "Unable to determine",
+        sleepEfficiencyStatus: "Unable to determine",
+        oxygenationSeverity: "Unable to determine"
       };
     }
 
-    // Return the extracted data directly from AI analysis
+    // Return the extracted data with additional metadata
     const processedData = {
       ...extractedData,
-      patientInfo: {
-        name: "Sleep Study Patient",
-        dob: "N/A",
-        studyDate: new Date().toLocaleDateString(),
-        studyType: studyType
-      },
       studyType: studyType
     };
 
