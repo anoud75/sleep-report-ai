@@ -23,6 +23,8 @@ interface UploadedFile {
 
 export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded }: EnhancedFileUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const diagnosticInputRef = useRef<HTMLInputElement>(null);
+  const therapeuticInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [processing, setProcessing] = useState(false);
@@ -182,33 +184,41 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
     }
   };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent, fileType?: 'diagnostic' | 'therapeutic') => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
 
     if (e.dataTransfer.files) {
       const droppedFiles = Array.from(e.dataTransfer.files);
-      handleFilesAdded(droppedFiles);
+      if (fileType && isSplitNight) {
+        handleFilesAdded(droppedFiles, fileType);
+      } else {
+        handleFilesAdded(droppedFiles);
+      }
     }
   }, [isSplitNight]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, fileType?: 'diagnostic' | 'therapeutic') => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
-      handleFilesAdded(selectedFiles);
+      if (fileType && isSplitNight) {
+        handleFilesAdded(selectedFiles, fileType);
+      } else {
+        handleFilesAdded(selectedFiles);
+      }
     }
   };
 
-  const handleFilesAdded = (newFiles: File[]) => {
+  const handleFilesAdded = (newFiles: File[], fileType?: 'diagnostic' | 'therapeutic') => {
     // Validate file count
     if (!isSplitNight && newFiles.length > 1) {
       setError('Please upload only one file for this study type.');
       return;
     }
 
-    if (isSplitNight && newFiles.length > 2) {
-      setError('Split-night study accepts maximum 2 files.');
+    if (newFiles.length !== 1) {
+      setError('Please upload one file at a time.');
       return;
     }
 
@@ -221,13 +231,23 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
       }
     }
 
-    // Add files with appropriate types
-    const uploadedFiles: UploadedFile[] = newFiles.map((file, index) => ({
-      file,
-      type: isSplitNight ? (index === 0 ? 'diagnostic' : 'therapeutic') : 'diagnostic'
-    }));
+    if (isSplitNight && fileType) {
+      // Replace existing file of the same type or add new one
+      const existingFiles = files.filter(f => f.type !== fileType);
+      const newFile: UploadedFile = {
+        file: newFiles[0],
+        type: fileType
+      };
+      setFiles([...existingFiles, newFile]);
+    } else {
+      // Single file upload
+      const uploadedFiles: UploadedFile[] = newFiles.map((file) => ({
+        file,
+        type: 'diagnostic'
+      }));
+      setFiles(uploadedFiles);
+    }
 
-    setFiles(uploadedFiles);
     setError(null);
     onFileUploaded?.(true);
   };
@@ -248,8 +268,14 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
     onFileUploaded?.(false);
   };
 
-  const handleFileButtonClick = () => {
-    fileInputRef.current?.click();
+  const handleFileButtonClick = (fileType?: 'diagnostic' | 'therapeutic') => {
+    if (fileType === 'diagnostic') {
+      diagnosticInputRef.current?.click();
+    } else if (fileType === 'therapeutic') {
+      therapeuticInputRef.current?.click();
+    } else {
+      fileInputRef.current?.click();
+    }
   };
 
   const getFileIcon = (fileName: string) => {
@@ -284,62 +310,136 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
       }`}>
         {files.length === 0 && !processing && !success && (
           <CardContent className="p-8">
-            <div
-              className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-500 overflow-hidden group ${
-                dragActive 
-                  ? 'border-primary bg-primary/5 scale-105 shadow-[var(--shadow-glow)] animate-pulse-glow' 
-                  : 'border-border hover:border-primary/50 hover:bg-primary/2'
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer bg-[length:200%_100%]"></div>
-              
-              <div className="relative z-10 animate-fade-in-up">
-                <div className="relative mb-6">
-                  <Upload className={`mx-auto h-16 w-16 mb-4 transition-all duration-500 ${
-                    dragActive ? 'text-primary scale-110 animate-float' : 'text-muted-foreground group-hover:text-primary group-hover:scale-110'
-                  }`} />
-                  {dragActive && (
-                    <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
-                  )}
+            {isSplitNight ? (
+              // Split Night Protocol - Two Upload Areas
+              <div className="space-y-6">
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold mb-2">Split Night Protocol</h3>
+                  <p className="text-muted-foreground">Upload both diagnostic and therapeutic files</p>
                 </div>
                 
-                <h3 className={`text-xl font-bold mb-3 transition-colors duration-300 ${
-                  dragActive ? 'text-primary' : 'text-foreground'
-                }`}>
-                  {isSplitNight ? 'Drop your diagnostic and therapeutic files here' : 'Drop your sleep study file here'}
-                </h3>
-                <p className="text-muted-foreground mb-2">
-                  Supported formats: PDF, DOC, DOCX, RTF
-                </p>
-                {isSplitNight && (
-                  <p className="text-sm text-muted-foreground/80 mb-6">
-                    Upload 2 files: diagnostic portion first, then therapeutic portion
-                  </p>
-                )}
-                <Button 
-                  variant="secondary" 
-                  size="lg"
-                  onClick={handleFileButtonClick}
-                  className="shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] transition-all duration-300 hover:scale-105"
-                >
-                  <FileText className="h-5 w-5 mr-3" />
-                  Select {isSplitNight ? 'Files' : 'File'}
-                </Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Diagnostic File Upload */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">1</div>
+                      <h4 className="font-semibold">Diagnostic Part</h4>
+                    </div>
+                    <div
+                      className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer ${
+                        dragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-primary/2'
+                      }`}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={(e) => handleDrop(e, 'diagnostic')}
+                      onClick={() => handleFileButtonClick('diagnostic')}
+                    >
+                      <Upload className="mx-auto h-8 w-8 mb-2 text-muted-foreground" />
+                      <p className="text-sm font-medium mb-1">Drop diagnostic file here</p>
+                      <p className="text-xs text-muted-foreground">or click to select</p>
+                    </div>
+                  </div>
+
+                  {/* Therapeutic File Upload */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-sm font-bold">2</div>
+                      <h4 className="font-semibold">Therapeutic Part</h4>
+                    </div>
+                    <div
+                      className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer ${
+                        dragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-primary/2'
+                      }`}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={(e) => handleDrop(e, 'therapeutic')}
+                      onClick={() => handleFileButtonClick('therapeutic')}
+                    >
+                      <Upload className="mx-auto h-8 w-8 mb-2 text-muted-foreground" />
+                      <p className="text-sm font-medium mb-1">Drop therapeutic file here</p>
+                      <p className="text-xs text-muted-foreground">or click to select</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-center text-sm text-muted-foreground">
+                  Supported formats: PDF, DOC, DOCX, RTF (Max 50MB each)
+                </div>
               </div>
-            </div>
+            ) : (
+              // Single File Upload
+              <div
+                className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-500 overflow-hidden group ${
+                  dragActive 
+                    ? 'border-primary bg-primary/5 scale-105 shadow-[var(--shadow-glow)] animate-pulse-glow' 
+                    : 'border-border hover:border-primary/50 hover:bg-primary/2'
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer bg-[length:200%_100%]"></div>
+                
+                <div className="relative z-10 animate-fade-in-up">
+                  <div className="relative mb-6">
+                    <Upload className={`mx-auto h-16 w-16 mb-4 transition-all duration-500 ${
+                      dragActive ? 'text-primary scale-110 animate-float' : 'text-muted-foreground group-hover:text-primary group-hover:scale-110'
+                    }`} />
+                    {dragActive && (
+                      <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
+                    )}
+                  </div>
+                  
+                  <h3 className={`text-xl font-bold mb-3 transition-colors duration-300 ${
+                    dragActive ? 'text-primary' : 'text-foreground'
+                  }`}>
+                    Drop your sleep study file here
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Supported formats: PDF, DOC, DOCX, RTF
+                  </p>
+                  <Button 
+                    variant="secondary" 
+                    size="lg"
+                    onClick={() => handleFileButtonClick()}
+                    className="shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] transition-all duration-300 hover:scale-105"
+                  >
+                    <FileText className="h-5 w-5 mr-3" />
+                    Select File
+                  </Button>
+                </div>
+              </div>
+            )}
             
             <input
               ref={fileInputRef}
               type="file"
               accept=".pdf,.doc,.docx,.rtf"
-              multiple={isSplitNight}
+              multiple={false}
               onChange={handleFileSelect}
               className="hidden"
               id="file-upload"
+            />
+            
+            {/* Hidden inputs for split night specific uploads */}
+            <input
+              ref={diagnosticInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.rtf"
+              onChange={(e) => handleFileSelect(e, 'diagnostic')}
+              className="hidden"
+              id="diagnostic-upload"
+            />
+            <input
+              ref={therapeuticInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.rtf"
+              onChange={(e) => handleFileSelect(e, 'therapeutic')}
+              className="hidden"
+              id="therapeutic-upload"
             />
           </CardContent>
         )}
