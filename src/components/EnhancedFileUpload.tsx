@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, FileText, CheckCircle, AlertCircle, X, Brain, File, FileType } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mammoth from 'mammoth';
-import { MaskSelector } from './MaskSelector';
+import { ClinicalDataEntry } from './ClinicalDataEntry';
 
 interface EnhancedFileUploadProps {
   onFileProcessed: (data: any) => void;
@@ -31,11 +31,11 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [maskData, setMaskData] = useState<any>(null);
+  const [clinicalData, setClinicalData] = useState<any>(null);
   const { toast } = useToast();
 
   const isSplitNight = selectedStudyType === 'Split-Night';
-  const needsMaskSelection = selectedStudyType === 'Titration' || 
+  const needsClinicalDataEntry = selectedStudyType === 'Titration' || 
     (selectedStudyType === 'Split-Night' && files.some(f => f.type === 'therapeutic'));
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -109,10 +109,10 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
       return;
     }
 
-    // Validate mask selection for titration studies
+    // Validate clinical data for titration studies
     if ((selectedStudyType === 'Titration' || 
-         (selectedStudyType === 'Split-Night' && files.some(f => f.type === 'therapeutic'))) && !maskData) {
-      setError('Please select mask type and size for titration study.');
+         (selectedStudyType === 'Split-Night' && files.some(f => f.type === 'therapeutic'))) && !clinicalData) {
+      setError('Please complete required clinical data entry for this study type.');
       return;
     }
 
@@ -152,8 +152,8 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
         body: JSON.stringify({
           fileContent,
           studyType: selectedStudyType,
-          maskData: (selectedStudyType === 'Titration' || 
-                    (selectedStudyType === 'Split-Night' && files.some(f => f.type === 'therapeutic'))) ? maskData : null
+          clinicalData: (selectedStudyType === 'Titration' || 
+                        (selectedStudyType === 'Split-Night' && files.some(f => f.type === 'therapeutic'))) ? clinicalData : null
         }),
       });
 
@@ -267,7 +267,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
     setProgress(0);
     setError(null);
     setSuccess(false);
-    setMaskData(null);
+    setClinicalData(null);
     onFileUploaded?.(false);
   };
 
@@ -418,9 +418,9 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                   </div>
                 </div>
                 
-                {/* Mask Selection for Split Night */}
+                {/* Clinical Data Entry for Split Night */}
                 {files.some(f => f.type === 'therapeutic') && (
-                  <MaskSelector onMaskDataChange={setMaskData} />
+                  <ClinicalDataEntry onDataChange={setClinicalData} studyType={selectedStudyType} />
                 )}
                 
                 {/* Process Button for Split Night */}
@@ -428,7 +428,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                   <Button 
                     onClick={processFiles} 
                     className="w-full shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] transition-all duration-300"
-                    disabled={!selectedStudyType || !files.some(f => f.type === 'diagnostic') || !files.some(f => f.type === 'therapeutic') || !maskData}
+                    disabled={!selectedStudyType || !files.some(f => f.type === 'diagnostic') || !files.some(f => f.type === 'therapeutic') || !clinicalData}
                     size="lg"
                   >
                     <Brain className="h-5 w-5 mr-3" />
@@ -543,9 +543,9 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
               ))}
             </div>
 
-            {/* Mask Selection for Titration Studies */}
-            {needsMaskSelection && (
-              <MaskSelector onMaskDataChange={setMaskData} />
+            {/* Clinical Data Entry for Titration Studies */}
+            {needsClinicalDataEntry && (
+              <ClinicalDataEntry onDataChange={setClinicalData} studyType={selectedStudyType} />
             )}
 
             {/* Process Button */}
@@ -553,8 +553,8 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
               onClick={processFiles} 
               className="w-full shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] transition-all duration-300"
               disabled={!selectedStudyType || 
-                       (selectedStudyType === 'Titration' && !maskData) ||
-                       (selectedStudyType === 'Split-Night' && (!files.some(f => f.type === 'diagnostic') || !files.some(f => f.type === 'therapeutic') || !maskData))}
+                       (selectedStudyType === 'Titration' && !clinicalData) ||
+                       (selectedStudyType === 'Split-Night' && (!files.some(f => f.type === 'diagnostic') || !files.some(f => f.type === 'therapeutic') || !clinicalData))}
               size="lg"
             >
               <Brain className="h-5 w-5 mr-3" />

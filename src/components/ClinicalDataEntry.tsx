@@ -1,0 +1,376 @@
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Wind, Activity, Pill, Settings } from "lucide-react";
+
+interface ClinicalDataEntryProps {
+  onDataChange: (data: any) => void;
+  studyType: string;
+}
+
+const maskTypes = [
+  { value: 'resmed_airfit_f20', label: 'Resmed AirFit F20 Full Face mask', description: 'Full face coverage' },
+  { value: 'resmed_airfit_n20', label: 'Resmed AirFit N20 Nasal mask', description: 'Nasal coverage' },
+  { value: 'resmed_airfit_n30', label: 'Resmed AirFit N30 Nasal Pillows', description: 'Nasal pillows' },
+  { value: 'resmed_airfit_f10', label: 'Resmed AirFit F10 Full Face mask', description: 'Full face coverage' },
+  { value: 'nonvented_resmed_full_face', label: 'NONVENTED RESMED FULL FACE MASK', description: 'Non-vented full face' },
+  { value: 'amara_gel_full_face', label: 'AMARA GEL FULL FACE MASK', description: 'Gel cushion full face' },
+  { value: 'amara_full_face', label: 'AMARA FULL FACE MASK', description: 'Standard full face' },
+  { value: 'amara_view_full_face', label: 'AMARA VIEW FULL FACE MASK', description: 'Clear view full face' },
+  { value: 'comfort_gel_blue_full_face', label: 'COMFORT GEL BLUE FULL FACE', description: 'Blue gel cushion' },
+  { value: 'comfortgel_nasal', label: 'COMFORTGEL NASAL MASK', description: 'Gel nasal mask' },
+  { value: 'dreamwear_full_face', label: 'DREAMWEAR FULL FACE MASK', description: 'Under-nose full face' },
+  { value: 'dreamwear_gel_nasal_pillow', label: 'DREAMWEAR GEL NASAL PILLOW', description: 'Gel nasal pillows' },
+  { value: 'dreamwear_nasal', label: 'DREAMWEAR NASAL MASK', description: 'Under-nose nasal' },
+  { value: 'true_blue_nasal', label: 'TRUE BLUE NASAL MASK', description: 'Blue nasal mask' },
+  { value: 'wisp_minimal_nasal', label: 'WISP MINIMAL CONTACT NASAL MASK', description: 'Minimal contact nasal' }
+];
+
+const maskSizes = [
+  { value: 'petite', label: 'PETITE' },
+  { value: 'small', label: 'SMALL' },
+  { value: 'medium_small', label: 'MEDIUM/SMALL' },
+  { value: 'medium', label: 'MEDIUM' },
+  { value: 'medium_wide', label: 'MEDIUM/WIDE' },
+  { value: 'large', label: 'LARGE' },
+  { value: 'x_large', label: 'X LARGE' }
+];
+
+export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntryProps) => {
+  // Mask data
+  const [maskType, setMaskType] = useState<string>('');
+  const [maskSize, setMaskSize] = useState<string>('');
+  const [hasHeadgear, setHasHeadgear] = useState(false);
+  const [hasChinstrap, setHasChinstrap] = useState(false);
+
+  // Pressure data (required for titration/split-night)
+  const [cpapPressure, setCpapPressure] = useState<string>('');
+  const [bpapUsed, setBpapUsed] = useState(false);
+  const [ipapPressure, setIpapPressure] = useState<string>('');
+  const [epapPressure, setEpapPressure] = useState<string>('');
+
+  // Optional clinical data
+  const [etco2Awake, setEtco2Awake] = useState<string>('');
+  const [etco2Nrem, setEtco2Nrem] = useState<string>('');
+  const [etco2Rem, setEtco2Rem] = useState<string>('');
+  const [tcco2Awake, setTcco2Awake] = useState<string>('');
+  const [tcco2Nrem, setTcco2Nrem] = useState<string>('');
+  const [tcco2Rem, setTcco2Rem] = useState<string>('');
+  const [medication, setMedication] = useState<string>('');
+
+  const requiresPressureData = studyType === 'Titration' || studyType === 'Split-Night';
+
+  const updateData = (updates: any = {}) => {
+    const newData = {
+      // Mask data
+      maskType,
+      maskSize,
+      hasHeadgear,
+      hasChinstrap,
+      // Pressure data
+      cpapPressure,
+      bpapUsed,
+      ipapPressure: bpapUsed ? ipapPressure : '',
+      epapPressure: bpapUsed ? epapPressure : '',
+      // Optional clinical data
+      etco2: {
+        awake: etco2Awake,
+        nrem: etco2Nrem,
+        rem: etco2Rem
+      },
+      tcco2: {
+        awake: tcco2Awake,
+        nrem: tcco2Nrem,
+        rem: tcco2Rem
+      },
+      medication,
+      ...updates
+    };
+
+    // Check if required fields are filled
+    const hasRequiredMaskData = newData.maskType && newData.maskSize;
+    const hasRequiredPressureData = requiresPressureData ? 
+      (bpapUsed ? (newData.ipapPressure && newData.epapPressure) : newData.cpapPressure) : true;
+
+    if (hasRequiredMaskData && hasRequiredPressureData) {
+      onDataChange(newData);
+    } else {
+      onDataChange(null);
+    }
+  };
+
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Wind className="h-5 w-5 text-primary" />
+          Clinical Data Entry
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {requiresPressureData 
+            ? "CPAP/BPAP pressure and mask details are required for this study type"
+            : "Mask configuration and clinical parameters (optional)"
+          }
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Mask Configuration Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Settings className="h-4 w-4 text-primary" />
+            <Label className="text-base font-semibold">Mask Configuration</Label>
+            {requiresPressureData && <Badge variant="secondary" className="text-xs">Required</Badge>}
+          </div>
+
+          {/* Mask Type Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Mask Type *</Label>
+            <Select value={maskType} onValueChange={(value) => { setMaskType(value); updateData({ maskType: value }); }}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select mask type" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                {maskTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{type.label}</span>
+                      <span className="text-xs text-muted-foreground">{type.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Mask Size Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Mask Size *</Label>
+            <Select value={maskSize} onValueChange={(value) => { setMaskSize(value); updateData({ maskSize: value }); }}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select mask size" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                {maskSizes.map((size) => (
+                  <SelectItem key={size.value} value={size.value}>
+                    {size.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Accessories */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+              <Switch
+                id="headgear"
+                checked={hasHeadgear}
+                onCheckedChange={(checked) => { setHasHeadgear(checked); updateData({ hasHeadgear: checked }); }}
+              />
+              <Label htmlFor="headgear" className="text-sm">Headgear</Label>
+            </div>
+            <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+              <Switch
+                id="chinstrap"
+                checked={hasChinstrap}
+                onCheckedChange={(checked) => { setHasChinstrap(checked); updateData({ hasChinstrap: checked }); }}
+              />
+              <Label htmlFor="chinstrap" className="text-sm">Chinstrap</Label>
+            </div>
+          </div>
+        </div>
+
+        {/* Pressure Configuration Section */}
+        {requiresPressureData && (
+          <>
+            <Separator />
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-primary" />
+                <Label className="text-base font-semibold">Pressure Settings</Label>
+                <Badge variant="secondary" className="text-xs">Required</Badge>
+              </div>
+
+              {/* BPAP Toggle */}
+              <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+                <Switch
+                  id="bpap"
+                  checked={bpapUsed}
+                  onCheckedChange={(checked) => { setBpapUsed(checked); updateData({ bpapUsed: checked }); }}
+                />
+                <Label htmlFor="bpap" className="text-sm font-medium">BPAP Used (instead of CPAP)</Label>
+              </div>
+
+              {bpapUsed ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">IPAP Pressure (cmH2O) *</Label>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 12"
+                      value={ipapPressure}
+                      onChange={(e) => { setIpapPressure(e.target.value); updateData({ ipapPressure: e.target.value }); }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">EPAP Pressure (cmH2O) *</Label>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 8"
+                      value={epapPressure}
+                      onChange={(e) => { setEpapPressure(e.target.value); updateData({ epapPressure: e.target.value }); }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">CPAP Pressure (cmH2O) *</Label>
+                  <Input
+                    type="number"
+                    placeholder="e.g., 10"
+                    value={cpapPressure}
+                    onChange={(e) => { setCpapPressure(e.target.value); updateData({ cpapPressure: e.target.value }); }}
+                  />
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Optional Clinical Parameters */}
+        <Separator />
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Pill className="h-4 w-4 text-muted-foreground" />
+            <Label className="text-base font-semibold text-muted-foreground">Optional Clinical Data</Label>
+            <Badge variant="outline" className="text-xs">Optional</Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            These parameters are not extracted from uploaded files and must be entered manually if available
+          </p>
+
+          {/* EtCO2 Values */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">EtCO2 (mmHg)</Label>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Awake</Label>
+                <Input
+                  placeholder="e.g., 35"
+                  value={etco2Awake}
+                  onChange={(e) => { setEtco2Awake(e.target.value); updateData({ etco2Awake: e.target.value }); }}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">NREM</Label>
+                <Input
+                  placeholder="e.g., 38"
+                  value={etco2Nrem}
+                  onChange={(e) => { setEtco2Nrem(e.target.value); updateData({ etco2Nrem: e.target.value }); }}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">REM</Label>
+                <Input
+                  placeholder="e.g., 40"
+                  value={etco2Rem}
+                  onChange={(e) => { setEtco2Rem(e.target.value); updateData({ etco2Rem: e.target.value }); }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* TcCO2 Values */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">TcCO2 (mmHg)</Label>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Awake</Label>
+                <Input
+                  placeholder="e.g., 45"
+                  value={tcco2Awake}
+                  onChange={(e) => { setTcco2Awake(e.target.value); updateData({ tcco2Awake: e.target.value }); }}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">NREM</Label>
+                <Input
+                  placeholder="e.g., 47"
+                  value={tcco2Nrem}
+                  onChange={(e) => { setTcco2Nrem(e.target.value); updateData({ tcco2Nrem: e.target.value }); }}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">REM</Label>
+                <Input
+                  placeholder="e.g., 48"
+                  value={tcco2Rem}
+                  onChange={(e) => { setTcco2Rem(e.target.value); updateData({ tcco2Rem: e.target.value }); }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Medication */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Medication</Label>
+            <Textarea
+              placeholder="e.g., Tab. Zolpidem 10mg at 10:30 PM"
+              value={medication}
+              onChange={(e) => { setMedication(e.target.value); updateData({ medication: e.target.value }); }}
+              rows={2}
+            />
+          </div>
+        </div>
+
+        {/* Configuration Summary */}
+        {maskType && maskSize && (
+          <div className="p-4 bg-success/10 rounded-lg border border-success/20">
+            <h4 className="text-sm font-medium text-success mb-2">Configuration Summary</h4>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline" className="border-success/30 text-success">
+                {maskTypes.find(t => t.value === maskType)?.label}
+              </Badge>
+              <Badge variant="outline" className="border-success/30 text-success">
+                Size: {maskSizes.find(s => s.value === maskSize)?.label}
+              </Badge>
+              {requiresPressureData && (
+                <>
+                  {bpapUsed ? (
+                    ipapPressure && epapPressure && (
+                      <Badge variant="outline" className="border-success/30 text-success">
+                        BPAP: {ipapPressure}/{epapPressure} cmH2O
+                      </Badge>
+                    )
+                  ) : (
+                    cpapPressure && (
+                      <Badge variant="outline" className="border-success/30 text-success">
+                        CPAP: {cpapPressure} cmH2O
+                      </Badge>
+                    )
+                  )}
+                </>
+              )}
+              {hasHeadgear && (
+                <Badge variant="outline" className="border-success/30 text-success">
+                  + Headgear
+                </Badge>
+              )}
+              {hasChinstrap && (
+                <Badge variant="outline" className="border-success/30 text-success">
+                  + Chinstrap
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};

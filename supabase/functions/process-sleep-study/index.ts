@@ -6,6 +6,35 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Mask types and sizes for clinical data reference
+const maskTypes = [
+  { value: 'resmed_airfit_f20', label: 'Resmed AirFit F20 Full Face mask' },
+  { value: 'resmed_airfit_n20', label: 'Resmed AirFit N20 Nasal mask' },
+  { value: 'resmed_airfit_n30', label: 'Resmed AirFit N30 Nasal Pillows' },
+  { value: 'resmed_airfit_f10', label: 'Resmed AirFit F10 Full Face mask' },
+  { value: 'nonvented_resmed_full_face', label: 'NONVENTED RESMED FULL FACE MASK' },
+  { value: 'amara_gel_full_face', label: 'AMARA GEL FULL FACE MASK' },
+  { value: 'amara_full_face', label: 'AMARA FULL FACE MASK' },
+  { value: 'amara_view_full_face', label: 'AMARA VIEW FULL FACE MASK' },
+  { value: 'comfort_gel_blue_full_face', label: 'COMFORT GEL BLUE FULL FACE' },
+  { value: 'comfortgel_nasal', label: 'COMFORTGEL NASAL MASK' },
+  { value: 'dreamwear_full_face', label: 'DREAMWEAR FULL FACE MASK' },
+  { value: 'dreamwear_gel_nasal_pillow', label: 'DREAMWEAR GEL NASAL PILLOW' },
+  { value: 'dreamwear_nasal', label: 'DREAMWEAR NASAL MASK' },
+  { value: 'true_blue_nasal', label: 'TRUE BLUE NASAL MASK' },
+  { value: 'wisp_minimal_nasal', label: 'WISP MINIMAL CONTACT NASAL MASK' }
+];
+
+const maskSizes = [
+  { value: 'petite', label: 'PETITE' },
+  { value: 'small', label: 'SMALL' },
+  { value: 'medium_small', label: 'MEDIUM/SMALL' },
+  { value: 'medium', label: 'MEDIUM' },
+  { value: 'medium_wide', label: 'MEDIUM/WIDE' },
+  { value: 'large', label: 'LARGE' },
+  { value: 'x_large', label: 'X LARGE' }
+];
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -31,7 +60,7 @@ serve(async (req) => {
     }
 
     const requestBody = await req.json();
-    const { fileContent, studyType } = requestBody;
+    const { fileContent, studyType, clinicalData } = requestBody;
 
     // Input validation
     if (!fileContent || typeof fileContent !== 'string') {
@@ -242,6 +271,19 @@ Otherwise, no unusual events were noted during the study."
 CRITICAL: Return ONLY valid JSON. Extract exact values when available. Use null for missing data.
 
 Study Type: ${studyType}
+
+${clinicalData ? `ADDITIONAL CLINICAL DATA PROVIDED BY USER:
+Mask Configuration: ${clinicalData.maskType ? maskTypes.find(t => t.value === clinicalData.maskType)?.label : 'Not specified'} - ${clinicalData.maskSize ? maskSizes.find(s => s.value === clinicalData.maskSize)?.label : 'Not specified'}
+Accessories: ${[clinicalData.hasHeadgear && 'Headgear', clinicalData.hasChinstrap && 'Chinstrap'].filter(Boolean).join(', ') || 'None'}
+${clinicalData.bpapUsed ? `BPAP Pressure: IPAP ${clinicalData.ipapPressure} cmH2O / EPAP ${clinicalData.epapPressure} cmH2O` : 
+  clinicalData.cpapPressure ? `CPAP Pressure: ${clinicalData.cpapPressure} cmH2O` : 'Pressure not specified'}
+${clinicalData.etco2?.awake || clinicalData.etco2?.nrem || clinicalData.etco2?.rem ? 
+  `EtCO2 Values: Awake ${clinicalData.etco2.awake || 'N/A'} mmHg, NREM ${clinicalData.etco2.nrem || 'N/A'} mmHg, REM ${clinicalData.etco2.rem || 'N/A'} mmHg` : ''}
+${clinicalData.tcco2?.awake || clinicalData.tcco2?.nrem || clinicalData.tcco2?.rem ? 
+  `TcCO2 Values: Awake ${clinicalData.tcco2.awake || 'N/A'} mmHg, NREM ${clinicalData.tcco2.nrem || 'N/A'} mmHg, REM ${clinicalData.tcco2.rem || 'N/A'} mmHg` : ''}
+${clinicalData.medication ? `Medication: ${clinicalData.medication}` : ''}
+
+IMPORTANT: Incorporate this user-provided clinical data into your analysis and clinical summary. Use these values for mask details, pressure settings, CO2 monitoring, and medication information in your clinical summary.` : ''}
 
 FILE CONTENT TO ANALYZE:
 ${truncatedContent}
