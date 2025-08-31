@@ -11,17 +11,31 @@ interface MaskSelectorProps {
 }
 
 const maskTypes = [
-  { value: 'nasal', label: 'Nasal Mask', description: 'Covers nose only' },
-  { value: 'oronasal', label: 'Oronasal (Full Face)', description: 'Covers nose and mouth' },
-  { value: 'nasal_pillows', label: 'Nasal Pillows', description: 'Direct nasal contact' },
-  { value: 'full_face', label: 'Full Face', description: 'Complete coverage' }
+  { value: 'resmed_airfit_f20', label: 'Resmed AirFit F20 Full Face mask', description: 'Full face coverage' },
+  { value: 'resmed_airfit_n20', label: 'Resmed AirFit N20 Nasal mask', description: 'Nasal coverage' },
+  { value: 'resmed_airfit_n30', label: 'Resmed AirFit N30 Nasal Pillows', description: 'Nasal pillows' },
+  { value: 'resmed_airfit_f10', label: 'Resmed AirFit F10 Full Face mask', description: 'Full face coverage' },
+  { value: 'nonvented_resmed_full_face', label: 'NONVENTED RESMED FULL FACE MASK', description: 'Non-vented full face' },
+  { value: 'amara_gel_full_face', label: 'AMARA GEL FULL FACE MASK', description: 'Gel cushion full face' },
+  { value: 'amara_full_face', label: 'AMARA FULL FACE MASK', description: 'Standard full face' },
+  { value: 'amara_view_full_face', label: 'AMARA VIEW FULL FACE MASK', description: 'Clear view full face' },
+  { value: 'comfort_gel_blue_full_face', label: 'COMFORT GEL BLUE FULL FACE', description: 'Blue gel cushion' },
+  { value: 'comfortgel_nasal', label: 'COMFORTGEL NASAL MASK', description: 'Gel nasal mask' },
+  { value: 'dreamwear_full_face', label: 'DREAMWEAR FULL FACE MASK', description: 'Under-nose full face' },
+  { value: 'dreamwear_gel_nasal_pillow', label: 'DREAMWEAR GEL NASAL PILLOW', description: 'Gel nasal pillows' },
+  { value: 'dreamwear_nasal', label: 'DREAMWEAR NASAL MASK', description: 'Under-nose nasal' },
+  { value: 'true_blue_nasal', label: 'TRUE BLUE NASAL MASK', description: 'Blue nasal mask' },
+  { value: 'wisp_minimal_nasal', label: 'WISP MINIMAL CONTACT NASAL MASK', description: 'Minimal contact nasal' }
 ];
 
 const maskSizes = [
-  { value: 'small', label: 'Small' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'large', label: 'Large' },
-  { value: 'extra_large', label: 'Extra Large' }
+  { value: 'petite', label: 'PETITE' },
+  { value: 'small', label: 'SMALL' },
+  { value: 'medium_small', label: 'MEDIUM/SMALL' },
+  { value: 'medium', label: 'MEDIUM' },
+  { value: 'medium_wide', label: 'MEDIUM/WIDE' },
+  { value: 'large', label: 'LARGE' },
+  { value: 'x_large', label: 'X LARGE' }
 ];
 
 export const MaskSelector = ({ onMaskDataChange }: MaskSelectorProps) => {
@@ -86,7 +100,7 @@ export const MaskSelector = ({ onMaskDataChange }: MaskSelectorProps) => {
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select mask type" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border shadow-lg z-50">
               {maskTypes.map((type) => (
                 <SelectItem key={type.value} value={type.value}>
                   <div className="flex flex-col">
@@ -106,7 +120,7 @@ export const MaskSelector = ({ onMaskDataChange }: MaskSelectorProps) => {
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select mask size" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border shadow-lg z-50">
               {maskSizes.map((size) => (
                 <SelectItem key={size.value} value={size.value}>
                   {size.label}
