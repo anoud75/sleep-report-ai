@@ -108,48 +108,113 @@ serve(async (req) => {
 
     const MEDICAL_GRADE_PROMPT = `You are a medical-grade AI sleep study assistant. Your task is to extract and summarize **key clinical metrics** from uploaded sleep study files and generate a **clean, modern, and medically accurate** summary based on approved formats and logic.
 
-## 🔍 PAGE-BY-PAGE EXTRACTION RULES
+## 🔍 PRECISE PAGE-BY-PAGE EXTRACTION RULES
 
-### 📄 Page 1: General Parameters
-- Patient Name, First Name, Age
-- Start Time, Light Off, Light On
-- Time in Bed, Total Sleep Time
-- Sleep Latency (from Light Off)
-- REM Latency (from Sleep Onset)
+### 📄 PAGE 1: Patient Information & Basic Sleep Data
 
-### 📄 Page 2: Sleep Architecture
-- Sleep Efficiency
-- Sleep Stage %: S1, S2, S3, REM
-- REM Cycles: start time, duration, %TST
+**Patient Information Section (Top-Left):**
+- **Patient Name**: Look in "Recording identification" section, line labeled "Patient name", extract value after the colon
+- **First Name**: Directly below patient name, line labeled "First name", extract value after the colon  
+- **Age**: Line labeled "Patient age", extract value after the colon in patient demographics block
 
-### 📄 Page 4: Respiratory Summary
-- Mean Hypopnea Duration (seconds)
-- Index values:
-  - CA (Central Apnea Index)
-  - OA (Obstructive Apnea Index)
-  - MA (Mixed Apnea Index)
-  - HYP (Hypopnea Index)
-- AHI by:
-  - Supine, Lateral, NREM, REM, Overall
+**Sleep Data Section - Times Block (Middle-Left):**
+- **Light Off Time**: In "SLEEP DATA 1" section under "Times", row labeled "Light off (LO)", extract from right column
+- **Light On Time**: Same "Times" block, row labeled "Light on (LON)", extract from right column (may have "[Recording end]" annotation)
 
-### 📄 Page 5: Heart Rate
-- Mean HR in NREM and REM
+**Durations Section (Middle-Left, below Times):**
+- **TIB (Time in Bed)**: In "Durations" block, row labeled "TIB", extract value after colon (explanation: "Light off -> Light on")
+- **TST (Total Sleep Time)**: Same "Durations" block, row labeled "TST", extract value after colon (explanation: "REM + NREM + MVT (during SPT)")
 
-### 📄 Page 6: Oxygenation
-- SpO2 REM row
-- SpO2 NREM row
-- Average SpO2
-- Desaturation Index
-- Lowest SpO2
-- Arousal Index
+**Latencies Section (Bottom of page):**
+- **Sleep Onset Latency**: In "Latencies" table at bottom, "Sleep onset" row, under "From Light off (min)" column
+- **REM Latency**: Same "Latencies" table, "REM" row, under "From Sleep onset (min)" column
 
-### 📄 Page 7: Additional Metrics
-- Snoring (minutes and %)
-- Leg Movement Index
-- Body Position Indices:
-  - L (Left)
-  - R (Right)
-  - S (Supine)
+### 📄 PAGE 2: Sleep Architecture & Efficiency
+
+**General Section (Top-Left):**
+- **Sleep Efficiency**: In "General" block, row labeled "Sleep efficiency 1", extract value after colon (includes "%" symbol)
+
+**Sleep Stages Distribution Table (Middle Section):**
+- **REM Duration**: In "Sleep Stages Distribution" table, "REM" row, under "duration (min)" column
+- **REM TST Percentage**: Same "REM" row, under "TST (%)" column (may have handwritten annotation "N24")
+- **S1 Episodes**: In "S1" row, under "Episodes (# of)" column
+- **S1 TST Percentage**: Same "S1" row, under "TST (%)" column (may have handwritten annotation "N2t")
+- **S2 Episodes**: In "S2" row, under "Episodes (# of)" column
+- **S3 Episodes**: In "S3" row (may have handwritten note "slow wave sleep"), under "Episodes (# of)" column
+- **S3 TST Percentage**: Same "S3" row, under "TST (%)" column (may have handwritten annotation "N3t")
+
+**Sleep Data 3 Section (Bottom):**
+- **REM Cycles**: In "SLEEP DATA 3" section, next to "REM Cycles" label as standalone number
+- **REM 1**: In REM cycles table, "REM 1" row, under "Tot" column
+- **REM 2**: In "REM 2" row, under "Tot" column
+
+### 📄 PAGE 3: No data required
+
+### 📄 PAGE 4: Respiratory Events
+
+**Respiratory Events Summary - Total Sleep Time Section (Bottom Half):**
+- **Central Apnea Index (CA)**: In "Index (#/h TST)" row under "CA" column
+- **Obstructive Apnea Index (OA)**: Same row, under "OA" column
+- **Mixed Apnea Index (MA)**: Same row, under "MA" column
+- **Hypopnea Index (HYP)**: Same row, under "HYP" column
+- **Mean Hypopnea Duration**: In "Mean (seconds)" row under "HYP" column
+
+**CALCULATION REQUIRED:**
+- **Mean Hypopnea Duration**: (CA + OA + MA + HYP) / 4
+
+**Respiratory Disturbance Index Section (Bottom):**
+- **AHI REM**: In RDI row, under "REM #/h (REM)" column
+- **AHI NREM**: Same RDI row, under "NREM #/h (NREM)" column
+- **AHI Overall (TST)**: Same RDI row, under "TST #/h (sleep)" column
+
+### 📄 PAGE 5: Heart Rate Data
+
+**Heart Rate Summary Section (Bottom Half):**
+- **REM Duration**: In "HEART RATE SUMMARY" table, "Duration (min)" row under "REM" column
+- **REM Mean HR (BPM)**: Same table, "Mean HR (BPM)" row under "REM" column
+- **NREM Duration**: In "Duration (min)" row under "NREM" column
+- **NREM Mean HR (BPM)**: In "Mean HR (BPM)" row under "NREM" column
+
+### 📄 PAGE 6: Oxygenation & Arousal Data
+
+**Oximetry Distribution Section (Top Half):**
+- **<90 SpO2% Wake**: In "Oximetry Distribution" table, "<90" row under "Wake" column
+- **<95 SpO2% Wake**: Same table, "<95" row under "Wake" column
+- **Non-REM <85**: In "<85" row under "Non-REM" column
+- **Non-REM <90**: In "<90" row under "Non-REM" column
+
+**CALCULATIONS REQUIRED:**
+- **Oxygen < 90%**: ((REM + NREM) * 100) / Total Sleep Time
+- **Oxygen < 95%**: ((REM + NREM) * 100) / Total Sleep Time
+
+**Oximetry Summary Table (Middle Section):**
+- **Average SpO2**: In "Average (%)" row under "WK" column
+- **Total NREM**: In "NREM" column showing value
+- **Number of Desaturations Total**: In "Number of desaturations" row under "TOTAL" column
+- **Desaturation Index (#/hour) Total**: In "Desat Index (#/hour)" row under "TOTAL" column
+
+**Respiratory Event O2 Min Levels Section:**
+- **Mean SpO2 Min Levels**: Extract percentage value (may have handwritten annotations like "significant", "<88", "minimal 74-88")
+
+**Arousal Summary Section (Bottom):**
+- **Arousal Index**: Extract value next to "Arousal index" (format: "X.X/h(sleep)")
+
+### 📄 PAGE 7: Movement & Position Data
+
+**Snoring Summary Section (Top):**
+- **Snoring Duration**: In "Total duration with snoring" line, extract "X min" value
+- **Snoring Percentage**: Same line, extract "X % of sleep" value
+
+**Leg Movements Summary Section (Middle):**
+- **Leg Movement Index**: In "Leg movements" row, under "Index" column
+
+**Body Position Summary Section (Bottom):**
+- **Left Position Index**: In "L" row, under "Index (#/h)" column
+- **Right Position Index**: In "R" row, under "Index (#/h)" column  
+- **Supine Position Index**: In "S/SL" combined row, under "Index (#/h)" column
+
+**CALCULATION REQUIRED:**
+- **AHI Lateral**: If both L and R position data exist: (Right + Left) / 2
 
 ## 💨 CPAP/BPAP PRESSURE & MASK DETAILS
 
