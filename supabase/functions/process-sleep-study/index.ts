@@ -488,35 +488,54 @@ Expected JSON structure:
         
         // Enhanced prompt to get raw Oximetry Distribution values for calculation
         if (extractedData.studyInfo?.totalSleepTime) {
-          const enhancedPrompt = `EXTRACT OXIMETRY DATA FROM SLEEP STUDY REPORT
+          const enhancedPrompt = `URGENT: LOCATE AND EXTRACT EXACT OXIMETRY TABLE VALUES
 
-LOCATE: The "Oximetry Distribution" table (typically under "OXIMETRY SUMMARY" section)
+STEP-BY-STEP EXTRACTION PROCESS:
 
-TABLE STRUCTURE TO FIND:
-- Header row with columns: SpO2 %, Wake, REM, Non-REM, Total
-- Rows labeled with SpO2 thresholds: <50, <60, <70, <75, <80, <85, <90, <95, <89
-- All values are in minutes
+STEP 1: FIND THE TABLE
+- Look for "Oximetry Distribution" (most common)
+- Alternative names: "SpO2 Distribution", "Oxygen Saturation Distribution"  
+- Look on page 6 or in "OXIMETRY" sections
+- The table has SpO2 thresholds (<50, <60, <70, <75, <80, <85, <90, <95) as LEFT column
+- Sleep stages (Wake, REM, Non-REM, Total) as TOP row headers
 
-EXACT VALUES TO EXTRACT:
-1. Find row labeled "<90" (not <89, not <95, exactly "<90")
-   - Extract number from "REM" column → remBelow90
-   - Extract number from "Non-REM" column → nremBelow90
+STEP 2: LOCATE TARGET CELLS
+Find row "<90" (exactly this text in leftmost column):
+- Find intersection with "REM" column → Extract this number
+- Find intersection with "Non-REM" or "NREM" column → Extract this number
 
-2. Find row labeled "<95" (exactly "<95")  
-   - Extract number from "REM" column → remBelow95
-   - Extract number from "Non-REM" column → nremBelow95
+Find row "<95" (exactly this text in leftmost column):  
+- Find intersection with "REM" column → Extract this number
+- Find intersection with "Non-REM" or "NREM" column → Extract this number
 
-VALUE HANDLING:
-- Extract pure numbers (0.0, 1.5, 23.7, etc.)
-- If value is "0.0" or "0" → return 0
-- If cell is empty or "---" → return 0  
-- If row/column not found → return null
+STEP 3: EXTRACT VALUES
+- Look for ANY numbers in these cells: 0.0, 1.2, 15.3, 23.7, etc.
+- If cell shows "0.0" or "0" → return 0 (NOT null)
+- If cell is empty or shows "---" → return 0 (NOT null)  
+- If actual number exists → return exact number
+- Only return null if the entire row/column doesn't exist
 
-EXAMPLE TABLE FORMAT:
-SpO2 %    Wake    REM    Non-REM    Total
-<85       0.2     0.0    0.0        0.6
-<90       0.6     0.0    0.0        0.5  ← Extract REM: 0.0, Non-REM: 0.0
-<95       0.5     0.0    0.0        X    ← Extract REM: 0.0, Non-REM: 0.0
+CRITICAL: The user has highlighted these specific values in green in their document.
+They are NOT all zeros - there are actual numerical values that need extraction.
+
+EXAMPLE TABLE FORMAT YOU'RE LOOKING FOR:
+```
+SpO2 %     Wake    REM    Non-REM   Total
+<50        0.0     0.0    0.0       0.0
+<60        0.0     0.0    0.0       0.0  
+<70        0.1     0.0    0.0       0.1
+<75        0.3     0.0    0.0       0.3
+<80        0.5     0.0    0.2       0.7
+<85        0.8     0.0    0.4       1.2
+<90        1.2     0.1    0.7       2.0  ← EXTRACT: REM=0.1, Non-REM=0.7  
+<95        3.5     0.3    1.8       5.6  ← EXTRACT: REM=0.3, Non-REM=1.8
+```
+
+DEBUG YOUR SEARCH:
+1. Did you find any table with SpO2 percentages?
+2. Did you locate rows labeled "<90" and "<95"?  
+3. Did you find columns labeled "REM" and "Non-REM"?
+4. What numbers did you see in those intersections?
 
 FILE CONTENT:
 ${truncatedContent}
