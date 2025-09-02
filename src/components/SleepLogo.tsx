@@ -20,43 +20,33 @@ export const SleepLogo: React.FC<SleepLogoProps> = ({ size = 'md', className = '
         xmlns="http://www.w3.org/2000/svg"
         className="w-full h-full"
       >
-        {/* Main swirl shape */}
+        {/* Main spiral swirl shape matching the uploaded design */}
         <path
-          d="M25 75 Q15 65 15 50 Q15 25 40 25 Q65 25 75 45 Q85 65 75 80 Q65 95 45 85 Q25 75 35 65 Q45 55 50 60 Q55 65 52 70"
-          fill="url(#mainGradient)"
-          className="drop-shadow-lg"
+          d="M20 30 Q10 20 20 10 Q40 5 60 15 Q85 30 85 55 Q85 80 60 85 Q35 85 25 65 Q20 45 35 40 Q50 40 55 50 Q58 60 50 65 Q42 65 40 58 Q38 52 42 50 Q46 50 47 52"
+          fill="url(#spiralGradient)"
+          className="drop-shadow-2xl"
         />
         
-        {/* Secondary leaf element */}
+        {/* Additional flowing element for depth */}
         <path
-          d="M20 70 Q10 60 15 45 Q20 30 35 35 Q50 40 45 55 Q40 70 25 65"
-          fill="url(#secondaryGradient)"
-          className="drop-shadow-md opacity-80"
+          d="M15 35 Q8 25 15 15 Q30 8 45 18 Q65 35 60 55 Q55 70 40 65 Q28 58 30 50"
+          fill="url(#flowGradient)"
+          className="opacity-60"
         />
         
-        {/* Inner spiral */}
-        <path
-          d="M45 65 Q40 60 42 55 Q44 50 49 52 Q54 54 52 59 Q50 64 47 62"
-          fill="url(#accentGradient)"
-          className="opacity-90"
-        />
-        
-        {/* Gradient definitions */}
+        {/* Gradient definitions matching the uploaded design */}
         <defs>
-          <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id="spiralGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#ff6b35" />
-            <stop offset="50%" stopColor="#8b5cf6" />
+            <stop offset="30%" stopColor="#ff4757" />
+            <stop offset="70%" stopColor="#8b5cf6" />
             <stop offset="100%" stopColor="#3b82f6" />
           </linearGradient>
           
-          <linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#f97316" />
-            <stop offset="100%" stopColor="#7c3aed" />
-          </linearGradient>
-          
-          <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#a855f7" />
-            <stop offset="100%" stopColor="#ec4899" />
+            <stop offset="50%" stopColor="#a855f7" />
+            <stop offset="100%" stopColor="#6366f1" />
           </linearGradient>
         </defs>
       </svg>
