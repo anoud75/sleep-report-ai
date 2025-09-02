@@ -99,13 +99,19 @@ serve(async (req) => {
     }
 
     // Truncate file content if too long to avoid token limits
-    const maxContentLength = 20000; // Increased to capture more content including oximetry data
+    const maxContentLength = 35000; // Significantly increased to capture oximetry data
     const truncatedContent = sanitizedContent.length > maxContentLength 
       ? sanitizedContent.substring(0, maxContentLength) + "\n\n[Content truncated...]"
       : sanitizedContent;
 
     console.log('Processing file content length:', sanitizedContent.length);
     console.log('Truncated content preview (last 1000 chars):', truncatedContent.slice(-1000));
+    
+    // Also check if content contains oximetry keywords
+    const hasOximetryKeywords = sanitizedContent.toLowerCase().includes('oximetry') || 
+                                sanitizedContent.toLowerCase().includes('spo2') || 
+                                sanitizedContent.toLowerCase().includes('oxygen saturation');
+    console.log('Content contains oximetry keywords:', hasOximetryKeywords);
 
     const MEDICAL_GRADE_PROMPT = `You are a medical-grade AI sleep study assistant. Your task is to extract and summarize **key clinical metrics** from uploaded sleep study files and generate a **clean, modern, and medically accurate** summary based on approved formats and logic.
 
