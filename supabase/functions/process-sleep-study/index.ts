@@ -505,47 +505,59 @@ Expected JSON structure:
           );
           console.log('Oximetry section found:', oximetrySection.substring(0, 1000));
           
-          const enhancedPrompt = `YOU ARE AN EXPERT TABLE READER. FIND THE EXACT OXIMETRY DISTRIBUTION TABLE.
+          const enhancedPrompt = `🎯 CRITICAL MEDICAL DATA EXTRACTION - OXIMETRY TABLE
 
-TASK: Extract precise numerical values from the "Oximetry Distribution" or "SpO2 %" table.
+MISSION: Find the EXACT "Oximetry Distribution" table and extract PRECISE values for oxygen saturation calculations.
 
-EXPECTED TABLE FORMAT (search for variations):
-┌─────────┬──────┬─────┬─────────┬───────┐
-│ SpO2 %  │ Wake │ REM │ Non-REM │ Total │
-├─────────┼──────┼─────┼─────────┼───────┤
-│ <90     │ X.X  │ Y.Y │ Z.Z     │ W.W   │
-│ <95     │ X.X  │ Y.Y │ Z.Z     │ W.W   │
-└─────────┴──────┴─────┴─────────┴───────┘
+🔍 STEP-BY-STEP PROCESS:
 
-OR similar formats like:
-"<90    0.0   0.6   1.2   1.8"
-"<95    0.1   2.1   3.4   5.6"
+STEP 1: FIND THE TABLE HEADER
+Look for table headers containing ANY of these patterns:
+- "SpO2 %"  "Wake"  "REM"  "Non-REM"  "Total"
+- "SpO2 %"  "Wake"  "REM"  "NREM"     "Total"  
+- Or similar variations with these column names
 
-PARSING INSTRUCTIONS:
-1. Scan entire content for ANY table containing "<90" and "<95" rows
-2. Look for columns labeled: REM, Non-REM (or NREM, NonREM, Non_REM)
-3. Extract ONLY the numbers from REM and Non-REM columns
-4. IGNORE Wake and Total columns completely
-5. Numbers can be 0.0, 0.1, 1.2, etc. - extract EXACTLY what you see
-6. Look for patterns like: "90    value1   value2   value3"
+STEP 2: IDENTIFY COLUMN POSITIONS  
+Once you find the header row, note the EXACT position of:
+- REM column (position X)
+- Non-REM/NREM column (position Y) 
+- DO NOT use Wake or Total columns
 
-EXAMPLE EXTRACTION:
-If you find: "<90    0.0   0.6   1.2   1.8"
-Position analysis: Wake=0.0, REM=0.6, Non-REM=1.2, Total=1.8
+STEP 3: EXTRACT DATA FROM ROWS
+Find these specific rows in the table:
+- Row starting with "<90" 
+- Row starting with "<95"
+
+STEP 4: EXTRACT VALUES BY COLUMN POSITION
+For each row, extract the number at:
+- REM column position = the value you need
+- Non-REM column position = the value you need
+
+⚠️ CRITICAL RULES:
+1. Column positions matter more than assumptions
+2. Extract EXACT decimal values (0.0, 0.6, 1.2, 2.1, etc.)
+3. If you see "0.0" write 0.0, if you see blank write null
+4. Double-check which column is REM vs Non-REM by header position
+
+📋 EXAMPLE ANALYSIS:
+If you find:
+Header: "SpO2 %    Wake    REM    Non-REM    Total"
+Row:    "<90       0.0     0.6    1.2        1.8"
+Position analysis: Col1=SpO2%, Col2=Wake(0.0), Col3=REM(0.6), Col4=Non-REM(1.2), Col5=Total(1.8)
 Extract: remBelow90: 0.6, nremBelow90: 1.2
 
 CONTENT TO ANALYZE:
 ${truncatedContent}
 
-CRITICAL: Return ONLY valid JSON with the exact numbers you find:
+🎯 RESPOND WITH ONLY THIS JSON:
 {
-  "remBelow90": [number from REM column in <90 row],
-  "nremBelow90": [number from Non-REM column in <90 row],
-  "remBelow95": [number from REM column in <95 row], 
-  "nremBelow95": [number from Non-REM column in <95 row],
-  "foundTable": "[quote the exact table rows with numbers]",
-  "extractedValues": "REM <90: X.X, NREM <90: Y.Y, REM <95: Z.Z, NREM <95: W.W",
-  "tableFormat": "[describe how the data was arranged - columns vs rows]"
+  "remBelow90": [REM column value from <90 row],
+  "nremBelow90": [Non-REM column value from <90 row],
+  "remBelow95": [REM column value from <95 row], 
+  "nremBelow95": [Non-REM column value from <95 row],
+  "foundTable": "[exact header + <90 row + <95 row you found]",
+  "columnPositions": "[describe: REM=position X, Non-REM=position Y]",
+  "extractedValues": "REM <90: X.X, NREM <90: Y.Y, REM <95: Z.Z, NREM <95: W.W"
 }`;
 
           console.log('Requesting additional oximetry data extraction...');
