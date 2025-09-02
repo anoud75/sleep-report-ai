@@ -521,33 +521,69 @@ Expected JSON structure:
           );
           console.log('Oximetry section found:', oximetrySection.substring(0, 1000));
           
-          const enhancedPrompt = `You are a medical data extraction specialist. From this sleep study report, extract the raw oximetry data that will be used to calculate oxygen percentage times.
+          const debugOxygenPrompt = `You are a medical data extraction specialist. Extract oxygen saturation data step-by-step with full debugging output.
 
-CRITICAL: Look for the "Oximetry Distribution" table and extract these exact values:
+STEP 1: Find TST (Total Sleep Time)
+Look for: "TST : XXX.X min" 
+Extract the number only.
 
-From the table with columns: Wake, REM, Non-REM, Total
-Find these rows and extract the REM and Non-REM values (in minutes):
+STEP 2: Find Oximetry Distribution Table
+Look for the section titled "Oximetry Distribution" or "OXIMETRY SUMMARY"
 
-- Row "<90": Extract REM column value and Non-REM column value  
-- Row "<95": Extract REM column value and Non-REM column value
+STEP 3: Extract <90% Row Data
+Find the row that contains "<90" or "&lt;90"
+Extract 4 values in order: Wake, REM, Non-REM, Total (all in minutes)
 
-Also extract:
-- TST (Total Sleep Time) in minutes from the "TST : XX.X min" line
-- Desaturation Index value from lines containing "Desaturation Index" or "Desat Index"
+STEP 4: Extract <95% Row Data  
+Find the row that contains "<95" or "&lt;95"
+Extract 4 values in order: Wake, REM, Non-REM, Total (all in minutes)
 
-EXAMPLE TABLE FORMAT:
-SpO2 %                Wake     REM    Non-REM   Total
-<90                   0.5      1.3    0.0       1.8
-<95                   2.1      5.9    8.4       16.4
+STEP 5: Find Desaturation Index
+Look for "Desat Index" or "Desaturation Index" value
 
-Return ONLY this JSON structure:
+STEP 6: Perform Calculations
+Calculate:
+- % Time O2 < 90% = ((REM<90 + NonREM<90) / TST) × 100
+- % Time O2 < 95% = ((REM<95 + NonREM<95) / TST) × 100
+
+Return this EXACT JSON format:
 {
-  "tst": number,
-  "remUnder90Minutes": number,
-  "nonRemUnder90Minutes": number, 
-  "remUnder95Minutes": number,
-  "nonRemUnder95Minutes": number,
-  "desaturationIndex": number
+  "debug": {
+    "tstFound": "exact text where TST was found",
+    "tstValue": number,
+    "under90RowText": "exact text of <90 row",
+    "under95RowText": "exact text of <95 row",
+    "extractedUnder90": {
+      "wake": number,
+      "rem": number,
+      "nonRem": number,
+      "total": number
+    },
+    "extractedUnder95": {
+      "wake": number,
+      "rem": number,
+      "nonRem": number,
+      "total": number
+    },
+    "desatIndexText": "exact text containing desat index",
+    "desatIndexValue": number
+  },
+  "calculations": {
+    "under90Formula": "show the exact calculation",
+    "under90Result": number,
+    "under95Formula": "show the exact calculation", 
+    "under95Result": number
+  },
+  "results": {
+    "tst": number,
+    "remUnder90Minutes": number,
+    "nonRemUnder90Minutes": number,
+    "remUnder95Minutes": number,
+    "nonRemUnder95Minutes": number,
+    "desaturationIndex": number,
+    "percentTimeO2Under90": number,
+    "percentTimeO2Under95": number
+  }
 }
 
 DOCUMENT CONTENT:
@@ -568,7 +604,7 @@ ${truncatedContent}`;
                   role: 'system', 
                   content: 'You are a medical data extractor. Extract ONLY the exact numerical values from the specified table cells. Return only valid JSON.' 
                 },
-                { role: 'user', content: enhancedPrompt }
+                { role: 'user', content: debugOxygenPrompt }
               ],
               temperature: 0,
               max_tokens: 500,
