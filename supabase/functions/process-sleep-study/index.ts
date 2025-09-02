@@ -505,13 +505,13 @@ Expected JSON structure:
           );
           console.log('Oximetry section found:', oximetrySection.substring(0, 1000));
           
-          const enhancedPrompt = `🎯 CRITICAL MEDICAL DATA EXTRACTION - OXIMETRY TABLE
+          const enhancedPrompt = `🎯 CRITICAL MEDICAL DATA EXTRACTION - OXIMETRY TABLE & DESATURATION INDEX
 
-MISSION: Find the EXACT "Oximetry Distribution" table and extract PRECISE values for oxygen saturation calculations.
+MISSION: Find the EXACT "Oximetry Distribution" table AND "Desaturation Index" value for oxygen saturation calculations.
 
 🔍 STEP-BY-STEP PROCESS:
 
-STEP 1: FIND THE TABLE HEADER
+STEP 1: FIND THE OXIMETRY DISTRIBUTION TABLE
 Look for table headers containing ANY of these patterns:
 - "SpO2 %"  "Wake"  "REM"  "Non-REM"  "Total"
 - "SpO2 %"  "Wake"  "REM"  "NREM"     "Total"  
@@ -533,11 +533,20 @@ For each row, extract the number at:
 - REM column position = the value you need
 - Non-REM column position = the value you need
 
+STEP 5: FIND DESATURATION INDEX
+Look for ANY of these patterns in the ENTIRE document:
+- "Desaturation Index" followed by a number and "/hr" or "(#/h)"
+- "Desat Index" followed by a number  
+- "ODI" (Oxygen Desaturation Index) followed by a number
+- "3% desat index" or "4% desat index"
+- Look for patterns like: "Desaturation Index: 12.5 /hr" or "Desat Index (#/h): 8.3"
+
 ⚠️ CRITICAL RULES:
 1. Column positions matter more than assumptions
 2. Extract EXACT decimal values (0.0, 0.6, 1.2, 2.1, etc.)
 3. If you see "0.0" write 0.0, if you see blank write null
 4. Double-check which column is REM vs Non-REM by header position
+5. For Desaturation Index, look throughout the entire oximetry section
 
 📋 EXAMPLE ANALYSIS:
 If you find:
@@ -545,6 +554,8 @@ Header: "SpO2 %    Wake    REM    Non-REM    Total"
 Row:    "<90       0.0     0.6    1.2        1.8"
 Position analysis: Col1=SpO2%, Col2=Wake(0.0), Col3=REM(0.6), Col4=Non-REM(1.2), Col5=Total(1.8)
 Extract: remBelow90: 0.6, nremBelow90: 1.2
+
+And: "Desaturation Index: 15.2 /hr" → Extract: 15.2
 
 CONTENT TO ANALYZE:
 ${truncatedContent}
@@ -555,9 +566,10 @@ ${truncatedContent}
   "nremBelow90": [Non-REM column value from <90 row],
   "remBelow95": [REM column value from <95 row], 
   "nremBelow95": [Non-REM column value from <95 row],
+  "desaturationIndex": [number found after "Desaturation Index" or similar],
   "foundTable": "[exact header + <90 row + <95 row you found]",
   "columnPositions": "[describe: REM=position X, Non-REM=position Y]",
-  "extractedValues": "REM <90: X.X, NREM <90: Y.Y, REM <95: Z.Z, NREM <95: W.W"
+  "extractedValues": "REM <90: X.X, NREM <90: Y.Y, REM <95: Z.Z, NREM <95: W.W, Desat Index: X.X"
 }`;
 
           console.log('Requesting additional oximetry data extraction...');
