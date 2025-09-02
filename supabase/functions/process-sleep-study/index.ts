@@ -6,6 +6,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Format oxygen percentage according to user's requirements
+const formatOxygenPercentage = (percentage) => {
+  // If both REM + NREM are blank → Output: "None"
+  if (percentage === null || percentage === undefined) {
+    return "None";
+  }
+  
+  // If result < 1.0% → Output: "Minimal (<1%)"
+  if (percentage < 1.0) {
+    return "Minimal (<1%)";
+  }
+  
+  // If result ≥ 1.0% → Output exact % with 1 decimal place
+  return `${percentage.toFixed(1)}%`;
+};
+
 // Mask types and sizes for clinical data reference
 const maskTypes = [
   { value: 'resmed_airfit_f20', label: 'Resmed AirFit F20 Full Face mask' },
@@ -505,72 +521,37 @@ Expected JSON structure:
           );
           console.log('Oximetry section found:', oximetrySection.substring(0, 1000));
           
-          const enhancedPrompt = `🎯 CRITICAL MEDICAL DATA EXTRACTION - OXIMETRY TABLE & DESATURATION INDEX
+          const enhancedPrompt = `You are a medical data extraction specialist. From this sleep study report, extract the raw oximetry data that will be used to calculate oxygen percentage times.
 
-MISSION: Find the EXACT "Oximetry Distribution" table AND "Desaturation Index" value for oxygen saturation calculations.
+CRITICAL: Look for the "Oximetry Distribution" table and extract these exact values:
 
-🔍 STEP-BY-STEP PROCESS:
+From the table with columns: Wake, REM, Non-REM, Total
+Find these rows and extract the REM and Non-REM values (in minutes):
 
-STEP 1: FIND THE OXIMETRY DISTRIBUTION TABLE
-Look for table headers containing ANY of these patterns:
-- "SpO2 %"  "Wake"  "REM"  "Non-REM"  "Total"
-- "SpO2 %"  "Wake"  "REM"  "NREM"     "Total"  
-- Or similar variations with these column names
+- Row "<90": Extract REM column value and Non-REM column value  
+- Row "<95": Extract REM column value and Non-REM column value
 
-STEP 2: IDENTIFY COLUMN POSITIONS  
-Once you find the header row, note the EXACT position of:
-- REM column (position X)
-- Non-REM/NREM column (position Y) 
-- DO NOT use Wake or Total columns
+Also extract:
+- TST (Total Sleep Time) in minutes from the "TST : XX.X min" line
+- Desaturation Index value from lines containing "Desaturation Index" or "Desat Index"
 
-STEP 3: EXTRACT DATA FROM ROWS
-Find these specific rows in the table:
-- Row starting with "<90" 
-- Row starting with "<95"
+EXAMPLE TABLE FORMAT:
+SpO2 %                Wake     REM    Non-REM   Total
+<90                   0.5      1.3    0.0       1.8
+<95                   2.1      5.9    8.4       16.4
 
-STEP 4: EXTRACT VALUES BY COLUMN POSITION
-For each row, extract the number at:
-- REM column position = the value you need
-- Non-REM column position = the value you need
-
-STEP 5: FIND DESATURATION INDEX
-Look for ANY of these patterns in the ENTIRE document:
-- "Desaturation Index" followed by a number and "/hr" or "(#/h)"
-- "Desat Index" followed by a number  
-- "ODI" (Oxygen Desaturation Index) followed by a number
-- "3% desat index" or "4% desat index"
-- Look for patterns like: "Desaturation Index: 12.5 /hr" or "Desat Index (#/h): 8.3"
-
-⚠️ CRITICAL RULES:
-1. Column positions matter more than assumptions
-2. Extract EXACT decimal values (0.0, 0.6, 1.2, 2.1, etc.)
-3. If you see "0.0" write 0.0, if you see blank write null
-4. Double-check which column is REM vs Non-REM by header position
-5. For Desaturation Index, look throughout the entire oximetry section
-
-📋 EXAMPLE ANALYSIS:
-If you find:
-Header: "SpO2 %    Wake    REM    Non-REM    Total"
-Row:    "<90       0.0     0.6    1.2        1.8"
-Position analysis: Col1=SpO2%, Col2=Wake(0.0), Col3=REM(0.6), Col4=Non-REM(1.2), Col5=Total(1.8)
-Extract: remBelow90: 0.6, nremBelow90: 1.2
-
-And: "Desaturation Index: 15.2 /hr" → Extract: 15.2
-
-CONTENT TO ANALYZE:
-${truncatedContent}
-
-🎯 RESPOND WITH ONLY THIS JSON:
+Return ONLY this JSON structure:
 {
-  "remBelow90": [REM column value from <90 row],
-  "nremBelow90": [Non-REM column value from <90 row],
-  "remBelow95": [REM column value from <95 row], 
-  "nremBelow95": [Non-REM column value from <95 row],
-  "desaturationIndex": [number found after "Desaturation Index" or similar],
-  "foundTable": "[exact header + <90 row + <95 row you found]",
-  "columnPositions": "[describe: REM=position X, Non-REM=position Y]",
-  "extractedValues": "REM <90: X.X, NREM <90: Y.Y, REM <95: Z.Z, NREM <95: W.W, Desat Index: X.X"
-}`;
+  "tst": number,
+  "remUnder90Minutes": number,
+  "nonRemUnder90Minutes": number, 
+  "remUnder95Minutes": number,
+  "nonRemUnder95Minutes": number,
+  "desaturationIndex": number
+}
+
+DOCUMENT CONTENT:
+${truncatedContent}`;
 
           console.log('Requesting additional oximetry data extraction...');
           
@@ -608,27 +589,51 @@ ${truncatedContent}
             
             try {
               const oximetryValues = JSON.parse(oximetryResult);
-              console.log('Extracted oximetry values:', oximetryValues);
+              console.log('Extracted raw oximetry values:', oximetryValues);
               
-              // Calculate percentages using the formula: ((REM + NREM) * 100) / Total Sleep Time
-              const totalSleepTime = extractedData.studyInfo.totalSleepTime;
-              console.log(`TST for calculations: ${totalSleepTime} minutes`);
+              // Get TST from extracted data (prioritize extracted value over input)
+              const tst = oximetryValues.tst || extractedData.studyInfo.totalSleepTime;
+              console.log(`Using TST for calculations: ${tst} minutes`);
               
-              // For <90% calculation: Use 0 if values are missing or null
-              const remBelow90 = oximetryValues.remBelow90 ?? 0;
-              const nremBelow90 = oximetryValues.nremBelow90 ?? 0;
+              if (!tst || tst <= 0) {
+                console.error('Invalid TST for oxygen calculations:', tst);
+                return;
+              }
               
-              const timeBelow90 = ((remBelow90 + nremBelow90) * 100) / totalSleepTime;
-              extractedData.oxygenation.timeBelow90Percent = Math.round(timeBelow90 * 10) / 10; // Round to 1 decimal
-              console.log(`O2 <90% calculation: ((${remBelow90} + ${nremBelow90}) * 100) / ${totalSleepTime} = ${extractedData.oxygenation.timeBelow90Percent}%`);
+              // Extract raw minutes values from table
+              const remUnder90Minutes = oximetryValues.remUnder90Minutes || 0;
+              const nonRemUnder90Minutes = oximetryValues.nonRemUnder90Minutes || 0;
+              const remUnder95Minutes = oximetryValues.remUnder95Minutes || 0;
+              const nonRemUnder95Minutes = oximetryValues.nonRemUnder95Minutes || 0;
               
-              // For <95% calculation: Use 0 if values are missing or null
-              const remBelow95 = oximetryValues.remBelow95 ?? 0;
-              const nremBelow95 = oximetryValues.nremBelow95 ?? 0;
+              console.log('Raw extracted minutes:', {
+                remUnder90Minutes,
+                nonRemUnder90Minutes,
+                remUnder95Minutes,
+                nonRemUnder95Minutes
+              });
               
-              const timeBelow95 = ((remBelow95 + nremBelow95) * 100) / totalSleepTime;
-              extractedData.oxygenation.timeBelow95Percent = Math.round(timeBelow95 * 10) / 10; // Round to 1 decimal
-              console.log(`O2 <95% calculation: ((${remBelow95} + ${nremBelow95}) * 100) / ${totalSleepTime} = ${extractedData.oxygenation.timeBelow95Percent}%`);
+              // Calculate % Time with O2 < 90%
+              const totalUnder90Minutes = remUnder90Minutes + nonRemUnder90Minutes;
+              const percentTimeUnder90 = (totalUnder90Minutes / tst) * 100;
+              
+              // Calculate % Time with O2 < 95%
+              const totalUnder95Minutes = remUnder95Minutes + nonRemUnder95Minutes;
+              const percentTimeUnder95 = (totalUnder95Minutes / tst) * 100;
+              
+              // Apply formatting rules from user's instructions
+              extractedData.oxygenation.timeBelow90Percent = formatOxygenPercentage(percentTimeUnder90);
+              extractedData.oxygenation.timeBelow95Percent = formatOxygenPercentage(percentTimeUnder95);
+              
+              // Add desaturation index if available
+              if (oximetryValues.desaturationIndex !== undefined && oximetryValues.desaturationIndex !== null) {
+                extractedData.oxygenation.desaturationIndex = oximetryValues.desaturationIndex;
+              }
+              
+              console.log(`Final O2 calculations:
+                - <90%: (${remUnder90Minutes} + ${nonRemUnder90Minutes}) * 100 / ${tst} = ${extractedData.oxygenation.timeBelow90Percent}
+                - <95%: (${remUnder95Minutes} + ${nonRemUnder95Minutes}) * 100 / ${tst} = ${extractedData.oxygenation.timeBelow95Percent}
+                - Desaturation Index: ${extractedData.oxygenation.desaturationIndex}`);
               
             } catch (oximetryParseError) {
               console.error('Failed to parse oximetry extraction:', oximetryParseError);
