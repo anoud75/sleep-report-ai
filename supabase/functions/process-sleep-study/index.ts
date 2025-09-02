@@ -505,33 +505,39 @@ Expected JSON structure:
           );
           console.log('Oximetry section found:', oximetrySection.substring(0, 1000));
           
-          const enhancedPrompt = `CRITICAL: EXTRACT EXACT NUMERICAL VALUES FROM OXIMETRY TABLE
+          const enhancedPrompt = `CRITICAL OXYGEN SATURATION EXTRACTION - Page 6 Focus
 
-SEARCH INSTRUCTIONS:
-1. Find ANY table containing SpO2 percentages (<90, <95)
-2. Look for columns: REM, Non-REM (or NREM)
-3. Extract EXACT numbers from intersections
+LOCATION: Search specifically for "OXIMETRY DISTRIBUTION" table on Page 6
 
-YOU MUST RETURN THE ACTUAL NUMBERS YOU SEE, NOT ZEROS!
+TABLE FORMAT TO FIND:
+SpO2 %    Wake    REM    Non-REM    Total
+<90       [x.x]   [y.y]  [z.z]      [total]
+<95       [x.x]   [y.y]  [z.z]      [total]
 
-If you see a table like:
-SpO2%    Wake   REM   Non-REM   Total
-<90      1.2    0.5   2.1       3.8
-<95      5.7    1.2   4.3       11.2
+EXTRACTION RULES:
+1. Find the row with "<90" - extract REM column value and Non-REM column value
+2. Find the row with "<95" - extract REM column value and Non-REM column value  
+3. IGNORE the Wake column completely
+4. Even if values are 0.0, 0.1, etc., extract the EXACT numbers you see
+5. Do NOT return zeros unless you actually see 0.0 in the table
 
-Then return: remBelow90: 0.5, nremBelow90: 2.1, remBelow95: 1.2, nremBelow95: 4.3
+CRITICAL: If you see values like:
+- REM column for <90 row: 0.6 → remBelow90: 0.6
+- Non-REM column for <90 row: 1.2 → nremBelow90: 1.2
+- REM column for <95 row: 2.1 → remBelow95: 2.1  
+- Non-REM column for <95 row: 3.4 → nremBelow95: 3.4
 
-CONTENT TO SEARCH:
+SEARCH IN THIS CONTENT:
 ${truncatedContent}
 
-RETURN ONLY JSON (no explanations):
+RESPOND WITH ONLY THIS JSON FORMAT:
 {
-  "remBelow90": [exact number or 0],
-  "nremBelow90": [exact number or 0], 
-  "remBelow95": [exact number or 0],
-  "nremBelow95": [exact number or 0],
-  "foundTable": "describe the table you found",
-  "extractedValues": "list the exact values you saw"
+  "remBelow90": [exact number from REM column <90 row],
+  "nremBelow90": [exact number from Non-REM column <90 row],
+  "remBelow95": [exact number from REM column <95 row], 
+  "nremBelow95": [exact number from Non-REM column <95 row],
+  "foundTable": "quote the exact table section you found with values",
+  "extractedValues": "list each value: REM <90: X.X, NREM <90: Y.Y, REM <95: Z.Z, NREM <95: W.W"
 }`;
 
           console.log('Requesting additional oximetry data extraction...');
