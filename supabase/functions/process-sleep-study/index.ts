@@ -495,60 +495,43 @@ Expected JSON structure:
         
         // Enhanced prompt to get raw Oximetry Distribution values for calculation
         if (extractedData.studyInfo?.totalSleepTime) {
-          const enhancedPrompt = `EXTRACT OXIMETRY DISTRIBUTION VALUES - CRITICAL MEDICAL DATA
+          console.log('=== OXIMETRY EXTRACTION DEBUG ===');
+          console.log('Looking for oximetry data in content...');
+          
+          // Find and log the oximetry section specifically
+          const oximetrySection = truncatedContent.substring(
+            Math.max(0, truncatedContent.toLowerCase().indexOf('oximetry') - 500),
+            Math.min(truncatedContent.length, truncatedContent.toLowerCase().indexOf('oximetry') + 2000)
+          );
+          console.log('Oximetry section found:', oximetrySection.substring(0, 1000));
+          
+          const enhancedPrompt = `CRITICAL: EXTRACT EXACT NUMERICAL VALUES FROM OXIMETRY TABLE
 
-YOU MUST FIND AND EXTRACT SpO2 VALUES FROM THE OXIMETRY TABLE
+SEARCH INSTRUCTIONS:
+1. Find ANY table containing SpO2 percentages (<90, <95)
+2. Look for columns: REM, Non-REM (or NREM)
+3. Extract EXACT numbers from intersections
 
-🔍 SEARCH STRATEGY:
-1. Look for ANY of these table titles:
-   - "Oximetry Distribution"
-   - "SpO2 Distribution" 
-   - "Oxygen Saturation Distribution"
-   - "OXIMETRY" (section header)
-   - Tables with SpO2 percentages (<90, <95, etc.)
+YOU MUST RETURN THE ACTUAL NUMBERS YOU SEE, NOT ZEROS!
 
-2. The table typically appears on Page 6 or in OXIMETRY/RESPIRATORY sections
+If you see a table like:
+SpO2%    Wake   REM   Non-REM   Total
+<90      1.2    0.5   2.1       3.8
+<95      5.7    1.2   4.3       11.2
 
-3. TABLE STRUCTURE to find:
-   Left column: SpO2 thresholds (<50, <60, <70, <75, <80, <85, <90, <95, <100)
-   Top headers: Wake, REM, Non-REM (or NREM), Total
+Then return: remBelow90: 0.5, nremBelow90: 2.1, remBelow95: 1.2, nremBelow95: 4.3
 
-📊 EXTRACTION TARGETS:
-- Find row with "<90" in left column
-- Extract value from REM column (minutes)
-- Extract value from Non-REM/NREM column (minutes)
-- Find row with "<95" in left column  
-- Extract value from REM column (minutes)
-- Extract value from Non-REM/NREM column (minutes)
-
-⚠️ IMPORTANT RULES:
-- Values are in MINUTES, not percentages
-- If cell shows "0.0" or "0" → return 0
-- If cell is empty/blank/shows "---" → return 0
-- Skip "Wake" column entirely
-- Return actual numbers found (could be 0.0, 1.2, 15.3, etc.)
-
-🔍 ALTERNATIVE SEARCH:
-If main table not found, look for:
-- "Time below 90%" or "Time < 90%"
-- "Time below 95%" or "Time < 95%" 
-- Any SpO2 desaturation data
-- Oxygen saturation statistics
-
-EXAMPLE EXPECTED OUTPUT:
-Row "<90": REM=0.1, Non-REM=0.7 → return remBelow90: 0.1, nremBelow90: 0.7
-Row "<95": REM=0.3, Non-REM=1.8 → return remBelow95: 0.3, nremBelow95: 1.8
-
-FILE CONTENT TO SEARCH:
+CONTENT TO SEARCH:
 ${truncatedContent}
 
-Return JSON with exact values found (use 0 if missing, not null):
+RETURN ONLY JSON (no explanations):
 {
-  "remBelow90": 0,
-  "nremBelow90": 0, 
-  "remBelow95": 0,
-  "nremBelow95": 0,
-  "debugInfo": "describe what you found or didn't find"
+  "remBelow90": [exact number or 0],
+  "nremBelow90": [exact number or 0], 
+  "remBelow95": [exact number or 0],
+  "nremBelow95": [exact number or 0],
+  "foundTable": "describe the table you found",
+  "extractedValues": "list the exact values you saw"
 }`;
 
           console.log('Requesting additional oximetry data extraction...');
