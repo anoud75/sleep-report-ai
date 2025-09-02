@@ -6,19 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Format oxygen percentage according to user's requirements
+// Format oxygen percentage to show exact values
 const formatOxygenPercentage = (percentage) => {
   // If both REM + NREM are blank → Output: "None"
   if (percentage === null || percentage === undefined) {
     return "None";
   }
   
-  // If result < 1.0% → Output: "Minimal (<1%)"
-  if (percentage < 1.0) {
-    return "Minimal (<1%)";
-  }
-  
-  // If result ≥ 1.0% → Output exact % with 1 decimal place
+  // Always show exact percentage with 1 decimal place
   return `${percentage.toFixed(1)}%`;
 };
 
