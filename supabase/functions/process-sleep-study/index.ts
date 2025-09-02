@@ -488,62 +488,48 @@ Expected JSON structure:
         
         // Enhanced prompt to get raw Oximetry Distribution values for calculation
         if (extractedData.studyInfo?.totalSleepTime) {
-          const enhancedPrompt = `URGENT: LOCATE AND EXTRACT EXACT OXIMETRY TABLE VALUES
+          const enhancedPrompt = `EXTRACT OXIMETRY DISTRIBUTION TABLE VALUES (Page 6)
 
-STEP-BY-STEP EXTRACTION PROCESS:
+TARGET: "Oximetry Distribution (all durations are in minutes)" table
 
-STEP 1: FIND THE TABLE
-- Look for "Oximetry Distribution" (most common)
-- Alternative names: "SpO2 Distribution", "Oxygen Saturation Distribution"  
-- Look on page 6 or in "OXIMETRY" sections
-- The table has SpO2 thresholds (<50, <60, <70, <75, <80, <85, <90, <95) as LEFT column
-- Sleep stages (Wake, REM, Non-REM, Total) as TOP row headers
+EXTRACTION INSTRUCTIONS:
+🔍 Find the table with:
+- Left column: SpO2 thresholds (<50, <60, <70, <75, <80, <85, <90, <95)
+- Top row: Sleep stages (Wake, REM, Non-REM, Total)
 
-STEP 2: LOCATE TARGET CELLS
-Find row "<90" (exactly this text in leftmost column):
-- Find intersection with "REM" column → Extract this number
-- Find intersection with "Non-REM" or "NREM" column → Extract this number
+📊 REQUIRED EXTRACTIONS:
+1. Row "<90" + Column "REM" → REM_<90 value (in minutes)
+2. Row "<90" + Column "Non-REM" → NREM_<90 value (in minutes)  
+3. Row "<95" + Column "REM" → REM_<95 value (in minutes)
+4. Row "<95" + Column "Non-REM" → NREM_<95 value (in minutes)
 
-Find row "<95" (exactly this text in leftmost column):  
-- Find intersection with "REM" column → Extract this number
-- Find intersection with "Non-REM" or "NREM" column → Extract this number
+⚠️ CRITICAL RULES:
+- ALL values are in MINUTES (not percentages)
+- If cell shows "0.0" or "0" → return 0
+- If cell is empty/missing/shows "---" → return 0
+- Exclude "Wake" column completely
+- Return exact numerical values found
 
-STEP 3: EXTRACT VALUES
-- Look for ANY numbers in these cells: 0.0, 1.2, 15.3, 23.7, etc.
-- If cell shows "0.0" or "0" → return 0 (NOT null)
-- If cell is empty or shows "---" → return 0 (NOT null)  
-- If actual number exists → return exact number
-- Only return null if the entire row/column doesn't exist
-
-CRITICAL: The user has highlighted these specific values in green in their document.
-They are NOT all zeros - there are actual numerical values that need extraction.
-
-EXAMPLE TABLE FORMAT YOU'RE LOOKING FOR:
+EXAMPLE TABLE:
 SpO2 %     Wake    REM    Non-REM   Total
-<50        0.0     0.0    0.0       0.0
-<60        0.0     0.0    0.0       0.0  
-<70        0.1     0.0    0.0       0.1
-<75        0.3     0.0    0.0       0.3
-<80        0.5     0.0    0.2       0.7
-<85        0.8     0.0    0.4       1.2
-<90        1.2     0.1    0.7       2.0  (EXTRACT: REM=0.1, Non-REM=0.7)
-<95        3.5     0.3    1.8       5.6  (EXTRACT: REM=0.3, Non-REM=1.8)
+<90        1.2     0.1    0.7       2.0
+<95        3.5     0.3    1.8       5.6
 
-DEBUG YOUR SEARCH:
-1. Did you find any table with SpO2 percentages?
-2. Did you locate rows labeled "<90" and "<95"?  
-3. Did you find columns labeled "REM" and "Non-REM"?
-4. What numbers did you see in those intersections?
+Expected extraction:
+- REM_<90 = 0.1 minutes
+- NREM_<90 = 0.7 minutes  
+- REM_<95 = 0.3 minutes
+- NREM_<95 = 1.8 minutes
 
 FILE CONTENT:
 ${truncatedContent}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON (no markdown):
 {
-  "remBelow90": number or null,
-  "nremBelow90": number or null, 
-  "remBelow95": number or null,
-  "nremBelow95": number or null
+  "remBelow90": 0,
+  "nremBelow90": 0, 
+  "remBelow95": 0,
+  "nremBelow95": 0
 }`;
 
           console.log('Requesting additional oximetry data extraction...');
@@ -586,18 +572,23 @@ Return ONLY valid JSON:
               
               // Calculate percentages using the formula: ((REM + NREM) * 100) / Total Sleep Time
               const totalSleepTime = extractedData.studyInfo.totalSleepTime;
+              console.log(`TST for calculations: ${totalSleepTime} minutes`);
               
-              if (oximetryValues.remBelow90 !== null && oximetryValues.nremBelow90 !== null) {
-                const timeBelow90 = ((oximetryValues.remBelow90 + oximetryValues.nremBelow90) * 100) / totalSleepTime;
-                extractedData.oxygenation.timeBelow90Percent = Math.round(timeBelow90 * 10) / 10; // Round to 1 decimal
-                console.log(`Calculated timeBelow90Percent: ${extractedData.oxygenation.timeBelow90Percent}%`);
-              }
+              // For <90% calculation: Use 0 if values are missing or null
+              const remBelow90 = oximetryValues.remBelow90 ?? 0;
+              const nremBelow90 = oximetryValues.nremBelow90 ?? 0;
               
-              if (oximetryValues.remBelow95 !== null && oximetryValues.nremBelow95 !== null) {
-                const timeBelow95 = ((oximetryValues.remBelow95 + oximetryValues.nremBelow95) * 100) / totalSleepTime;
-                extractedData.oxygenation.timeBelow95Percent = Math.round(timeBelow95 * 10) / 10; // Round to 1 decimal
-                console.log(`Calculated timeBelow95Percent: ${extractedData.oxygenation.timeBelow95Percent}%`);
-              }
+              const timeBelow90 = ((remBelow90 + nremBelow90) * 100) / totalSleepTime;
+              extractedData.oxygenation.timeBelow90Percent = Math.round(timeBelow90 * 10) / 10; // Round to 1 decimal
+              console.log(`O2 <90% calculation: ((${remBelow90} + ${nremBelow90}) * 100) / ${totalSleepTime} = ${extractedData.oxygenation.timeBelow90Percent}%`);
+              
+              // For <95% calculation: Use 0 if values are missing or null
+              const remBelow95 = oximetryValues.remBelow95 ?? 0;
+              const nremBelow95 = oximetryValues.nremBelow95 ?? 0;
+              
+              const timeBelow95 = ((remBelow95 + nremBelow95) * 100) / totalSleepTime;
+              extractedData.oxygenation.timeBelow95Percent = Math.round(timeBelow95 * 10) / 10; // Round to 1 decimal
+              console.log(`O2 <95% calculation: ((${remBelow95} + ${nremBelow95}) * 100) / ${totalSleepTime} = ${extractedData.oxygenation.timeBelow95Percent}%`);
               
             } catch (oximetryParseError) {
               console.error('Failed to parse oximetry extraction:', oximetryParseError);
