@@ -519,7 +519,6 @@ CRITICAL: The user has highlighted these specific values in green in their docum
 They are NOT all zeros - there are actual numerical values that need extraction.
 
 EXAMPLE TABLE FORMAT YOU'RE LOOKING FOR:
-```
 SpO2 %     Wake    REM    Non-REM   Total
 <50        0.0     0.0    0.0       0.0
 <60        0.0     0.0    0.0       0.0  
@@ -527,9 +526,8 @@ SpO2 %     Wake    REM    Non-REM   Total
 <75        0.3     0.0    0.0       0.3
 <80        0.5     0.0    0.2       0.7
 <85        0.8     0.0    0.4       1.2
-<90        1.2     0.1    0.7       2.0  ← EXTRACT: REM=0.1, Non-REM=0.7  
-<95        3.5     0.3    1.8       5.6  ← EXTRACT: REM=0.3, Non-REM=1.8
-```
+<90        1.2     0.1    0.7       2.0  (EXTRACT: REM=0.1, Non-REM=0.7)
+<95        3.5     0.3    1.8       5.6  (EXTRACT: REM=0.3, Non-REM=1.8)
 
 DEBUG YOUR SEARCH:
 1. Did you find any table with SpO2 percentages?
