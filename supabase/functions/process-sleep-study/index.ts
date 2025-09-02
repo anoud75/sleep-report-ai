@@ -480,6 +480,102 @@ Expected JSON structure:
     let extractedData;
     try {
       extractedData = JSON.parse(analysisResult);
+      
+      // Post-process to add custom calculations
+      if (extractedData) {
+        // Calculate oxygen saturation percentages if we have the data
+        // Need to extract REM and NREM values from Oximetry Distribution table and calculate percentages
+        
+        // Enhanced prompt to get raw Oximetry Distribution values for calculation
+        if (extractedData.studyInfo?.totalSleepTime) {
+          const enhancedPrompt = `${MEDICAL_GRADE_PROMPT}
+
+ADDITIONAL EXTRACTION REQUIRED:
+From the Oximetry Distribution table, extract the exact numerical values from these specific cells:
+- "<90" row, "REM" column: Extract the number (this is minutes REM spent below 90% SpO2)
+- "<90" row, "Non-REM" column: Extract the number (this is minutes NREM spent below 90% SpO2)  
+- "<95" row, "REM" column: Extract the number (this is minutes REM spent below 95% SpO2)
+- "<95" row, "Non-REM" column: Extract the number (this is minutes NREM spent below 95% SpO2)
+
+Return ONLY a JSON object with these exact fields:
+{
+  "remBelow90": number or null,
+  "nremBelow90": number or null,
+  "remBelow95": number or null,
+  "nremBelow95": number or null
+}`;
+
+          console.log('Requesting additional oximetry data extraction...');
+          
+          const oximetryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openAIApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4.1-2025-04-14',
+              messages: [
+                { 
+                  role: 'system', 
+                  content: 'You are a medical data extractor. Extract ONLY the exact numerical values from the specified table cells. Return only valid JSON.' 
+                },
+                { role: 'user', content: enhancedPrompt }
+              ],
+              temperature: 0,
+              max_tokens: 500,
+            }),
+          });
+
+          if (oximetryResponse.ok) {
+            const oximetryData = await oximetryResponse.json();
+            let oximetryResult = oximetryData.choices[0].message.content;
+            
+            // Clean JSON response
+            if (oximetryResult.includes('```json')) {
+              oximetryResult = oximetryResult.replace(/```json\s*/, '').replace(/```\s*$/, '');
+            }
+            if (oximetryResult.includes('```')) {
+              oximetryResult = oximetryResult.replace(/```\s*/, '').replace(/```\s*$/, '');
+            }
+            
+            try {
+              const oximetryValues = JSON.parse(oximetryResult);
+              console.log('Extracted oximetry values:', oximetryValues);
+              
+              // Calculate percentages using the formula: ((REM + NREM) * 100) / Total Sleep Time
+              const totalSleepTime = extractedData.studyInfo.totalSleepTime;
+              
+              if (oximetryValues.remBelow90 !== null && oximetryValues.nremBelow90 !== null) {
+                const timeBelow90 = ((oximetryValues.remBelow90 + oximetryValues.nremBelow90) * 100) / totalSleepTime;
+                extractedData.oxygenation.timeBelow90Percent = Math.round(timeBelow90 * 10) / 10; // Round to 1 decimal
+                console.log(`Calculated timeBelow90Percent: ${extractedData.oxygenation.timeBelow90Percent}%`);
+              }
+              
+              if (oximetryValues.remBelow95 !== null && oximetryValues.nremBelow95 !== null) {
+                const timeBelow95 = ((oximetryValues.remBelow95 + oximetryValues.nremBelow95) * 100) / totalSleepTime;
+                extractedData.oxygenation.timeBelow95Percent = Math.round(timeBelow95 * 10) / 10; // Round to 1 decimal
+                console.log(`Calculated timeBelow95Percent: ${extractedData.oxygenation.timeBelow95Percent}%`);
+              }
+              
+            } catch (oximetryParseError) {
+              console.error('Failed to parse oximetry extraction:', oximetryParseError);
+            }
+          }
+        }
+        
+        // Calculate AHI Lateral if we have left and right values
+        if (extractedData.respiratoryEvents?.ahiLeft && extractedData.respiratoryEvents?.ahiRight) {
+          extractedData.respiratoryEvents.ahiLateral = Math.round(((extractedData.respiratoryEvents.ahiLeft + extractedData.respiratoryEvents.ahiRight) / 2) * 10) / 10;
+        }
+        
+        // Calculate mean hypopnea duration if individual values exist
+        const { centralApneaIndex, obstructiveApneaIndex, mixedApneaIndex, hypopneaIndex } = extractedData.respiratoryEvents || {};
+        if (centralApneaIndex !== null && obstructiveApneaIndex !== null && mixedApneaIndex !== null && hypopneaIndex !== null) {
+          extractedData.respiratoryEvents.meanHypopneaDuration = Math.round(((centralApneaIndex + obstructiveApneaIndex + mixedApneaIndex + hypopneaIndex) / 4) * 100) / 100;
+        }
+      }
+      
     } catch (parseError) {
       console.error('Failed to parse OpenAI JSON response:', parseError);
       console.error('Raw response:', analysisResult);
