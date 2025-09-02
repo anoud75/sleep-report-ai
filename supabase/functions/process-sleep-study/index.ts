@@ -488,38 +488,35 @@ Expected JSON structure:
         
         // Enhanced prompt to get raw Oximetry Distribution values for calculation
         if (extractedData.studyInfo?.totalSleepTime) {
-          const enhancedPrompt = `TASK: Extract specific oximetry data from sleep study report
+          const enhancedPrompt = `EXTRACT OXIMETRY DATA FROM SLEEP STUDY REPORT
 
-SEARCH FOR: "Oximetry Distribution" table OR any table showing SpO2 percentages by sleep stage
+LOCATE: The "Oximetry Distribution" table (typically under "OXIMETRY SUMMARY" section)
 
-EXTRACTION RULES:
-1. Look for a table with SpO2 thresholds (<85, <90, <95, etc.) as rows
-2. Look for sleep stage columns (Wake, Non-REM, NREM, REM)
-3. Extract ONLY numerical values from these specific intersections:
+TABLE STRUCTURE TO FIND:
+- Header row with columns: SpO2 %, Wake, REM, Non-REM, Total
+- Rows labeled with SpO2 thresholds: <50, <60, <70, <75, <80, <85, <90, <95, <89
+- All values are in minutes
 
-TARGET EXTRACTIONS:
-- Row "<90" × Column "REM" or "R" → remBelow90
-- Row "<90" × Column "Non-REM" or "NREM" or "N" → nremBelow90  
-- Row "<95" × Column "REM" or "R" → remBelow95
-- Row "<95" × Column "Non-REM" or "NREM" or "N" → nremBelow95
+EXACT VALUES TO EXTRACT:
+1. Find row labeled "<90" (not <89, not <95, exactly "<90")
+   - Extract number from "REM" column → remBelow90
+   - Extract number from "Non-REM" column → nremBelow90
 
-HANDLE THESE CASES:
-- If value shows "---", "0", "0.0", or is blank → return 0
-- If value shows actual numbers (like "2.5", "15.3") → return that number
-- If table/row/column doesn't exist → return null
-- Ignore any % symbols, units, or text
+2. Find row labeled "<95" (exactly "<95")  
+   - Extract number from "REM" column → remBelow95
+   - Extract number from "Non-REM" column → nremBelow95
 
-ALTERNATIVE TABLE NAMES TO CHECK:
-- "Oximetry Distribution"
-- "SpO2 Distribution" 
-- "Oxygen Saturation Distribution"
-- "Desaturation" tables
-- Any table showing SpO2 percentages by sleep stages
+VALUE HANDLING:
+- Extract pure numbers (0.0, 1.5, 23.7, etc.)
+- If value is "0.0" or "0" → return 0
+- If cell is empty or "---" → return 0  
+- If row/column not found → return null
 
-SCAN ENTIRE DOCUMENT for tables containing:
-- Rows with "<90", "<95" labels
-- Columns with "REM", "NREM", "Non-REM" labels
-- SpO2 or oxygen saturation data
+EXAMPLE TABLE FORMAT:
+SpO2 %    Wake    REM    Non-REM    Total
+<85       0.2     0.0    0.0        0.6
+<90       0.6     0.0    0.0        0.5  ← Extract REM: 0.0, Non-REM: 0.0
+<95       0.5     0.0    0.0        X    ← Extract REM: 0.0, Non-REM: 0.0
 
 FILE CONTENT:
 ${truncatedContent}
