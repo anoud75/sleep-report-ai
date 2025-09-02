@@ -448,11 +448,11 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">% Time with O2 &lt; 90%</span>
-              <span className="font-medium">{data.oxygenation?.timeBelow90Percent || '---'}</span>
+              <span className="font-medium">{data.oxygenation?.timeBelow90Percent ?? '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">% Time with O2 &lt; 95%</span>
-              <span className="font-medium">{data.oxygenation?.timeBelow95Percent || '---'}</span>
+              <span className="font-medium">{data.oxygenation?.timeBelow95Percent ?? '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Lowest O2 / Average O2</span>
