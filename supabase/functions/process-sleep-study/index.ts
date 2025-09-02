@@ -488,34 +488,46 @@ Expected JSON structure:
         
         // Enhanced prompt to get raw Oximetry Distribution values for calculation
         if (extractedData.studyInfo?.totalSleepTime) {
-          const enhancedPrompt = `Analyze this sleep study report and extract EXACT numerical values from the Oximetry Distribution table.
+          const enhancedPrompt = `TASK: Extract specific oximetry data from sleep study report
 
-CRITICAL INSTRUCTIONS:
-1. Find the "Oximetry Distribution" table (typically on page 6, in the top half section)
-2. This table has rows for different SpO2 thresholds (<85, <90, <95) and columns for different sleep states (Wake, Non-REM, REM)
-3. Extract ONLY the numerical values (ignore % symbols, units, or any text)
+SEARCH FOR: "Oximetry Distribution" table OR any table showing SpO2 percentages by sleep stage
 
-TARGET VALUES TO EXTRACT:
-- Find the "<90" row and look under the "REM" column → Extract this number as remBelow90
-- Find the "<90" row and look under the "Non-REM" column → Extract this number as nremBelow90
-- Find the "<95" row and look under the "REM" column → Extract this number as remBelow95
-- Find the "<95" row and look under the "Non-REM" column → Extract this number as nremBelow95
+EXTRACTION RULES:
+1. Look for a table with SpO2 thresholds (<85, <90, <95, etc.) as rows
+2. Look for sleep stage columns (Wake, Non-REM, NREM, REM)
+3. Extract ONLY numerical values from these specific intersections:
 
-EXAMPLE TABLE FORMAT:
-SpO2 Threshold | Wake | Non-REM | REM
-<85           | 0.0  | 1.5     | 0.2
-<90           | 2.1  | 3.4     | 1.8   ← Extract Non-REM: 3.4, REM: 1.8 for remBelow90/nremBelow90
-<95           | 15.2 | 8.7     | 4.3   ← Extract Non-REM: 8.7, REM: 4.3 for remBelow95/nremBelow95
+TARGET EXTRACTIONS:
+- Row "<90" × Column "REM" or "R" → remBelow90
+- Row "<90" × Column "Non-REM" or "NREM" or "N" → nremBelow90  
+- Row "<95" × Column "REM" or "R" → remBelow95
+- Row "<95" × Column "Non-REM" or "NREM" or "N" → nremBelow95
 
-If any value is missing, not found, or the table doesn't exist, return null for that field.
+HANDLE THESE CASES:
+- If value shows "---", "0", "0.0", or is blank → return 0
+- If value shows actual numbers (like "2.5", "15.3") → return that number
+- If table/row/column doesn't exist → return null
+- Ignore any % symbols, units, or text
+
+ALTERNATIVE TABLE NAMES TO CHECK:
+- "Oximetry Distribution"
+- "SpO2 Distribution" 
+- "Oxygen Saturation Distribution"
+- "Desaturation" tables
+- Any table showing SpO2 percentages by sleep stages
+
+SCAN ENTIRE DOCUMENT for tables containing:
+- Rows with "<90", "<95" labels
+- Columns with "REM", "NREM", "Non-REM" labels
+- SpO2 or oxygen saturation data
 
 FILE CONTENT:
 ${truncatedContent}
 
-Return ONLY a JSON object with these exact fields:
+Return ONLY valid JSON:
 {
   "remBelow90": number or null,
-  "nremBelow90": number or null,
+  "nremBelow90": number or null, 
   "remBelow95": number or null,
   "nremBelow95": number or null
 }`;
