@@ -182,10 +182,12 @@ serve(async (req) => {
 - **<95 SpO2% Wake**: Same table, "<95" row under "Wake" column
 - **Non-REM <85**: In "<85" row under "Non-REM" column
 - **Non-REM <90**: In "<90" row under "Non-REM" column
+- **REM <90**: In "<90" row under "REM" column
+- **REM <95**: In "<95" row under "REM" column
 
-**CALCULATIONS REQUIRED:**
-- **Oxygen < 90%**: ((REM + NREM) * 100) / Total Sleep Time
-- **Oxygen < 95%**: ((REM + NREM) * 100) / Total Sleep Time
+**CALCULATIONS REQUIRED FOR OXYGEN SATURATION PERCENTAGES:**
+- **Oxygen < 90%**: Extract REM and NREM values from "<90" row, then calculate: ((REM + NREM) * 100) / Total Sleep Time
+- **Oxygen < 95%**: Extract REM and NREM values from "<95" row, then calculate: ((REM + NREM) * 100) / Total Sleep Time
 
 **Oximetry Summary Table (Middle Section):**
 - **Average SpO2**: In "Average (%)" row under "WK" column
@@ -244,8 +246,8 @@ Extract from **titration** or **split therapeutic part**:
 
 ### 📊 Custom Calculations
 - **AHI Lateral =** (Right + Left) / 2
-- **O2 <90% =** ((REM + NREM oxygen below 90%) * 100) / Total Sleep Time
-- **O2 <95% =** ((REM + NREM oxygen below 95%) * 100) / Total Sleep Time
+- **O2 <90% =** Extract REM and NREM values from Oximetry Distribution table "<90" row, then calculate: ((REM + NREM) * 100) / Total Sleep Time
+- **O2 <95% =** Extract REM and NREM values from Oximetry Distribution table "<95" row, then calculate: ((REM + NREM) * 100) / Total Sleep Time
 - **Mean Hypopnea Duration =** If values exist → (CA + OA + MA + HYP) / 4
 
 ## 📋 CLINICAL SUMMARY GENERATION - STRUCTURED LOGIC
