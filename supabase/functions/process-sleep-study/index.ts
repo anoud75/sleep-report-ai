@@ -488,14 +488,29 @@ Expected JSON structure:
         
         // Enhanced prompt to get raw Oximetry Distribution values for calculation
         if (extractedData.studyInfo?.totalSleepTime) {
-          const enhancedPrompt = `${MEDICAL_GRADE_PROMPT}
+          const enhancedPrompt = `Analyze this sleep study report and extract EXACT numerical values from the Oximetry Distribution table.
 
-ADDITIONAL EXTRACTION REQUIRED:
-From the Oximetry Distribution table, extract the exact numerical values from these specific cells:
-- "<90" row, "REM" column: Extract the number (this is minutes REM spent below 90% SpO2)
-- "<90" row, "Non-REM" column: Extract the number (this is minutes NREM spent below 90% SpO2)  
-- "<95" row, "REM" column: Extract the number (this is minutes REM spent below 95% SpO2)
-- "<95" row, "Non-REM" column: Extract the number (this is minutes NREM spent below 95% SpO2)
+CRITICAL INSTRUCTIONS:
+1. Find the "Oximetry Distribution" table (typically on page 6, in the top half section)
+2. This table has rows for different SpO2 thresholds (<85, <90, <95) and columns for different sleep states (Wake, Non-REM, REM)
+3. Extract ONLY the numerical values (ignore % symbols, units, or any text)
+
+TARGET VALUES TO EXTRACT:
+- Find the "<90" row and look under the "REM" column → Extract this number as remBelow90
+- Find the "<90" row and look under the "Non-REM" column → Extract this number as nremBelow90
+- Find the "<95" row and look under the "REM" column → Extract this number as remBelow95
+- Find the "<95" row and look under the "Non-REM" column → Extract this number as nremBelow95
+
+EXAMPLE TABLE FORMAT:
+SpO2 Threshold | Wake | Non-REM | REM
+<85           | 0.0  | 1.5     | 0.2
+<90           | 2.1  | 3.4     | 1.8   ← Extract Non-REM: 3.4, REM: 1.8 for remBelow90/nremBelow90
+<95           | 15.2 | 8.7     | 4.3   ← Extract Non-REM: 8.7, REM: 4.3 for remBelow95/nremBelow95
+
+If any value is missing, not found, or the table doesn't exist, return null for that field.
+
+FILE CONTENT:
+${truncatedContent}
 
 Return ONLY a JSON object with these exact fields:
 {
