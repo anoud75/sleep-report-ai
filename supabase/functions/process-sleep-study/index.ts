@@ -99,12 +99,13 @@ serve(async (req) => {
     }
 
     // Truncate file content if too long to avoid token limits
-    const maxContentLength = 15000;
+    const maxContentLength = 20000; // Increased to capture more content including oximetry data
     const truncatedContent = sanitizedContent.length > maxContentLength 
       ? sanitizedContent.substring(0, maxContentLength) + "\n\n[Content truncated...]"
       : sanitizedContent;
 
     console.log('Processing file content length:', sanitizedContent.length);
+    console.log('Truncated content preview (last 1000 chars):', truncatedContent.slice(-1000));
 
     const MEDICAL_GRADE_PROMPT = `You are a medical-grade AI sleep study assistant. Your task is to extract and summarize **key clinical metrics** from uploaded sleep study files and generate a **clean, modern, and medically accurate** summary based on approved formats and logic.
 
@@ -488,48 +489,60 @@ Expected JSON structure:
         
         // Enhanced prompt to get raw Oximetry Distribution values for calculation
         if (extractedData.studyInfo?.totalSleepTime) {
-          const enhancedPrompt = `EXTRACT OXIMETRY DISTRIBUTION TABLE VALUES (Page 6)
+          const enhancedPrompt = `EXTRACT OXIMETRY DISTRIBUTION VALUES - CRITICAL MEDICAL DATA
 
-TARGET: "Oximetry Distribution (all durations are in minutes)" table
+YOU MUST FIND AND EXTRACT SpO2 VALUES FROM THE OXIMETRY TABLE
 
-EXTRACTION INSTRUCTIONS:
-🔍 Find the table with:
-- Left column: SpO2 thresholds (<50, <60, <70, <75, <80, <85, <90, <95)
-- Top row: Sleep stages (Wake, REM, Non-REM, Total)
+🔍 SEARCH STRATEGY:
+1. Look for ANY of these table titles:
+   - "Oximetry Distribution"
+   - "SpO2 Distribution" 
+   - "Oxygen Saturation Distribution"
+   - "OXIMETRY" (section header)
+   - Tables with SpO2 percentages (<90, <95, etc.)
 
-📊 REQUIRED EXTRACTIONS:
-1. Row "<90" + Column "REM" → REM_<90 value (in minutes)
-2. Row "<90" + Column "Non-REM" → NREM_<90 value (in minutes)  
-3. Row "<95" + Column "REM" → REM_<95 value (in minutes)
-4. Row "<95" + Column "Non-REM" → NREM_<95 value (in minutes)
+2. The table typically appears on Page 6 or in OXIMETRY/RESPIRATORY sections
 
-⚠️ CRITICAL RULES:
-- ALL values are in MINUTES (not percentages)
+3. TABLE STRUCTURE to find:
+   Left column: SpO2 thresholds (<50, <60, <70, <75, <80, <85, <90, <95, <100)
+   Top headers: Wake, REM, Non-REM (or NREM), Total
+
+📊 EXTRACTION TARGETS:
+- Find row with "<90" in left column
+- Extract value from REM column (minutes)
+- Extract value from Non-REM/NREM column (minutes)
+- Find row with "<95" in left column  
+- Extract value from REM column (minutes)
+- Extract value from Non-REM/NREM column (minutes)
+
+⚠️ IMPORTANT RULES:
+- Values are in MINUTES, not percentages
 - If cell shows "0.0" or "0" → return 0
-- If cell is empty/missing/shows "---" → return 0
-- Exclude "Wake" column completely
-- Return exact numerical values found
+- If cell is empty/blank/shows "---" → return 0
+- Skip "Wake" column entirely
+- Return actual numbers found (could be 0.0, 1.2, 15.3, etc.)
 
-EXAMPLE TABLE:
-SpO2 %     Wake    REM    Non-REM   Total
-<90        1.2     0.1    0.7       2.0
-<95        3.5     0.3    1.8       5.6
+🔍 ALTERNATIVE SEARCH:
+If main table not found, look for:
+- "Time below 90%" or "Time < 90%"
+- "Time below 95%" or "Time < 95%" 
+- Any SpO2 desaturation data
+- Oxygen saturation statistics
 
-Expected extraction:
-- REM_<90 = 0.1 minutes
-- NREM_<90 = 0.7 minutes  
-- REM_<95 = 0.3 minutes
-- NREM_<95 = 1.8 minutes
+EXAMPLE EXPECTED OUTPUT:
+Row "<90": REM=0.1, Non-REM=0.7 → return remBelow90: 0.1, nremBelow90: 0.7
+Row "<95": REM=0.3, Non-REM=1.8 → return remBelow95: 0.3, nremBelow95: 1.8
 
-FILE CONTENT:
+FILE CONTENT TO SEARCH:
 ${truncatedContent}
 
-Return ONLY valid JSON (no markdown):
+Return JSON with exact values found (use 0 if missing, not null):
 {
   "remBelow90": 0,
   "nremBelow90": 0, 
   "remBelow95": 0,
-  "nremBelow95": 0
+  "nremBelow95": 0,
+  "debugInfo": "describe what you found or didn't find"
 }`;
 
           console.log('Requesting additional oximetry data extraction...');
