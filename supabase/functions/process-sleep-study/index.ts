@@ -211,7 +211,7 @@ serve(async (req) => {
 - **Average SpO2**: In "Average (%)" row under "WK" column
 - **Total NREM**: In "NREM" column showing value
 - **Number of Desaturations Total**: In "Number of desaturations" row under "TOTAL" column
-- **Desaturation Index (#/hour) Total**: In "Desat Index (#/hour)" row under "TOTAL" column
+- **Desaturation Index (#/hour) Total**: In "Desat Index (#/hour)" row under "TOTAL" column - CRITICAL: Extract ONLY the TOTAL column value (last number in row)
 
 **Respiratory Event O2 Min Levels Section:**
 - **Mean SpO2 Min Levels**: Extract percentage value (may have handwritten annotations like "significant", "<88", "minimal 74-88")
@@ -533,8 +533,9 @@ STEP 4: Extract <95% Row Data
 Find the row that contains "<95" or "&lt;95"
 Extract 4 values in order: Wake, REM, Non-REM, Total (all in minutes)
 
-STEP 5: Find Desaturation Index
-Look for "Desat Index" or "Desaturation Index" value
+STEP 5: Extract Desaturation Index
+Find the row labeled "Desat Index (#/hour)" in the oximetry table
+Extract the TOTAL column value (rightmost value in that row)
 
 STEP 6: Perform Calculations
 Calculate:
@@ -561,7 +562,7 @@ Return this EXACT JSON format:
       "total": number
     },
     "desatIndexText": "exact text containing desat index",
-    "desatIndexValue": number
+    "extractedDesatIndex": number
   },
   "calculations": {
     "under90Formula": "show the exact calculation",
@@ -656,9 +657,11 @@ ${truncatedContent}`;
               extractedData.oxygenation.timeBelow90Percent = formatOxygenPercentage(percentTimeUnder90);
               extractedData.oxygenation.timeBelow95Percent = formatOxygenPercentage(percentTimeUnder95);
               
-              // Add desaturation index if available
-              if (oximetryValues.desaturationIndex !== undefined && oximetryValues.desaturationIndex !== null) {
-                extractedData.oxygenation.desaturationIndex = oximetryValues.desaturationIndex;
+              // Add desaturation index if available from the specific extraction
+              if (oximetryValues.results?.desaturationIndex !== undefined && oximetryValues.results?.desaturationIndex !== null) {
+                extractedData.oxygenation.desaturationIndex = oximetryValues.results.desaturationIndex;
+              } else if (oximetryValues.debug?.extractedDesatIndex !== undefined && oximetryValues.debug?.extractedDesatIndex !== null) {
+                extractedData.oxygenation.desaturationIndex = oximetryValues.debug.extractedDesatIndex;
               }
               
               console.log(`Final O2 calculations:
