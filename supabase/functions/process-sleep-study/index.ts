@@ -533,9 +533,18 @@ STEP 4: Extract <95% Row Data
 Find the row that contains "<95" or "&lt;95"
 Extract 4 values in order: Wake, REM, Non-REM, Total (all in minutes)
 
-STEP 5: Extract Desaturation Index
-Find the row labeled "Desat Index (#/hour)" in the oximetry table
-Extract the TOTAL column value (rightmost value in that row)
+STEP 5: Extract Desaturation Index (#/hour)
+CRITICAL: Find the "OXIMETRY SUMMARY" section → locate "Desat Index (#/hour)" row → extract TOTAL column value ONLY
+
+TABLE STRUCTURE: WK | REM | NREM | TOTAL
+The table typically has columns (left to right): Wake, REM, NREM, TOTAL
+From the "Desat Index (#/hour)" row, extract ONLY the TOTAL column value (rightmost number)
+
+Format examples:
+- "Desat Index (#/hour)    0.6    0.0    0.2    1.3" → Extract: 1.3
+- HTML: <td>1.3</td> in TOTAL column → Extract: 1.3
+
+VALIDATION: Must be positive number, typically 0-50 range
 
 STEP 6: Perform Calculations
 Calculate:
