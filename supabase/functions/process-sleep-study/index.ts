@@ -453,9 +453,68 @@ Expected JSON structure:
   "oxygenationSeverity": "Normal|Mild|Moderate|Severe|Critical desaturation"
 }`;
 
-    console.log('Sending request to OpenAI...');
-    
+  // Separate focused extraction for desaturation index
+  const extractDesaturationIndex = async (truncatedContent, openAIApiKey) => {
+    const desatPrompt = `Extract the Total Desaturation Index from this sleep study report.
+
+PRECISE LOCATION:
+1. Find the "OXIMETRY SUMMARY" section
+2. Look for a table with these exact rows (in order):
+   - Average (%)
+   - Number of desaturations
+   - Desat Index (#/hour)  ← TARGET ROW
+   - Desat Index (dur/hour) ← SKIP THIS
+
+3. From "Desat Index (#/hour)" row, extract the TOTAL column value
+
+EXAMPLE:
+If you see: "Desat Index (#/hour)    1.4   8.8   1.9   2.8"
+Extract: 2.8
+
+Return only the numerical value or "NOT_FOUND" if the row doesn't exist.
+
+DOCUMENT: ${truncatedContent}`;
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4.1-2025-04-14',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'Extract the exact numerical value from the specified table row. Return only the number or "NOT_FOUND".'
+          },
+          { role: 'user', content: desatPrompt }
+        ],
+        temperature: 0,
+        max_tokens: 50,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const result = data.choices[0].message.content.trim();
+      
+      console.log('Desaturation Index extraction result:', result);
+      
+      if (result === "NOT_FOUND") {
+        return null;
+      }
+      
+      const value = parseFloat(result);
+      return isNaN(value) ? null : value;
+    }
+    
+    return null;
+  };
+
+  console.log('Sending request to OpenAI...');
+  
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
@@ -804,6 +863,13 @@ ${truncatedContent}`;
       ...extractedData,
       studyType: studyType
     };
+
+    // Call the separate desaturation index extraction
+    const desatIndex = await extractDesaturationIndex(truncatedContent, openAIApiKey);
+    if (desatIndex !== null) {
+      processedData.oxygenation.desaturationIndex = desatIndex;
+      console.log('Updated desaturation index from focused extraction:', desatIndex);
+    }
 
     console.log('Final processed data:', JSON.stringify(processedData, null, 2));
 
