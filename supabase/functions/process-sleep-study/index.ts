@@ -17,6 +17,80 @@ const formatOxygenPercentage = (percentage) => {
   return `${percentage.toFixed(1)}%`;
 };
 
+// Add focused oxygen saturation extraction function
+const extractOxygenSaturationData = async (truncatedContent, openAIApiKey, tst) => {
+  const oxygenPrompt = `Extract oxygen saturation data from this sleep study report.
+
+FIND: "Oximetry Distribution" or "OXIMETRY SUMMARY" table
+
+EXTRACT these exact rows:
+1. <90 row: Extract REM and Non-REM values (in minutes)
+2. <95 row: Extract REM and Non-REM values (in minutes)
+
+TABLE FORMAT EXAMPLE:
+SpO2 %      Wake   REM   Non-REM   Total
+<90         0.6    0.0   0.0       0.6
+<95         2.1    0.7   0.4       3.2
+
+From <90 row: REM=0.0, Non-REM=0.0
+From <95 row: REM=0.7, Non-REM=0.4
+
+Return JSON:
+{
+  "under90": {"rem": 0.0, "nonRem": 0.0},
+  "under95": {"rem": 0.7, "nonRem": 0.4}
+}
+
+DOCUMENT: ${truncatedContent}`;
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4.1-2025-04-14',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'Extract exact numerical values from oximetry tables. Return only valid JSON.'
+          },
+          { role: 'user', content: oxygenPrompt }
+        ],
+        temperature: 0,
+        max_tokens: 200,
+      }),
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    let result = data.choices[0].message.content;
+    
+    // Clean JSON response
+    if (result.includes('```json')) {
+      result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
+    }
+    
+    const oxygenData = JSON.parse(result);
+    
+    // Calculate percentages
+    const under90Total = (oxygenData.under90.rem + oxygenData.under90.nonRem);
+    const under95Total = (oxygenData.under95.rem + oxygenData.under95.nonRem);
+    
+    return {
+      timeBelow90Percent: ((under90Total / tst) * 100).toFixed(1),
+      timeBelow95Percent: ((under95Total / tst) * 100).toFixed(1)
+    };
+    
+  } catch (error) {
+    console.error('Oxygen extraction failed:', error);
+    return null;
+  }
+};
+
 // Mask types and sizes for clinical data reference
 const maskTypes = [
   { value: 'resmed_airfit_f20', label: 'Resmed AirFit F20 Full Face mask' },
@@ -560,205 +634,21 @@ DOCUMENT: ${truncatedContent}`;
       
       // Post-process to add custom calculations
       if (extractedData) {
-        // Calculate oxygen saturation percentages if we have the data
-        // Need to extract REM and NREM values from Oximetry Distribution table and calculate percentages
-        
-        // Enhanced prompt to get raw Oximetry Distribution values for calculation
+        // Use the focused oxygen saturation extraction
         if (extractedData.studyInfo?.totalSleepTime) {
-          console.log('=== OXIMETRY EXTRACTION DEBUG ===');
-          console.log('Looking for oximetry data in content...');
+          const tst = extractedData.studyInfo.totalSleepTime;
+          console.log('Extracting oxygen data with TST:', tst);
           
-          // Find and log the oximetry section specifically
-          const oximetrySection = truncatedContent.substring(
-            Math.max(0, truncatedContent.toLowerCase().indexOf('oximetry') - 500),
-            Math.min(truncatedContent.length, truncatedContent.toLowerCase().indexOf('oximetry') + 2000)
-          );
-          console.log('Oximetry section found:', oximetrySection.substring(0, 1000));
+          const oxygenData = await extractOxygenSaturationData(truncatedContent, openAIApiKey, tst);
           
-          const debugOxygenPrompt = `You are a medical data extraction specialist. Extract oxygen saturation data step-by-step with full debugging output.
-
-STEP 1: Find TST (Total Sleep Time)
-Look for: "TST : XXX.X min" 
-Extract the number only.
-
-STEP 2: Find Oximetry Distribution Table
-Look for the section titled "Oximetry Distribution" or "OXIMETRY SUMMARY"
-
-STEP 3: Extract <90% Row Data
-Find the row that contains "<90" or "&lt;90"
-Extract 4 values in order: Wake, REM, Non-REM, Total (all in minutes)
-
-STEP 4: Extract <95% Row Data  
-Find the row that contains "<95" or "&lt;95"
-Extract 4 values in order: Wake, REM, Non-REM, Total (all in minutes)
-
-STEP 5: Extract Desaturation Index (#/hour) - PRECISE EXTRACTION
-
-PRECISE LOCATION INSTRUCTIONS:
-1. FIND THE OXIMETRY TABLE: Look for "OXIMETRY SUMMARY" section
-2. IDENTIFY THE CORRECT ROW: Find EXACTLY "Desat Index (#/hour)" - not "Desat Index (dur/hour)"
-3. EXTRACT THE TOTAL VALUE: Take the 4th number (TOTAL column) from that specific row
-
-OXIMETRY TABLE STRUCTURE:
-                        WK    REM   NREM  TOTAL
-Fail duration (min)     X.X   X.X   X.X   X.X
-Average (%)             XX    XX    XX    XX  
-Number of desaturations  X     X     X     X
-Desat Index (#/hour)    X.X   X.X   X.X   X.X  ← EXTRACT THIS TOTAL
-Desat Index (dur/hour)  X.X   X.X   X.X   X.X  ← NOT THIS ONE
-Desat max (%)           X     X     X     X
-
-EXTRACTION EXAMPLES:
-- "Desat Index (#/hour)    0.6   0.0   0.2   1.3" → Extract: 1.3
-- "Desat Index (#/hour)    1.4   8.8   1.9   2.8" → Extract: 2.8
-
-COMMON MISTAKES TO AVOID:
-❌ Don't extract from "Desat Index (dur/hour)" - this is duration, not frequency
-❌ Don't extract from "Number of desaturations" - this is count, not rate
-❌ Don't extract individual WK, REM, or NREM values - only TOTAL
-
-VALIDATION: Must be from "Desat Index (#/hour)" row, TOTAL column, typically 0-50 range
-
-Show your work in this format:
-Found row: "exact text here"
-Values: WK=X.X, REM=X.X, NREM=X.X, TOTAL=X.X
-Extract: X.X
-
-STEP 6: Perform Calculations
-Calculate:
-- % Time O2 < 90% = ((REM<90 + NonREM<90) / TST) × 100
-- % Time O2 < 95% = ((REM<95 + NonREM<95) / TST) × 100
-
-Return this EXACT JSON format:
-{
-  "debug": {
-    "tstFound": "exact text where TST was found",
-    "tstValue": number,
-    "under90RowText": "exact text of <90 row",
-    "under95RowText": "exact text of <95 row",
-    "extractedUnder90": {
-      "wake": number,
-      "rem": number,
-      "nonRem": number,
-      "total": number
-    },
-    "extractedUnder95": {
-      "wake": number,
-      "rem": number,
-      "nonRem": number,
-      "total": number
-    },
-    "desatIndexText": "exact text containing desat index",
-    "extractedDesatIndex": number
-  },
-  "calculations": {
-    "under90Formula": "show the exact calculation",
-    "under90Result": number,
-    "under95Formula": "show the exact calculation", 
-    "under95Result": number
-  },
-  "results": {
-    "tst": number,
-    "remUnder90Minutes": number,
-    "nonRemUnder90Minutes": number,
-    "remUnder95Minutes": number,
-    "nonRemUnder95Minutes": number,
-    "desaturationIndex": number,
-    "percentTimeO2Under90": number,
-    "percentTimeO2Under95": number
-  }
-}
-
-DOCUMENT CONTENT:
-${truncatedContent}`;
-
-          console.log('Requesting additional oximetry data extraction...');
-          
-          const oximetryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${openAIApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'gpt-4.1-2025-04-14',
-              messages: [
-                { 
-                  role: 'system', 
-                  content: 'You are a medical data extractor. Extract ONLY the exact numerical values from the specified table cells. Return only valid JSON.' 
-                },
-                { role: 'user', content: debugOxygenPrompt }
-              ],
-              temperature: 0,
-              max_tokens: 500,
-            }),
-          });
-
-          if (oximetryResponse.ok) {
-            const oximetryData = await oximetryResponse.json();
-            let oximetryResult = oximetryData.choices[0].message.content;
-            
-            // Clean JSON response
-            if (oximetryResult.includes('```json')) {
-              oximetryResult = oximetryResult.replace(/```json\s*/, '').replace(/```\s*$/, '');
-            }
-            if (oximetryResult.includes('```')) {
-              oximetryResult = oximetryResult.replace(/```\s*/, '').replace(/```\s*$/, '');
-            }
-            
-            try {
-              const oximetryValues = JSON.parse(oximetryResult);
-              console.log('Extracted raw oximetry values:', oximetryValues);
-              
-              // Get TST from extracted data (prioritize extracted value over input)
-              const tst = oximetryValues.tst || extractedData.studyInfo.totalSleepTime;
-              console.log(`Using TST for calculations: ${tst} minutes`);
-              
-              if (!tst || tst <= 0) {
-                console.error('Invalid TST for oxygen calculations:', tst);
-                return;
-              }
-              
-              // Extract raw minutes values from table
-              const remUnder90Minutes = oximetryValues.remUnder90Minutes || 0;
-              const nonRemUnder90Minutes = oximetryValues.nonRemUnder90Minutes || 0;
-              const remUnder95Minutes = oximetryValues.remUnder95Minutes || 0;
-              const nonRemUnder95Minutes = oximetryValues.nonRemUnder95Minutes || 0;
-              
-              console.log('Raw extracted minutes:', {
-                remUnder90Minutes,
-                nonRemUnder90Minutes,
-                remUnder95Minutes,
-                nonRemUnder95Minutes
-              });
-              
-              // Calculate % Time with O2 < 90%
-              const totalUnder90Minutes = remUnder90Minutes + nonRemUnder90Minutes;
-              const percentTimeUnder90 = (totalUnder90Minutes / tst) * 100;
-              
-              // Calculate % Time with O2 < 95%
-              const totalUnder95Minutes = remUnder95Minutes + nonRemUnder95Minutes;
-              const percentTimeUnder95 = (totalUnder95Minutes / tst) * 100;
-              
-              // Apply formatting rules from user's instructions
-              extractedData.oxygenation.timeBelow90Percent = formatOxygenPercentage(percentTimeUnder90);
-              extractedData.oxygenation.timeBelow95Percent = formatOxygenPercentage(percentTimeUnder95);
-              
-              // Add desaturation index if available from the specific extraction
-              if (oximetryValues.results?.desaturationIndex !== undefined && oximetryValues.results?.desaturationIndex !== null) {
-                extractedData.oxygenation.desaturationIndex = oximetryValues.results.desaturationIndex;
-              } else if (oximetryValues.debug?.extractedDesatIndex !== undefined && oximetryValues.debug?.extractedDesatIndex !== null) {
-                extractedData.oxygenation.desaturationIndex = oximetryValues.debug.extractedDesatIndex;
-              }
-              
-              console.log(`Final O2 calculations:
-                - <90%: (${remUnder90Minutes} + ${nonRemUnder90Minutes}) * 100 / ${tst} = ${extractedData.oxygenation.timeBelow90Percent}
-                - <95%: (${remUnder95Minutes} + ${nonRemUnder95Minutes}) * 100 / ${tst} = ${extractedData.oxygenation.timeBelow95Percent}
-                - Desaturation Index: ${extractedData.oxygenation.desaturationIndex}`);
-              
-            } catch (oximetryParseError) {
-              console.error('Failed to parse oximetry extraction:', oximetryParseError);
-            }
+          if (oxygenData) {
+            extractedData.oxygenation.timeBelow90Percent = `${oxygenData.timeBelow90Percent}%`;
+            extractedData.oxygenation.timeBelow95Percent = `${oxygenData.timeBelow95Percent}%`;
+            console.log('Oxygen extraction successful:', oxygenData);
+          } else {
+            console.log('Oxygen extraction failed, using defaults');
+            extractedData.oxygenation.timeBelow90Percent = "0.0%";
+            extractedData.oxygenation.timeBelow95Percent = "0.0%";
           }
         }
         
