@@ -19,27 +19,30 @@ const formatOxygenPercentage = (percentage) => {
 
 // Add focused oxygen saturation extraction function
 const extractOxygenSaturationData = async (truncatedContent, openAIApiKey, tst) => {
-  const oxygenPrompt = `Extract oxygen saturation data from this sleep study report.
+  const oxygenPrompt = `Extract oxygen saturation data from the oximetry table in this sleep study report.
 
-FIND: "Oximetry Distribution" or "OXIMETRY SUMMARY" table
+FIND: "Oximetry Distribution" section with SpO2 percentage rows
 
-EXTRACT these exact rows:
-1. <90 row: Extract REM and Non-REM values (in minutes)
-2. <95 row: Extract REM and Non-REM values (in minutes)
+EXTRACT from these specific rows:
+- <90 row: Find "SpO2 %" column "<90", get REM and Non-REM values (minutes)  
+- <95 row: Find "SpO2 %" column "<95", get REM and Non-REM values (minutes)
 
-TABLE FORMAT EXAMPLE:
-SpO2 %      Wake   REM   Non-REM   Total
-<90         0.6    0.0   0.0       0.6
-<95         2.1    0.7   0.4       3.2
+EXAMPLE TABLE:
+SpO2 %    Wake  REM   Non-REM  Total
+<90       0.6   0.0   0.0      0.6
+<95       2.1   0.7   0.4      3.2
 
-From <90 row: REM=0.0, Non-REM=0.0
-From <95 row: REM=0.7, Non-REM=0.4
+EXPECTED OUTPUT:
+From <90: REM=0.0, Non-REM=0.0
+From <95: REM=0.7, Non-REM=0.4
 
-Return JSON:
+Return this exact JSON format:
 {
   "under90": {"rem": 0.0, "nonRem": 0.0},
   "under95": {"rem": 0.7, "nonRem": 0.4}
 }
+
+If values not found, use 0.0 for missing values.
 
 DOCUMENT: ${truncatedContent}`;
 
@@ -55,38 +58,116 @@ DOCUMENT: ${truncatedContent}`;
         messages: [
           { 
             role: 'system', 
-            content: 'Extract exact numerical values from oximetry tables. Return only valid JSON.'
+            content: 'You are a medical data extractor. Find the oximetry table and extract exact REM and Non-REM values from <90 and <95 rows. Return only valid JSON.'
           },
           { role: 'user', content: oxygenPrompt }
         ],
         temperature: 0,
-        max_tokens: 200,
+        max_tokens: 300,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Oxygen API request failed:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    let result = data.choices[0].message.content.trim();
+    
+    console.log('Raw oxygen extraction response:', result);
+    
+    // Clean JSON response
+    if (result.includes('```json')) {
+      result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
+    }
+    if (result.includes('```')) {
+      result = result.replace(/```\s*/, '').replace(/```\s*$/, '');
+    }
+    
+    const oxygenData = JSON.parse(result);
+    console.log('Parsed oxygen data:', oxygenData);
+    
+    // Validate the structure
+    if (!oxygenData.under90 || !oxygenData.under95) {
+      throw new Error('Invalid oxygen data structure');
+    }
+    
+    // Calculate percentages
+    const under90Total = (oxygenData.under90.rem || 0) + (oxygenData.under90.nonRem || 0);
+    const under95Total = (oxygenData.under95.rem || 0) + (oxygenData.under95.nonRem || 0);
+    
+    const result90 = ((under90Total / tst) * 100).toFixed(1);
+    const result95 = ((under95Total / tst) * 100).toFixed(1);
+    
+    console.log(`Oxygen calculations: 
+      <90%: (${oxygenData.under90.rem} + ${oxygenData.under90.nonRem}) / ${tst} = ${result90}%
+      <95%: (${oxygenData.under95.rem} + ${oxygenData.under95.nonRem}) / ${tst} = ${result95}%`);
+    
+    return {
+      timeBelow90Percent: result90,
+      timeBelow95Percent: result95,
+      rawData: oxygenData
+    };
+    
+  } catch (error) {
+    console.error('Oxygen extraction error:', error);
+    return null;
+  }
+};
+
+// Add simplified desaturation index extraction function
+const extractDesaturationIndex = async (truncatedContent, openAIApiKey) => {
+  const desatPrompt = `Find the Total Desaturation Index from the oximetry section.
+
+LOOK FOR: "Desat Index (#/hour)" row in a table
+EXTRACT: The TOTAL column value (last number in that row)
+
+EXAMPLE:
+"Desat Index (#/hour)    1.4   8.8   1.9   2.8" → Extract: 2.8
+
+Return only the number or "NOT_FOUND".
+
+DOCUMENT: ${truncatedContent}`;
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4.1-2025-04-14',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'Extract the exact TOTAL value from Desat Index (#/hour) row. Return only the number.'
+          },
+          { role: 'user', content: desatPrompt }
+        ],
+        temperature: 0,
+        max_tokens: 50,
       }),
     });
 
     if (!response.ok) return null;
 
     const data = await response.json();
-    let result = data.choices[0].message.content;
+    const result = data.choices[0].message.content.trim();
     
-    // Clean JSON response
-    if (result.includes('```json')) {
-      result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
-    }
+    console.log('Desaturation Index raw result:', result);
     
-    const oxygenData = JSON.parse(result);
+    if (result === "NOT_FOUND") return null;
     
-    // Calculate percentages
-    const under90Total = (oxygenData.under90.rem + oxygenData.under90.nonRem);
-    const under95Total = (oxygenData.under95.rem + oxygenData.under95.nonRem);
+    const value = parseFloat(result);
+    const finalValue = isNaN(value) ? null : value;
     
-    return {
-      timeBelow90Percent: ((under90Total / tst) * 100).toFixed(1),
-      timeBelow95Percent: ((under95Total / tst) * 100).toFixed(1)
-    };
+    console.log('Desaturation Index final value:', finalValue);
+    return finalValue;
     
   } catch (error) {
-    console.error('Oxygen extraction failed:', error);
+    console.error('Desaturation index extraction error:', error);
     return null;
   }
 };
@@ -637,19 +718,24 @@ DOCUMENT: ${truncatedContent}`;
         // Use the focused oxygen saturation extraction
         if (extractedData.studyInfo?.totalSleepTime) {
           const tst = extractedData.studyInfo.totalSleepTime;
-          console.log('Extracting oxygen data with TST:', tst);
+          console.log('=== OXYGEN EXTRACTION START ===');
+          console.log('Using TST for calculations:', tst, 'minutes');
           
           const oxygenData = await extractOxygenSaturationData(truncatedContent, openAIApiKey, tst);
           
           if (oxygenData) {
             extractedData.oxygenation.timeBelow90Percent = `${oxygenData.timeBelow90Percent}%`;
             extractedData.oxygenation.timeBelow95Percent = `${oxygenData.timeBelow95Percent}%`;
-            console.log('Oxygen extraction successful:', oxygenData);
+            console.log('✅ Oxygen extraction successful:', {
+              under90: oxygenData.timeBelow90Percent + '%',
+              under95: oxygenData.timeBelow95Percent + '%'
+            });
           } else {
-            console.log('Oxygen extraction failed, using defaults');
+            console.log('❌ Oxygen extraction failed, using defaults');
             extractedData.oxygenation.timeBelow90Percent = "0.0%";
             extractedData.oxygenation.timeBelow95Percent = "0.0%";
           }
+          console.log('=== OXYGEN EXTRACTION END ===');
         }
         
         // Calculate AHI Lateral if we have left and right values
@@ -754,12 +840,16 @@ DOCUMENT: ${truncatedContent}`;
       studyType: studyType
     };
 
-    // Call the separate desaturation index extraction
+    // Call the separate desaturation index extraction  
+    console.log('=== DESATURATION INDEX EXTRACTION START ===');
     const desatIndex = await extractDesaturationIndex(truncatedContent, openAIApiKey);
     if (desatIndex !== null) {
       processedData.oxygenation.desaturationIndex = desatIndex;
-      console.log('Updated desaturation index from focused extraction:', desatIndex);
+      console.log('✅ Desaturation index extracted:', desatIndex);
+    } else {
+      console.log('❌ Desaturation index extraction failed');
     }
+    console.log('=== DESATURATION INDEX EXTRACTION END ===');
 
     console.log('Final processed data:', JSON.stringify(processedData, null, 2));
 
