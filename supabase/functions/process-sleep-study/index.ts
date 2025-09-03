@@ -533,17 +533,37 @@ STEP 4: Extract <95% Row Data
 Find the row that contains "<95" or "&lt;95"
 Extract 4 values in order: Wake, REM, Non-REM, Total (all in minutes)
 
-STEP 5: Extract Desaturation Index (#/hour) - CRITICAL EXTRACTION
-LOCATION: Find "OXIMETRY SUMMARY" or "Oximetry Distribution" section
-TARGET: Locate the exact row "Desat Index (#/hour)" 
-EXTRACT: ONLY the TOTAL column value (rightmost number in that specific row)
+STEP 5: Extract Desaturation Index (#/hour) - PRECISE EXTRACTION
 
-CRITICAL: The value should be 1.3 based on the TOTAL column. If you see multiple numbers in the row like:
-"Desat Index (#/hour)    0.6    0.0    0.2    1.3"
-Extract ONLY the last number: 1.3
+PRECISE LOCATION INSTRUCTIONS:
+1. FIND THE OXIMETRY TABLE: Look for "OXIMETRY SUMMARY" section
+2. IDENTIFY THE CORRECT ROW: Find EXACTLY "Desat Index (#/hour)" - not "Desat Index (dur/hour)"
+3. EXTRACT THE TOTAL VALUE: Take the 4th number (TOTAL column) from that specific row
 
-DO NOT extract individual Wake/REM/NREM values - ONLY the TOTAL column (rightmost position)
-The correct value should be around 1.3 - if you get 0.0, you're looking at the wrong column!
+OXIMETRY TABLE STRUCTURE:
+                        WK    REM   NREM  TOTAL
+Fail duration (min)     X.X   X.X   X.X   X.X
+Average (%)             XX    XX    XX    XX  
+Number of desaturations  X     X     X     X
+Desat Index (#/hour)    X.X   X.X   X.X   X.X  ← EXTRACT THIS TOTAL
+Desat Index (dur/hour)  X.X   X.X   X.X   X.X  ← NOT THIS ONE
+Desat max (%)           X     X     X     X
+
+EXTRACTION EXAMPLES:
+- "Desat Index (#/hour)    0.6   0.0   0.2   1.3" → Extract: 1.3
+- "Desat Index (#/hour)    1.4   8.8   1.9   2.8" → Extract: 2.8
+
+COMMON MISTAKES TO AVOID:
+❌ Don't extract from "Desat Index (dur/hour)" - this is duration, not frequency
+❌ Don't extract from "Number of desaturations" - this is count, not rate
+❌ Don't extract individual WK, REM, or NREM values - only TOTAL
+
+VALIDATION: Must be from "Desat Index (#/hour)" row, TOTAL column, typically 0-50 range
+
+Show your work in this format:
+Found row: "exact text here"
+Values: WK=X.X, REM=X.X, NREM=X.X, TOTAL=X.X
+Extract: X.X
 
 STEP 6: Perform Calculations
 Calculate:
