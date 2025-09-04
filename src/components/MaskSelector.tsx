@@ -11,21 +11,21 @@ interface MaskSelectorProps {
 }
 
 const maskTypes = [
-  { value: 'resmed_airfit_f20', label: 'Resmed AirFit F20 Full Face mask', description: 'Full face coverage' },
-  { value: 'resmed_airfit_n20', label: 'Resmed AirFit N20 Nasal mask', description: 'Nasal coverage' },
+  { value: 'resmed_airfit_f20', label: 'Resmed AirFit F20 Full Face Mask', description: 'Full face coverage' },
+  { value: 'resmed_airfit_n20', label: 'Resmed AirFit N20 Nasal Mask', description: 'Nasal coverage' },
   { value: 'resmed_airfit_n30', label: 'Resmed AirFit N30 Nasal Pillows', description: 'Nasal pillows' },
-  { value: 'resmed_airfit_f10', label: 'Resmed AirFit F10 Full Face mask', description: 'Full face coverage' },
-  { value: 'nonvented_resmed_full_face', label: 'NONVENTED RESMED FULL FACE MASK', description: 'Non-vented full face' },
-  { value: 'amara_gel_full_face', label: 'AMARA GEL FULL FACE MASK', description: 'Gel cushion full face' },
-  { value: 'amara_full_face', label: 'AMARA FULL FACE MASK', description: 'Standard full face' },
-  { value: 'amara_view_full_face', label: 'AMARA VIEW FULL FACE MASK', description: 'Clear view full face' },
-  { value: 'comfort_gel_blue_full_face', label: 'COMFORT GEL BLUE FULL FACE', description: 'Blue gel cushion' },
-  { value: 'comfortgel_nasal', label: 'COMFORTGEL NASAL MASK', description: 'Gel nasal mask' },
-  { value: 'dreamwear_full_face', label: 'DREAMWEAR FULL FACE MASK', description: 'Under-nose full face' },
-  { value: 'dreamwear_gel_nasal_pillow', label: 'DREAMWEAR GEL NASAL PILLOW', description: 'Gel nasal pillows' },
-  { value: 'dreamwear_nasal', label: 'DREAMWEAR NASAL MASK', description: 'Under-nose nasal' },
-  { value: 'true_blue_nasal', label: 'TRUE BLUE NASAL MASK', description: 'Blue nasal mask' },
-  { value: 'wisp_minimal_nasal', label: 'WISP MINIMAL CONTACT NASAL MASK', description: 'Minimal contact nasal' }
+  { value: 'resmed_airfit_f10', label: 'Resmed AirFit F10 Full Face Mask', description: 'Full face coverage' },
+  { value: 'nonvented_resmed_full_face', label: 'Nonvented Resmed Full Face Mask', description: 'Non-vented full face' },
+  { value: 'amara_gel_full_face', label: 'Amara Gel Full Face Mask', description: 'Gel cushion full face' },
+  { value: 'amara_full_face', label: 'Amara Full Face Mask', description: 'Standard full face' },
+  { value: 'amara_view_full_face', label: 'Amara View Full Face Mask', description: 'Clear view full face' },
+  { value: 'comfort_gel_blue_full_face', label: 'Comfort Gel Blue Full Face Mask', description: 'Blue gel cushion' },
+  { value: 'comfortgel_nasal', label: 'ComfortGel Nasal Mask', description: 'Gel nasal mask' },
+  { value: 'dreamwear_full_face', label: 'DreamWear Full Face Mask', description: 'Under-nose full face' },
+  { value: 'dreamwear_gel_nasal_pillow', label: 'DreamWear Gel Nasal Pillow', description: 'Gel nasal pillows' },
+  { value: 'dreamwear_nasal', label: 'DreamWear Nasal Mask', description: 'Under-nose nasal' },
+  { value: 'true_blue_nasal', label: 'True Blue Nasal Mask', description: 'Blue nasal mask' },
+  { value: 'wisp_minimal_nasal', label: 'Wisp Minimal Contact Nasal Mask', description: 'Minimal contact nasal' }
 ];
 
 const maskSizes = [
