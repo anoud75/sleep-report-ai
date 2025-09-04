@@ -323,4 +323,25 @@ All colors MUST be HSL.
     @apply -translate-y-2 border-primary/20;
     box-shadow: var(--shadow-glow), 0 0 80px hsl(var(--primary-glow) / 0.1);
   }
+
+  /* Card enter animation keyframe */
+  @keyframes card-enter {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Animation classes */
+  .animate-card-enter {
+    animation: card-enter 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
 }

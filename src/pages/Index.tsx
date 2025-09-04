@@ -9,6 +9,7 @@ import { ProcessedResults } from "@/components/ProcessedResults";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
 import { ContactForm } from "@/components/ContactForm";
 import { Header } from "@/components/Header";
+import { StackingFeatures } from "@/components/StackingFeatures";
 
 const Index = () => {
   const [selectedStudyType, setSelectedStudyType] = useState('');
@@ -125,55 +126,8 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="mb-20">
-            <h3 className="text-3xl font-bold text-white mb-10 text-center">Key Features</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Accurate Analysis */}
-              <div className="feature-card-enhanced rounded-2xl p-8 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-                <div className="flex items-center justify-center mb-6">
-                  <div className="protocol-icon p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20">
-                    <Brain className="h-10 w-10 text-blue-400" />
-                  </div>
-                </div>
-                <h4 className="text-white font-bold text-xl mb-4 font-jakarta">
-                  Accurate Analysis
-                </h4>
-                <p className="text-white/70 leading-relaxed font-inter">
-                  Identifies key sleep metrics like AHI, oxygen levels, arousals, and sleep stages using structured extraction.
-                </p>
-              </div>
-
-              {/* Secure by Design */}
-              <div className="feature-card-enhanced rounded-2xl p-8 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-                <div className="flex items-center justify-center mb-6">
-                  <div className="protocol-icon p-4 rounded-2xl bg-gradient-to-r from-green-500/20 to-emerald-500/20">
-                    <Shield className="h-10 w-10 text-green-400" />
-                  </div>
-                </div>
-                <h4 className="text-white font-bold text-xl mb-4 font-jakarta">
-                  Secure by Design
-                </h4>
-                <p className="text-white/70 leading-relaxed font-inter">
-                  End-to-end encrypted. HIPAA-ready. Built with patient data privacy at the core.
-                </p>
-              </div>
-
-              {/* Streamlined Output */}
-              <div className="feature-card-enhanced rounded-2xl p-8 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-                <div className="flex items-center justify-center mb-6">
-                  <div className="protocol-icon p-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20">
-                    <Clock className="h-10 w-10 text-purple-400" />
-                  </div>
-                </div>
-                <h4 className="text-white font-bold text-xl mb-4 font-jakarta">
-                  Streamlined Output
-                </h4>
-                <p className="text-white/70 leading-relaxed font-inter">
-                  Designed to reduce manual entry, shorten turnaround time, and maintain clinical consistency.
-                </p>
-              </div>
-            </div>
-          </div>
+      {/* Key Features Section - Stacking Cards */}
+      <StackingFeatures />
         </div>
       </section>
 
