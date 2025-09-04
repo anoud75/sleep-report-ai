@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Wind, Activity, Pill, Settings } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Wind, Activity, Pill, Settings, MessageSquare } from "lucide-react";
 
 interface ClinicalDataEntryProps {
   onDataChange: (data: any) => void;
@@ -42,12 +43,29 @@ const maskSizes = [
   { value: 'x_large', label: 'X LARGE' }
 ];
 
+const patientComments = [
+  { value: 'sleeping_better_center', label: 'Patient reports sleeping better in the center compared to home.' },
+  { value: 'no_difference', label: 'Patient reports no difference in sleep quality between the center and home.' },
+  { value: 'sleeping_better_home', label: 'Patient reports sleeping better at home.' },
+  { value: 'improved_with_cpap', label: 'Patient reports improved sleep in the center with CPAP and will discuss continuation at home with the physician.' },
+  { value: 'willing_cpap_home', label: 'Patient reports improved sleep in the center and expresses willingness to initiate CPAP therapy at home.' },
+  { value: 'better_without_cpap', label: 'Patient reports better sleep without CPAP.' },
+  { value: 'undecided_cpap', label: 'Patient remains undecided regarding the use of CPAP at home.' },
+  { value: 'no_comment', label: 'No comment provided' }
+];
+
 export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntryProps) => {
   // Mask data
   const [maskType, setMaskType] = useState<string>('');
   const [maskSize, setMaskSize] = useState<string>('');
   const [hasHeadgear, setHasHeadgear] = useState(false);
   const [hasChinstrap, setHasChinstrap] = useState(false);
+  const [hasHeatedHumidifier, setHasHeatedHumidifier] = useState(false);
+
+  // Study information
+  const [isRepeatedStudy, setIsRepeatedStudy] = useState(false);
+  const [oxygenUsed, setOxygenUsed] = useState(false);
+  const [oxygenLiters, setOxygenLiters] = useState<string>('');
 
   // Pressure data (required for titration/split-night)
   const [cpapPressure, setCpapPressure] = useState<string>('');
@@ -63,8 +81,12 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
   const [tcco2Nrem, setTcco2Nrem] = useState<string>('');
   const [tcco2Rem, setTcco2Rem] = useState<string>('');
   const [medication, setMedication] = useState<string>('');
+  
+  // Patient comments
+  const [selectedComments, setSelectedComments] = useState<string[]>([]);
 
   const requiresPressureData = studyType === 'Titration' || studyType === 'Split-Night';
+  const isTherapeuticOrSplitNight = studyType === 'Titration' || studyType === 'Split-Night';
 
   const updateData = (updates: any = {}) => {
     const newData = {
@@ -73,6 +95,11 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
       maskSize,
       hasHeadgear,
       hasChinstrap,
+      hasHeatedHumidifier: isTherapeuticOrSplitNight ? hasHeatedHumidifier : false,
+      // Study information
+      isRepeatedStudy,
+      oxygenUsed: isTherapeuticOrSplitNight ? oxygenUsed : false,
+      oxygenLiters: (isTherapeuticOrSplitNight && oxygenUsed) ? oxygenLiters : '',
       // Pressure data
       cpapPressure,
       bpapUsed,
@@ -90,6 +117,8 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
         rem: tcco2Rem
       },
       medication,
+      // Patient comments
+      selectedComments,
       ...updates
     };
 
@@ -183,6 +212,96 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
               />
               <Label htmlFor="chinstrap" className="text-sm">Chinstrap</Label>
             </div>
+          </div>
+
+          {/* Heated Humidifier for Therapeutic/Split-Night Studies */}
+          {isTherapeuticOrSplitNight && (
+            <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+              <Switch
+                id="heated-humidifier"
+                checked={hasHeatedHumidifier}
+                onCheckedChange={(checked) => { setHasHeatedHumidifier(checked); updateData({ hasHeatedHumidifier: checked }); }}
+              />
+              <Label htmlFor="heated-humidifier" className="text-sm">Heated Humidifier</Label>
+            </div>
+          )}
+        </div>
+
+        {/* Study Information Section */}
+        <Separator />
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Settings className="h-4 w-4 text-primary" />
+            <Label className="text-base font-semibold">Study Information</Label>
+          </div>
+
+          <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+            <Switch
+              id="repeated-study"
+              checked={isRepeatedStudy}
+              onCheckedChange={(checked) => { setIsRepeatedStudy(checked); updateData({ isRepeatedStudy: checked }); }}
+            />
+            <Label htmlFor="repeated-study" className="text-sm">Repeated Study</Label>
+          </div>
+
+          {/* Oxygen Usage for Therapeutic/Split-Night Studies */}
+          {isTherapeuticOrSplitNight && (
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+                <Switch
+                  id="oxygen-used"
+                  checked={oxygenUsed}
+                  onCheckedChange={(checked) => { setOxygenUsed(checked); updateData({ oxygenUsed: checked }); }}
+                />
+                <Label htmlFor="oxygen-used" className="text-sm">O2 Used</Label>
+              </div>
+              
+              {oxygenUsed && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Liters per minute</Label>
+                  <Input
+                    type="number"
+                    placeholder="e.g., 2"
+                    value={oxygenLiters}
+                    onChange={(e) => { setOxygenLiters(e.target.value); updateData({ oxygenLiters: e.target.value }); }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Patient Comments Section */}
+        <Separator />
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-primary" />
+            <Label className="text-base font-semibold">Patient Comments</Label>
+            <Badge variant="outline" className="text-xs">Optional</Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Select multiple comments that apply to this patient
+          </p>
+          
+          <div className="space-y-3">
+            {patientComments.map((comment) => (
+              <div key={comment.value} className="flex items-start space-x-3">
+                <Checkbox
+                  id={comment.value}
+                  checked={selectedComments.includes(comment.value)}
+                  onCheckedChange={(checked) => {
+                    const newComments = checked 
+                      ? [...selectedComments, comment.value]
+                      : selectedComments.filter(c => c !== comment.value);
+                    setSelectedComments(newComments);
+                    updateData({ selectedComments: newComments });
+                  }}
+                />
+                <Label htmlFor={comment.value} className="text-sm cursor-pointer leading-relaxed">
+                  {comment.label}
+                </Label>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -365,6 +484,26 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
               {hasChinstrap && (
                 <Badge variant="outline" className="border-success/30 text-success">
                   + Chinstrap
+                </Badge>
+              )}
+              {isTherapeuticOrSplitNight && hasHeatedHumidifier && (
+                <Badge variant="outline" className="border-success/30 text-success">
+                  + Heated Humidifier
+                </Badge>
+              )}
+              {isRepeatedStudy && (
+                <Badge variant="outline" className="border-success/30 text-success">
+                  Repeated Study
+                </Badge>
+              )}
+              {isTherapeuticOrSplitNight && oxygenUsed && oxygenLiters && (
+                <Badge variant="outline" className="border-success/30 text-success">
+                  O2: {oxygenLiters} L/min
+                </Badge>
+              )}
+              {selectedComments.length > 0 && (
+                <Badge variant="outline" className="border-success/30 text-success">
+                  {selectedComments.length} Comment{selectedComments.length > 1 ? 's' : ''}
                 </Badge>
               )}
             </div>
