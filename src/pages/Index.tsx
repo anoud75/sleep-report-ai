@@ -86,18 +86,19 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up" style={{animationDelay: '1.4s'}}>
             <button 
               onClick={scrollToUpload}
-              className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:scale-105 transition-all duration-300 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)]"
+              className="luxury-button haptic-feedback text-white px-8 py-4 rounded-xl text-lg font-inter tracking-wide"
             >
-              <span className="relative z-10">Start Analysis</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
+              <span className="relative z-10 flex items-center gap-3">
+                <Zap className="w-5 h-5" />
+                Start Analysis
+              </span>
             </button>
             
-            <button className="group flex items-center gap-3 text-white/80 hover:text-white transition-all duration-300">
+            <button className="group flex items-center gap-3 text-white/80 hover:text-white transition-all duration-300 haptic-feedback">
               <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-300">
                 <div className="w-0 h-0 border-l-[6px] border-l-white border-y-[4px] border-y-transparent ml-1 group-hover:scale-110 transition-transform duration-300"></div>
               </div>
-              <span className="font-medium">Watch Demo</span>
+              <span className="font-medium font-inter">Watch Demo</span>
             </button>
           </div>
         </div>
@@ -128,46 +129,46 @@ const Index = () => {
             <h3 className="text-3xl font-bold text-white mb-10 text-center">Key Features</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Accurate Analysis */}
-              <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-8 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+              <div className="feature-card-enhanced rounded-2xl p-8 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
                 <div className="flex items-center justify-center mb-6">
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all duration-300">
-                    <Brain className="h-10 w-10 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                  <div className="protocol-icon p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20">
+                    <Brain className="h-10 w-10 text-blue-400" />
                   </div>
                 </div>
-                <h4 className="text-white font-bold text-xl mb-4 group-hover:text-blue-100 transition-colors duration-300">
+                <h4 className="text-white font-bold text-xl mb-4 font-jakarta">
                   Accurate Analysis
                 </h4>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-white/70 leading-relaxed font-inter">
                   Identifies key sleep metrics like AHI, oxygen levels, arousals, and sleep stages using structured extraction.
                 </p>
               </div>
 
               {/* Secure by Design */}
-              <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-8 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+              <div className="feature-card-enhanced rounded-2xl p-8 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
                 <div className="flex items-center justify-center mb-6">
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 group-hover:from-green-500/30 group-hover:to-emerald-500/30 transition-all duration-300">
-                    <Shield className="h-10 w-10 text-green-400 group-hover:scale-110 transition-transform duration-300" />
+                  <div className="protocol-icon p-4 rounded-2xl bg-gradient-to-r from-green-500/20 to-emerald-500/20">
+                    <Shield className="h-10 w-10 text-green-400" />
                   </div>
                 </div>
-                <h4 className="text-white font-bold text-xl mb-4 group-hover:text-green-100 transition-colors duration-300">
+                <h4 className="text-white font-bold text-xl mb-4 font-jakarta">
                   Secure by Design
                 </h4>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-white/70 leading-relaxed font-inter">
                   End-to-end encrypted. HIPAA-ready. Built with patient data privacy at the core.
                 </p>
               </div>
 
               {/* Streamlined Output */}
-              <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-8 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+              <div className="feature-card-enhanced rounded-2xl p-8 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
                 <div className="flex items-center justify-center mb-6">
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all duration-300">
-                    <Clock className="h-10 w-10 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+                  <div className="protocol-icon p-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20">
+                    <Clock className="h-10 w-10 text-purple-400" />
                   </div>
                 </div>
-                <h4 className="text-white font-bold text-xl mb-4 group-hover:text-purple-100 transition-colors duration-300">
+                <h4 className="text-white font-bold text-xl mb-4 font-jakarta">
                   Streamlined Output
                 </h4>
-                <p className="text-white/70 leading-relaxed">
+                <p className="text-white/70 leading-relaxed font-inter">
                   Designed to reduce manual entry, shorten turnaround time, and maintain clinical consistency.
                 </p>
               </div>
@@ -245,34 +246,34 @@ const Index = () => {
           </div>
           
           <div className="max-w-4xl mx-auto">
-            <div className="group bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-2xl p-10 hover:scale-105 transition-all duration-500 shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] animate-fade-in-up">
+            <div className="medical-card rounded-2xl p-10 animate-fade-in-up">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all duration-300">
-                  <Building2 className="h-8 w-8 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                <div className="w-16 h-16 bg-gradient-to-r from-trust/20 to-success/20 rounded-2xl flex items-center justify-center protocol-icon">
+                  <Building2 className="h-8 w-8 text-trust" />
                 </div>
-                <h3 className="text-white font-bold text-3xl group-hover:text-blue-100 transition-colors duration-300">
+                <h3 className="text-white font-bold text-3xl font-jakarta">
                   Sleep Centers
                 </h3>
               </div>
-              <p className="text-white/70 text-lg leading-relaxed mb-8">
+              <p className="text-white/70 text-lg leading-relaxed mb-8 font-inter">
                 Designed to help labs deliver accurate reports — faster, with less manual effort.
               </p>
               <div className="grid md:grid-cols-2 gap-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-blue-400 font-bold text-lg">•</span>
-                  <span className="text-white/70">Minimize human error</span>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-trust/5 to-transparent hover:from-trust/10 transition-all duration-300">
+                  <CheckCircle className="text-trust font-bold text-lg w-5 h-5 mt-0.5" />
+                  <span className="text-white/70 font-inter">Minimize human error</span>
                 </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-blue-400 font-bold text-lg">•</span>
-                  <span className="text-white/70">Ensure consistent diagnostics</span>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-trust/5 to-transparent hover:from-trust/10 transition-all duration-300">
+                  <CheckCircle className="text-trust font-bold text-lg w-5 h-5 mt-0.5" />
+                  <span className="text-white/70 font-inter">Ensure consistent diagnostics</span>
                 </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-blue-400 font-bold text-lg">•</span>
-                  <span className="text-white/70">Standardize output across technicians</span>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-trust/5 to-transparent hover:from-trust/10 transition-all duration-300">
+                  <CheckCircle className="text-trust font-bold text-lg w-5 h-5 mt-0.5" />
+                  <span className="text-white/70 font-inter">Standardize output across technicians</span>
                 </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-blue-400 font-bold text-lg">•</span>
-                  <span className="text-white/70">Free up time for patient care</span>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-trust/5 to-transparent hover:from-trust/10 transition-all duration-300">
+                  <CheckCircle className="text-trust font-bold text-lg w-5 h-5 mt-0.5" />
+                  <span className="text-white/70 font-inter">Free up time for patient care</span>
                 </div>
               </div>
             </div>
@@ -303,32 +304,44 @@ const Index = () => {
           <div className="max-w-6xl mx-auto mb-16">
             <h3 className="text-2xl font-bold text-white mb-8 text-center">Today's Activity</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-xl p-6 text-center hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{animationDelay: '0.1s'}}>
-                <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
-                  {reportCount}
+              <div className="metric-card rounded-xl p-6 text-center animate-fade-in-up" style={{animationDelay: '0.1s'}}>
+                <div className="flex items-center justify-center mb-2">
+                  <Activity className="w-6 h-6 text-primary mr-2" />
+                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent glow-text">
+                    {reportCount}
+                  </div>
                 </div>
-                <p className="text-white/60 text-sm font-medium">Reports Generated</p>
+                <p className="text-white/60 text-sm font-medium font-inter">Reports Generated</p>
               </div>
 
-              <div className="bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-xl p-6 text-center hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-                <div className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-2">
-                  &lt;45s
+              <div className="metric-card rounded-xl p-6 text-center animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+                <div className="flex items-center justify-center mb-2">
+                  <Zap className="w-6 h-6 text-success mr-2" />
+                  <div className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent glow-text">
+                    &lt;45s
+                  </div>
                 </div>
-                <p className="text-white/60 text-sm font-medium">Processing Time</p>
+                <p className="text-white/60 text-sm font-medium font-inter">Processing Time</p>
               </div>
 
-              <div className="bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-xl p-6 text-center hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{animationDelay: '0.3s'}}>
-                <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-                  100%
+              <div className="metric-card rounded-xl p-6 text-center animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+                <div className="flex items-center justify-center mb-2">
+                  <Shield className="w-6 h-6 text-premium mr-2" />
+                  <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">
+                    100%
+                  </div>
                 </div>
-                <p className="text-white/60 text-sm font-medium">Success Rate</p>
+                <p className="text-white/60 text-sm font-medium font-inter">Success Rate</p>
               </div>
 
-              <div className="bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border border-border/50 rounded-xl p-6 text-center hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-                <div className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent mb-2">
-                  0
+              <div className="metric-card rounded-xl p-6 text-center animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+                <div className="flex items-center justify-center mb-2">
+                  <Heart className="w-6 h-6 text-trust mr-2 animate-bounce-subtle" />
+                  <div className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent glow-text">
+                    0
+                  </div>
                 </div>
-                <p className="text-white/60 text-sm font-medium">Recent Reports</p>
+                <p className="text-white/60 text-sm font-medium font-inter">Recent Reports</p>
               </div>
             </div>
 

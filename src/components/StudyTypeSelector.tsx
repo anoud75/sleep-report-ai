@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Activity, Zap, GitBranch, CheckCircle, Sparkles } from "lucide-react";
+import { Stethoscope, Settings, Layers, CheckCircle, Sparkles } from "lucide-react";
 
 interface StudyTypeSelectorProps {
   selectedType: string;
@@ -11,7 +11,7 @@ const studyTypes = [
     id: 'Diagnostic',
     name: 'Diagnostic (PSG)',
     description: 'Comprehensive baseline sleep assessment',
-    icon: Activity,
+    icon: Stethoscope,
     themeColor: 'diagnostic',
     details: ['Complete polysomnography', 'Sleep architecture analysis', 'Respiratory event scoring']
   },
@@ -19,7 +19,7 @@ const studyTypes = [
     id: 'Titration',
     name: 'Titration Study',
     description: 'Optimal CPAP pressure determination',
-    icon: Zap,
+    icon: Settings,
     themeColor: 'titration',
     details: ['CPAP pressure optimization', 'Leak assessment', 'Efficacy evaluation']
   },
@@ -27,7 +27,7 @@ const studyTypes = [
     id: 'Split-Night',
     name: 'Split Night Protocol',
     description: 'Hybrid diagnostic and therapeutic study',
-    icon: GitBranch,
+    icon: Layers,
     themeColor: 'split-night',
     details: ['Initial diagnostic phase', 'Real-time CPAP titration', 'Combined analysis']
   }
@@ -39,11 +39,11 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
       {/* Header */}
       <div className="space-y-3 animate-fade-in-up">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-full animate-pulse"></div>
-          <h2 className="text-2xl font-bold text-foreground">Study Type Selection</h2>
-          <Sparkles className="h-5 w-5 text-primary animate-float" />
+          <div className="h-8 w-1 bg-gradient-to-b from-primary to-primary/50 rounded-full animate-glow-pulse"></div>
+          <h2 className="text-2xl font-bold text-foreground font-jakarta">Study Type Selection</h2>
+          <Sparkles className="h-5 w-5 text-primary animate-rotate-slow" />
         </div>
-        <p className="text-muted-foreground ml-7">Choose the appropriate study protocol for analysis</p>
+        <p className="text-muted-foreground ml-7 font-inter">Choose the appropriate study protocol for analysis</p>
       </div>
 
       {/* Study Type Cards */}
@@ -55,7 +55,7 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           return (
             <Card
               key={type.id}
-              className={`group relative overflow-hidden cursor-pointer transition-all duration-500 ease-out border-2 animate-fade-in-up hover:scale-[1.02] ${
+              className={`group relative overflow-hidden cursor-pointer transition-all duration-700 ease-out border-2 animate-fade-in-up haptic-feedback ${
                 isSelected 
                   ? `border-${type.themeColor} bg-${type.themeColor}-light shadow-[var(--shadow-elegant)] scale-[1.02]`
                   : 'border-border bg-card hover:border-muted-foreground/50 hover:shadow-[var(--shadow-card-hover)]'
@@ -71,12 +71,12 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
               <CardContent className="p-6 relative">
                 <div className="flex items-start gap-6">
                   {/* Icon Container */}
-                  <div className={`relative p-4 rounded-2xl transition-all duration-500 hover:scale-110 ${
+                  <div className={`protocol-icon relative p-4 rounded-2xl transition-all duration-700 ${
                     isSelected 
                       ? `bg-${type.themeColor}/20 shadow-[var(--shadow-glow)]` 
                       : 'bg-muted/50 group-hover:bg-muted'
                   }`}>
-                    <Icon className={`h-7 w-7 transition-all duration-300 ${
+                    <Icon className={`h-7 w-7 transition-all duration-500 ${
                       isSelected ? `text-${type.themeColor}` : 'text-muted-foreground group-hover:text-foreground'
                     }`} />
                     {isSelected && (
@@ -92,13 +92,13 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                          <h3 className={`text-xl font-bold transition-colors duration-300 ${
+                          <h3 className={`text-xl font-bold font-jakarta transition-colors duration-500 ${
                             isSelected ? `text-${type.themeColor}` : 'text-foreground'
                           }`}>
                             {type.name}
                           </h3>
                         </div>
-                        <p className={`text-sm leading-relaxed transition-colors duration-300 ${
+                        <p className={`text-sm leading-relaxed font-inter transition-colors duration-500 ${
                           isSelected ? 'text-foreground/90' : 'text-muted-foreground'
                         }`}>
                           {type.description}
@@ -109,15 +109,15 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                     {/* Features Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {type.details.map((detail, index) => (
-                        <div key={index} className={`flex items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 ${
+                        <div key={index} className={`flex items-center gap-2 p-3 rounded-xl transition-all duration-500 hover:scale-105 haptic-feedback ${
                           isSelected 
                             ? `bg-${type.themeColor}/10 border border-${type.themeColor}/20 animate-fade-in` 
                             : 'bg-muted/30 border border-transparent group-hover:bg-muted/50'
                         }`} style={{animationDelay: `${index * 0.1}s`}}>
-                          <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all duration-300 ${
-                            isSelected ? `bg-${type.themeColor}` : 'bg-muted-foreground/50'
+                          <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all duration-500 ${
+                            isSelected ? `bg-${type.themeColor} animate-glow-pulse` : 'bg-muted-foreground/50'
                           }`}></div>
-                          <span className={`text-xs font-medium leading-tight transition-colors duration-300 ${
+                          <span className={`text-xs font-medium font-inter leading-tight transition-colors duration-500 ${
                             isSelected ? 'text-foreground/90' : 'text-muted-foreground group-hover:text-foreground/80'
                           }`}>
                             {detail}

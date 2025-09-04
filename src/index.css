@@ -86,11 +86,21 @@ All colors MUST be HSL.
     --shadow-button: 0 1px 2px 0 hsl(var(--foreground) / 0.05);
     --shadow-button-hover: 0 2px 4px 0 hsl(var(--foreground) / 0.1);
 
+    /* Enhanced Luxury Gradients */
+    --gradient-luxury: linear-gradient(135deg, hsl(var(--glow-violet) / 0.9), hsl(var(--glow-blue) / 0.9));
+    --gradient-luxury-soft: linear-gradient(135deg, hsl(var(--glow-violet) / 0.1), hsl(var(--glow-blue) / 0.1));
+    --gradient-medical: linear-gradient(135deg, hsl(var(--trust) / 0.9), hsl(var(--success) / 0.9));
+    --gradient-medical-soft: linear-gradient(135deg, hsl(var(--trust) / 0.05), hsl(var(--success) / 0.05));
+    --gradient-neon-blur: linear-gradient(135deg, hsl(var(--premium) / 0.15), hsl(var(--primary-glow) / 0.15));
+
     /* Shadows */
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.15);
     --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.2);
     --shadow-trust: 0 8px 25px -8px hsl(var(--trust) / 0.3);
     --shadow-premium: 0 20px 40px -15px hsl(var(--premium) / 0.4);
+    --shadow-medical: 0 12px 35px -12px hsl(var(--success) / 0.25);
+    --shadow-interactive: 0 8px 25px -8px hsl(var(--primary) / 0.2);
+    --glow-soft: 0 0 60px hsl(var(--primary-glow) / 0.1), 0 0 100px hsl(var(--primary-glow) / 0.05);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -173,46 +183,116 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-jakarta;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 @layer components {
-  .neon-glow-button {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 border border-blue-500/50 text-white relative overflow-hidden transition-all duration-300 ease-out;
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  /* Enhanced Luxury Button */
+  .luxury-button {
+    @apply relative overflow-hidden font-jakarta font-semibold tracking-wide transition-all duration-500 ease-out;
+    background: var(--gradient-luxury);
+    box-shadow: var(--shadow-elegant), var(--glow-soft);
+    backdrop-filter: blur(20px);
   }
 
-  .neon-glow-button::before {
-    @apply content-[''] absolute top-0 -left-full w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-all duration-300;
+  .luxury-button::before {
+    @apply content-[''] absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-all duration-700 ease-out;
+    transform: translateX(-100%) skew(-10deg);
   }
 
-  .neon-glow-button:hover {
-    @apply border-blue-400 transform scale-105;
-    box-shadow: 0 0 40px hsl(var(--primary) / 0.6), 0 0 80px hsl(var(--primary) / 0.3);
+  .luxury-button:hover {
+    @apply scale-105;
+    box-shadow: var(--shadow-premium), 0 0 60px hsl(var(--primary-glow) / 0.4);
   }
 
-  .neon-glow-button:hover::before {
-    @apply left-full;
+  .luxury-button:hover::before {
+    transform: translateX(100%) skew(-10deg);
   }
 
-  .feature-card {
-    @apply bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-sm border border-gray-700/50 transition-all duration-300;
-    box-shadow: 0 4px 20px hsl(0 0% 0% / 0.5);
+  /* Medical Professional Card */
+  .medical-card {
+    @apply relative overflow-hidden backdrop-blur-xl border transition-all duration-500;
+    background: var(--gradient-medical-soft);
+    border-color: hsl(var(--trust) / 0.1);
+    box-shadow: var(--shadow-medical);
   }
 
-  .feature-card:hover {
-    @apply border-blue-500/50 transform -translate-y-1;
-    box-shadow: 0 8px 30px hsl(0 0% 0% / 0.7), 0 0 30px hsl(var(--primary) / 0.2);
+  .medical-card:hover {
+    @apply scale-[1.02] border-trust/20;
+    box-shadow: var(--shadow-trust), var(--glow-soft);
   }
 
-  .neon-text {
-    @apply text-foreground/90;
-    text-shadow: 0 0 10px hsl(var(--primary) / 0.3);
+  /* Interactive Metric Card */
+  .metric-card {
+    @apply relative overflow-hidden backdrop-blur-xl border border-border/50 transition-all duration-500 cursor-pointer;
+    background: var(--gradient-neon-blur);
+    box-shadow: var(--shadow-card);
   }
 
-  .hero-text {
-    @apply text-foreground/95;
-    text-shadow: 0 2px 10px hsl(0 0% 0% / 0.5);
+  .metric-card:hover {
+    @apply scale-105 border-primary/30;
+    box-shadow: var(--shadow-interactive), 0 0 40px hsl(var(--primary-glow) / 0.15);
+  }
+
+  /* Protocol Icon Enhancement */
+  .protocol-icon {
+    @apply relative transition-all duration-500;
+    filter: drop-shadow(0 4px 12px hsl(var(--primary) / 0.2));
+  }
+
+  .protocol-icon:hover {
+    @apply scale-110;
+    filter: drop-shadow(0 8px 20px hsl(var(--primary) / 0.35));
+  }
+
+  /* Animated Loading Dots */
+  .loading-dots {
+    @apply inline-flex items-center gap-1;
+  }
+
+  .loading-dot {
+    @apply w-2 h-2 rounded-full bg-primary animate-pulse;
+    animation-duration: 1.5s;
+  }
+
+  .loading-dot:nth-child(2) {
+    animation-delay: 0.5s;
+  }
+
+  .loading-dot:nth-child(3) {
+    animation-delay: 1s;
+  }
+
+  /* Haptic-like Feedback */
+  .haptic-feedback {
+    @apply transition-all duration-150 active:scale-95;
+  }
+
+  .haptic-feedback:active {
+    box-shadow: inset 0 2px 8px hsl(var(--primary) / 0.2);
+  }
+
+  /* Soft Glow Text */
+  .glow-text {
+    @apply font-jakarta font-bold;
+    text-shadow: 0 0 20px hsl(var(--primary-glow) / 0.5), 0 0 40px hsl(var(--primary-glow) / 0.2);
+  }
+
+  /* Enhanced Feature Card */
+  .feature-card-enhanced {
+    @apply relative overflow-hidden backdrop-blur-xl border transition-all duration-700;
+    background: var(--gradient-luxury-soft);
+    border-color: hsl(var(--primary) / 0.1);
+    box-shadow: var(--shadow-elegant);
+  }
+
+  .feature-card-enhanced:hover {
+    @apply -translate-y-2 border-primary/20;
+    box-shadow: var(--shadow-glow), 0 0 80px hsl(var(--primary-glow) / 0.1);
   }
 }
