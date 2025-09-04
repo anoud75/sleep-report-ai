@@ -136,40 +136,39 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
   };
 
   return (
-    <Card className="border-primary/20 bg-primary/5">
+    <Card className="medical-card border-trust/20 rounded-2xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Wind className="h-5 w-5 text-primary" />
+        <CardTitle className="flex items-center gap-2 font-jakarta">
+          <Wind className="h-5 w-5 text-trust" />
           Clinical Data Entry
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground font-inter">
           {requiresPressureData 
             ? "CPAP/BPAP pressure and mask details are required for this study type"
             : "Mask configuration and clinical parameters (optional)"
           }
         </p>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Mask Configuration Section */}
-        <div className="space-y-4">
+      <CardContent className="space-y-6">{/* ... keep existing code ... */}
+          <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-primary" />
-            <Label className="text-base font-semibold">Mask Configuration</Label>
+            <Settings className="h-4 w-4 text-trust protocol-icon" />
+            <Label className="text-base font-semibold font-jakarta">Mask Configuration</Label>
             {requiresPressureData && <Badge variant="secondary" className="text-xs">Required</Badge>}
           </div>
 
           {/* Mask Type Selection */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Mask Type *</Label>
+            <Label className="text-sm font-medium font-inter">Mask Type *</Label>
             <Select value={maskType} onValueChange={(value) => { setMaskType(value); updateData({ maskType: value }); }}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-background/50 border-border/50 hover:border-trust/50 transition-colors">
                 <SelectValue placeholder="Select mask type" />
               </SelectTrigger>
-              <SelectContent className="bg-background border shadow-lg z-50">
+              <SelectContent className="bg-card border-border shadow-[var(--shadow-elegant)] z-50">
                 {maskTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
+                  <SelectItem key={type.value} value={type.value} className="hover:bg-trust/10">
                     <div className="flex flex-col">
-                      <span className="font-medium">{type.label}</span>
+                      <span className="font-medium font-inter">{type.label}</span>
                       <span className="text-xs text-muted-foreground">{type.description}</span>
                     </div>
                   </SelectItem>
@@ -180,14 +179,14 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
 
           {/* Mask Size Selection */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Mask Size *</Label>
+            <Label className="text-sm font-medium font-inter">Mask Size *</Label>
             <Select value={maskSize} onValueChange={(value) => { setMaskSize(value); updateData({ maskSize: value }); }}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-background/50 border-border/50 hover:border-trust/50 transition-colors">
                 <SelectValue placeholder="Select mask size" />
               </SelectTrigger>
-              <SelectContent className="bg-background border shadow-lg z-50">
+              <SelectContent className="bg-card border-border shadow-[var(--shadow-elegant)] z-50">
                 {maskSizes.map((size) => (
-                  <SelectItem key={size.value} value={size.value}>
+                  <SelectItem key={size.value} value={size.value} className="hover:bg-trust/10">
                     {size.label}
                   </SelectItem>
                 ))}
@@ -196,24 +195,24 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
           </div>
 
           {/* Accessories */}
-          <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+          <div className="flex items-center space-x-3 p-3 rounded-lg border border-border/50 bg-background/30 hover:bg-background/50 transition-colors">
             <Switch
               id="chinstrap"
               checked={hasChinstrap}
               onCheckedChange={(checked) => { setHasChinstrap(checked); updateData({ hasChinstrap: checked }); }}
             />
-            <Label htmlFor="chinstrap" className="text-sm">Chinstrap</Label>
+            <Label htmlFor="chinstrap" className="text-sm font-inter">Chinstrap</Label>
           </div>
 
           {/* Heated Humidifier for Therapeutic/Split-Night Studies */}
           {isTherapeuticOrSplitNight && (
-            <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+            <div className="flex items-center space-x-3 p-3 rounded-lg border border-border/50 bg-background/30 hover:bg-background/50 transition-colors">
               <Switch
                 id="heated-humidifier"
                 checked={hasHeatedHumidifier}
                 onCheckedChange={(checked) => { setHasHeatedHumidifier(checked); updateData({ hasHeatedHumidifier: checked }); }}
               />
-              <Label htmlFor="heated-humidifier" className="text-sm">Heated Humidifier</Label>
+              <Label htmlFor="heated-humidifier" className="text-sm font-inter">Heated Humidifier</Label>
             </div>
           )}
         </div>

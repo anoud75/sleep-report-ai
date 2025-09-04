@@ -306,45 +306,45 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
         </Alert>
       )}
 
-      <Card className={`transition-all duration-500 border-2 ${
-        dragActive ? 'border-primary bg-primary/5 shadow-[var(--shadow-glow)] scale-[1.02]' : 
-        success ? 'border-success bg-success-light shadow-[var(--shadow-trust)]' :
-        'border-border bg-card hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]'
+      <Card className={`feature-card-enhanced transition-all duration-700 border-2 rounded-2xl ${
+        dragActive ? 'border-primary bg-primary/10 shadow-[var(--shadow-glow)] scale-[1.02]' : 
+        success ? 'border-success bg-success/10 shadow-[var(--shadow-trust)]' :
+        'border-border/50 bg-card/50 hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]'
       }`}>
         {((files.length === 0) || (isSplitNight && files.length <= 2)) && !processing && !success && (
           <CardContent className="p-8">
             {isSplitNight ? (
               // Split Night Protocol - Two Upload Areas
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold mb-2">Split Night Protocol</h3>
-                  <p className="text-muted-foreground">Upload both diagnostic and therapeutic files</p>
-                </div>
-                
-                {/* Show uploaded files if any */}
-                {files.length > 0 && (
-                  <div className="space-y-4 mb-6">
-                    {files.map((uploadedFile, index) => (
-                      <div key={index} className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl border">
-                        {getFileIcon(uploadedFile.file.name)}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{uploadedFile.file.name}</h4>
-                            <Badge variant={uploadedFile.type === 'diagnostic' ? 'default' : 'secondary'}>
-                              {uploadedFile.type}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                        <Button variant="ghost" size="sm" onClick={() => removeFile(index)}>
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                <div className="space-y-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-bold mb-2 font-jakarta glow-text">Split Night Protocol</h3>
+                    <p className="text-muted-foreground font-inter">Upload both diagnostic and therapeutic files</p>
                   </div>
-                )}
+                  
+                  {/* Show uploaded files if any */}
+                  {files.length > 0 && (
+                    <div className="space-y-4 mb-6">
+                      {files.map((uploadedFile, index) => (
+                        <div key={index} className="medical-card flex items-center gap-4 p-4 rounded-xl">
+                          {getFileIcon(uploadedFile.file.name)}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium font-inter">{uploadedFile.file.name}</h4>
+                              <Badge variant={uploadedFile.type === 'diagnostic' ? 'default' : 'secondary'}>
+                                {uploadedFile.type}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                          <Button variant="ghost" size="sm" onClick={() => removeFile(index)} className="haptic-feedback">
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Diagnostic File Upload */}
@@ -360,20 +360,20 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                       <h4 className="font-semibold">Diagnostic Part</h4>
                     </div>
                     {!files.some(f => f.type === 'diagnostic') ? (
-                      <div
-                        className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer ${
-                          dragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-primary/2'
-                        }`}
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={(e) => handleDrop(e, 'diagnostic')}
-                        onClick={() => handleFileButtonClick('diagnostic')}
-                      >
-                        <Upload className="mx-auto h-8 w-8 mb-2 text-muted-foreground" />
-                        <p className="text-sm font-medium mb-1">Drop diagnostic file here</p>
-                        <p className="text-xs text-muted-foreground">or click to select</p>
-                      </div>
+                        <div
+                          className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-500 cursor-pointer haptic-feedback ${
+                            dragActive ? 'border-primary bg-primary/10' : 'border-border/50 hover:border-primary/50 hover:bg-primary/5'
+                          }`}
+                          onDragEnter={handleDrag}
+                          onDragLeave={handleDrag}
+                          onDragOver={handleDrag}
+                          onDrop={(e) => handleDrop(e, 'diagnostic')}
+                          onClick={() => handleFileButtonClick('diagnostic')}
+                        >
+                          <Upload className="mx-auto h-8 w-8 mb-2 text-trust protocol-icon" />
+                          <p className="text-sm font-medium mb-1 font-inter">Drop diagnostic file here</p>
+                          <p className="text-xs text-muted-foreground">or click to select</p>
+                        </div>
                     ) : (
                       <div className="p-6 bg-success/10 border border-success/20 rounded-xl text-center">
                         <CheckCircle className="mx-auto h-8 w-8 mb-2 text-success" />
@@ -395,20 +395,20 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                       <h4 className="font-semibold">Therapeutic Part</h4>
                     </div>
                     {!files.some(f => f.type === 'therapeutic') ? (
-                      <div
-                        className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer ${
-                          dragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-primary/2'
-                        }`}
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={(e) => handleDrop(e, 'therapeutic')}
-                        onClick={() => handleFileButtonClick('therapeutic')}
-                      >
-                        <Upload className="mx-auto h-8 w-8 mb-2 text-muted-foreground" />
-                        <p className="text-sm font-medium mb-1">Drop therapeutic file here</p>
-                        <p className="text-xs text-muted-foreground">or click to select</p>
-                      </div>
+                        <div
+                          className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-500 cursor-pointer haptic-feedback ${
+                            dragActive ? 'border-primary bg-primary/10' : 'border-border/50 hover:border-primary/50 hover:bg-primary/5'
+                          }`}
+                          onDragEnter={handleDrag}
+                          onDragLeave={handleDrag}
+                          onDragOver={handleDrag}
+                          onDrop={(e) => handleDrop(e, 'therapeutic')}
+                          onClick={() => handleFileButtonClick('therapeutic')}
+                        >
+                          <Upload className="mx-auto h-8 w-8 mb-2 text-success protocol-icon" />
+                          <p className="text-sm font-medium mb-1 font-inter">Drop therapeutic file here</p>
+                          <p className="text-xs text-muted-foreground">or click to select</p>
+                        </div>
                     ) : (
                       <div className="p-6 bg-success/10 border border-success/20 rounded-xl text-center">
                         <CheckCircle className="mx-auto h-8 w-8 mb-2 text-success" />
@@ -424,17 +424,15 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                 )}
                 
                 {/* Process Button for Split Night */}
-                {files.length === 2 && (
                   <Button 
                     onClick={processFiles} 
-                    className="w-full shadow-[var(--shadow-elegant)] hover:shadow-[var(--shadow-glow)] transition-all duration-300"
+                    className="luxury-button haptic-feedback w-full text-lg font-inter tracking-wide"
                     disabled={!selectedStudyType || !files.some(f => f.type === 'diagnostic') || !files.some(f => f.type === 'therapeutic') || !clinicalData}
                     size="lg"
                   >
-                    <Brain className="h-5 w-5 mr-3" />
+                    <Brain className="h-5 w-5 mr-3 protocol-icon" />
                     Process Studies
                   </Button>
-                )}
                 
                 <div className="text-center text-sm text-muted-foreground">
                   Supported formats: PDF, DOC, DOCX, RTF (Max 50MB each)

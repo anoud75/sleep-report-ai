@@ -97,12 +97,12 @@ export const ContactForm = () => {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border-border/50 shadow-[var(--shadow-elegant)]">
+    <Card className="medical-card rounded-2xl border-trust/20">
       <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
+        <CardTitle className="text-3xl font-bold font-jakarta glow-text">
           Get in Touch
         </CardTitle>
-        <CardDescription className="text-lg text-muted-foreground">
+        <CardDescription className="text-lg text-muted-foreground font-inter">
           Have questions or need support? We're here to help.
         </CardDescription>
       </CardHeader>
@@ -118,7 +118,7 @@ export const ContactForm = () => {
               placeholder="Your full name"
               value={formData.fullName}
               onChange={(e) => handleInputChange('fullName', e.target.value)}
-              className="bg-background/50 border-border/50 focus:border-primary transition-colors"
+              className="bg-background/50 border-border/50 focus:border-trust hover:border-trust/50 transition-colors font-inter"
               required
             />
           </div>
@@ -173,7 +173,7 @@ export const ContactForm = () => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-accent transition-all duration-300 shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] hover:scale-105"
+            className="luxury-button haptic-feedback w-full font-inter tracking-wide"
           >
             {isSubmitting ? (
               <>
