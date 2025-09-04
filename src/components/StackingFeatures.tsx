@@ -64,18 +64,19 @@ export const StackingFeatures = () => {
           
           const sectionRect = sectionRef.current.getBoundingClientRect();
           const viewportHeight = window.innerHeight;
-          const totalScrollDistance = viewportHeight * 2;
+          const sectionHeight = sectionRef.current.offsetHeight;
+          const totalScrollDistance = sectionHeight - viewportHeight;
           
           // Calculate the scroll progress
           let progress = 0;
-          if (sectionRect.top <= 0) {
+          if (sectionRect.top <= 0 && totalScrollDistance > 0) {
             progress = Math.min(1, Math.max(0, Math.abs(sectionRect.top) / totalScrollDistance));
           }
           
           // Determine which card should be visible based on progress
-          if (progress >= 0.66) {
+          if (progress >= 0.5) {
             setActiveCardIndex(2);
-          } else if (progress >= 0.33) {
+          } else if (progress >= 0.25) {
             setActiveCardIndex(1);
           } else {
             setActiveCardIndex(0);
