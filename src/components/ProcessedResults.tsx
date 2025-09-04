@@ -242,240 +242,233 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
   return (
     <div className="space-y-6">
       {/* Header with Actions */}
-      <Card>
-        <CardHeader>
+      <div className="medical-card rounded-2xl border-success/30 bg-black/60 backdrop-blur-xl">
+        <div className="text-center p-8 border-b border-white/10">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center space-x-2">
-                <FileText className="h-5 w-5" />
-                <span>Sleep Study Analysis Complete</span>
-              </CardTitle>
-              <CardDescription>
+              <h2 className="text-2xl font-bold font-jakarta glow-text text-white mb-2 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-success protocol-icon" />
+                Sleep Study Analysis Complete
+              </h2>
+              <p className="text-lg text-white/70 font-inter">
                 Report generated for {data.patientInfo?.name || 'Patient'} • {data.studyInfo?.studyDate || 'N/A'}
-              </CardDescription>
+              </p>
             </div>
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
+            <Badge className="bg-success/20 text-success border-success/30">
               <Activity className="h-3 w-3 mr-1" />
               {data.studyInfo?.studyType || data.studyType || 'Diagnostic'}
             </Badge>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="p-8">
           <div className="flex space-x-3">
-            <Button onClick={handleDownloadPDF} className="flex-1">
+            <button
+              onClick={handleDownloadPDF}
+              className="luxury-button haptic-feedback flex-1 font-inter tracking-wide py-3 rounded-xl flex items-center justify-center"
+            >
               <Download className="h-4 w-4 mr-2" />
               Download PDF Report
-            </Button>
-            <Button variant="outline" onClick={handlePreviewReport}>
+            </button>
+            <button
+              onClick={handlePreviewReport}
+              className="px-6 py-3 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors font-inter"
+            >
               Preview
-            </Button>
-            <Button variant="outline" onClick={onNewReport}>
+            </button>
+            <button
+              onClick={onNewReport}
+              className="px-6 py-3 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors font-inter"
+            >
               New Report
-            </Button>
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Comprehensive Sleep Study Results */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Sleep Timing */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4" />
-              <span>Sleep Timing</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-trust protocol-icon" />
+            Sleep Timing
+          </h3>
+          <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Light Off</span>
-              <span className="font-medium">{data.studyInfo?.lightsOff || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Light Off</span>
+              <span className="font-medium text-white font-inter">{data.studyInfo?.lightsOff || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Light On</span>
-              <span className="font-medium">{data.studyInfo?.lightsOn || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Light On</span>
+              <span className="font-medium text-white font-inter">{data.studyInfo?.lightsOn || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Time in Bed (min)</span>
-              <span className="font-medium">{data.studyInfo?.timeInBed || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Time in Bed (min)</span>
+              <span className="font-medium text-white font-inter">{data.studyInfo?.timeInBed || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Total Sleep Time (min)</span>
-              <span className="font-medium">{data.studyInfo?.totalSleepTime || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Total Sleep Time (min)</span>
+              <span className="font-medium text-white font-inter">{data.studyInfo?.totalSleepTime || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">CPAP/BPAP/O2</span>
-              <span className="font-medium">{data.titrationData?.pressureType || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">CPAP/BPAP/O2</span>
+              <span className="font-medium text-white font-inter">{data.titrationData?.pressureType || '---'}</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Sleep Latency & Efficiency */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Activity className="h-4 w-4" />
-              <span>Sleep Quality</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+            <Activity className="h-4 w-4 text-trust protocol-icon" />
+            Sleep Quality
+          </h3>
+          <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Sleep Latency (min)</span>
-              <span className="font-medium">{data.studyInfo?.sleepLatency || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Sleep Latency (min)</span>
+              <span className="font-medium text-white font-inter">{data.studyInfo?.sleepLatency || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">REM Latency (min)</span>
-              <span className="font-medium">{data.studyInfo?.remLatency || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">REM Latency (min)</span>
+              <span className="font-medium text-white font-inter">{data.studyInfo?.remLatency || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Sleep Efficiency (%)</span>
-              <span className="font-medium">{data.sleepArchitecture?.sleepEfficiency || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Sleep Efficiency (%)</span>
+              <span className="font-medium text-white font-inter">{data.sleepArchitecture?.sleepEfficiency || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Arousal Index (/hr)</span>
-              <span className="font-medium">{data.additionalMetrics?.arousalIndex || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Arousal Index (/hr)</span>
+              <span className="font-medium text-white font-inter">{data.additionalMetrics?.arousalIndex || '---'}</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Sleep Stages */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="h-4 w-4" />
-              <span>Sleep Architecture</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-trust protocol-icon" />
+            Sleep Architecture
+          </h3>
+          <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Sleep Stage 1 (%)</span>
-              <span className="font-medium">{data.sleepArchitecture?.stage1Percent || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Sleep Stage 1 (%)</span>
+              <span className="font-medium text-white font-inter">{data.sleepArchitecture?.stage1Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Sleep Stage 2 (%)</span>
-              <span className="font-medium">{data.sleepArchitecture?.stage2Percent || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Sleep Stage 2 (%)</span>
+              <span className="font-medium text-white font-inter">{data.sleepArchitecture?.stage2Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Slow Wave Sleep (%)</span>
-              <span className="font-medium">{data.sleepArchitecture?.stage3Percent || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Slow Wave Sleep (%)</span>
+              <span className="font-medium text-white font-inter">{data.sleepArchitecture?.stage3Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">REM Sleep (%)</span>
-              <span className="font-medium">{data.sleepArchitecture?.remPercent || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">REM Sleep (%)</span>
+              <span className="font-medium text-white font-inter">{data.sleepArchitecture?.remPercent || '---'}</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Respiratory Events */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Stethoscope className="h-4 w-4" />
-              <span>Respiratory Events</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+            <Stethoscope className="h-4 w-4 text-trust protocol-icon" />
+            Respiratory Events
+          </h3>
+          <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">AHI (NREM/REM)</span>
-              <span className="font-medium">{data.respiratoryEvents?.ahiNrem || '---'} / {data.respiratoryEvents?.ahiRem || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">AHI (NREM/REM)</span>
+              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.ahiNrem || '---'} / {data.respiratoryEvents?.ahiRem || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">AHI (supine/lateral)</span>
-              <span className="font-medium">{data.respiratoryEvents?.ahiSupine || '---'} / {data.respiratoryEvents?.ahiLateral || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">AHI (supine/lateral)</span>
+              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.ahiSupine || '---'} / {data.respiratoryEvents?.ahiLateral || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Central Apnea Index</span>
-              <span className="font-medium">{data.respiratoryEvents?.centralApneaIndex || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Central Apnea Index</span>
+              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.centralApneaIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Obstructive Apnea Index (/hr)</span>
-              <span className="font-medium">{data.respiratoryEvents?.obstructiveApneaIndex || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Obstructive Apnea Index (/hr)</span>
+              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.obstructiveApneaIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Mixed Apnea Index</span>
-              <span className="font-medium">{data.respiratoryEvents?.mixedApneaIndex || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Mixed Apnea Index</span>
+              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.mixedApneaIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Hypopnea Index (/hr)</span>
-              <span className="font-medium">{data.respiratoryEvents?.hypopneaIndex || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Hypopnea Index (/hr)</span>
+              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.hypopneaIndex || '---'}</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Additional Metrics */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Activity className="h-4 w-4" />
-              <span>Additional Metrics</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+            <Activity className="h-4 w-4 text-trust protocol-icon" />
+            Additional Metrics
+          </h3>
+          <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Hypopnea Mean Duration (sec)</span>
-              <span className="font-medium">{data.respiratoryEvents?.meanHypopneaDuration || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Hypopnea Mean Duration (sec)</span>
+              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.meanHypopneaDuration || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Heart Rate (NREM/REM)</span>
-              <span className="font-medium">
+              <span className="text-sm text-white/70 font-inter">Heart Rate (NREM/REM)</span>
+              <span className="font-medium text-white font-inter">
                 {data.cardiacData?.meanHeartRateNrem || '---'} / {data.cardiacData?.meanHeartRateRem || '---'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Desaturation Index (/hr)</span>
-              <span className="font-medium">{data.oxygenation?.desaturationIndex || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Desaturation Index (/hr)</span>
+              <span className="font-medium text-white font-inter">{data.oxygenation?.desaturationIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Snoring (%)</span>
-              <span className="font-medium">{data.additionalMetrics?.snoringPercent || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Snoring (%)</span>
+              <span className="font-medium text-white font-inter">{data.additionalMetrics?.snoringPercent || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Leg Movement Index (/hr)</span>
-              <span className="font-medium">{data.additionalMetrics?.legMovementIndex || '---'}</span>
+              <span className="text-sm text-white/70 font-inter">Leg Movement Index (/hr)</span>
+              <span className="font-medium text-white font-inter">{data.additionalMetrics?.legMovementIndex || '---'}</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Oxygen Saturation */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <User className="h-4 w-4" />
-              <span>Oxygen Saturation</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+            <User className="h-4 w-4 text-trust protocol-icon" />
+            Oxygen Saturation
+          </h3>
+          <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">% Time with O2 &lt; 90%</span>
-              <span className="font-medium">{data.oxygenation?.timeBelow90Percent ?? '---'}</span>
+              <span className="text-sm text-white/70 font-inter">% Time with O2 &lt; 90%</span>
+              <span className="font-medium text-white font-inter">{data.oxygenation?.timeBelow90Percent ?? '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">% Time with O2 &lt; 95%</span>
-              <span className="font-medium">{data.oxygenation?.timeBelow95Percent ?? '---'}</span>
+              <span className="text-sm text-white/70 font-inter">% Time with O2 &lt; 95%</span>
+              <span className="font-medium text-white font-inter">{data.oxygenation?.timeBelow95Percent ?? '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Lowest O2 / Average O2</span>
-              <span className="font-medium">
+              <span className="text-sm text-white/70 font-inter">Lowest O2 / Average O2</span>
+              <span className="font-medium text-white font-inter">
                 {data.oxygenation?.lowestSpO2 || '---'} / {data.oxygenation?.averageSpO2 || '---'}
               </span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* AI Generated Summary */}
       {data.clinicalSummary && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardHeader>
-            <CardTitle>Clinical Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {data.clinicalSummary}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="medical-card rounded-xl border-primary/20 bg-primary/5 backdrop-blur-xl p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-white mb-4">Clinical Summary</h3>
+          <p className="text-sm text-white/70 leading-relaxed font-inter">
+            {data.clinicalSummary}
+          </p>
+        </div>
       )}
 
       {/* Feedback Dialog */}

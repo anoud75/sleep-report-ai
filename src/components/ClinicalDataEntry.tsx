@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -136,40 +134,41 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
   };
 
   return (
-    <Card className="medical-card border-trust/20 rounded-2xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-jakarta">
-          <Wind className="h-5 w-5 text-trust" />
+    <div className="medical-card rounded-2xl border-trust/20 bg-black/60 backdrop-blur-xl">
+      <div className="text-center p-6 border-b border-white/10">
+        <h2 className="text-2xl font-bold font-jakarta glow-text text-white mb-2 flex items-center justify-center gap-2">
+          <Wind className="h-5 w-5 text-trust protocol-icon" />
           Clinical Data Entry
-        </CardTitle>
-        <p className="text-sm text-muted-foreground font-inter">
+        </h2>
+        <p className="text-white/70 font-inter">
           {requiresPressureData 
             ? "CPAP/BPAP pressure and mask details are required for this study type"
             : "Mask configuration and clinical parameters (optional)"
           }
         </p>
-      </CardHeader>
-      <CardContent className="space-y-6">{/* ... keep existing code ... */}
-          <div className="space-y-4">
+      </div>
+      <div className="p-6 space-y-6">
+        {/* Mask Configuration */}
+        <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Settings className="h-4 w-4 text-trust protocol-icon" />
-            <Label className="text-base font-semibold font-jakarta">Mask Configuration</Label>
-            {requiresPressureData && <Badge variant="secondary" className="text-xs">Required</Badge>}
+            <label className="text-base font-semibold font-jakarta text-white">Mask Configuration</label>
+            {requiresPressureData && <Badge className="text-xs bg-trust/20 text-trust border-trust/30">Required</Badge>}
           </div>
 
           {/* Mask Type Selection */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium font-inter">Mask Type *</Label>
+            <label className="text-sm font-medium font-inter text-white">Mask Type *</label>
             <Select value={maskType} onValueChange={(value) => { setMaskType(value); updateData({ maskType: value }); }}>
-              <SelectTrigger className="w-full bg-background/50 border-border/50 hover:border-trust/50 transition-colors">
-                <SelectValue placeholder="Select mask type" />
+              <SelectTrigger className="w-full bg-white/5 border-white/20 text-white hover:border-trust/50 transition-colors">
+                <SelectValue placeholder="Select mask type" className="text-white/70" />
               </SelectTrigger>
-              <SelectContent className="bg-card border-border shadow-[var(--shadow-elegant)] z-50">
+              <SelectContent className="bg-black/90 border-white/20 backdrop-blur-xl">
                 {maskTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value} className="hover:bg-trust/10">
+                  <SelectItem key={type.value} value={type.value} className="text-white hover:bg-trust/10 focus:bg-trust/10">
                     <div className="flex flex-col">
-                      <span className="font-medium font-inter">{type.label}</span>
-                      <span className="text-xs text-muted-foreground">{type.description}</span>
+                      <span className="font-medium font-inter text-white">{type.label}</span>
+                      <span className="text-xs text-white/70">{type.description}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -179,14 +178,14 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
 
           {/* Mask Size Selection */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium font-inter">Mask Size *</Label>
+            <label className="text-sm font-medium font-inter text-white">Mask Size *</label>
             <Select value={maskSize} onValueChange={(value) => { setMaskSize(value); updateData({ maskSize: value }); }}>
-              <SelectTrigger className="w-full bg-background/50 border-border/50 hover:border-trust/50 transition-colors">
-                <SelectValue placeholder="Select mask size" />
+              <SelectTrigger className="w-full bg-white/5 border-white/20 text-white hover:border-trust/50 transition-colors">
+                <SelectValue placeholder="Select mask size" className="text-white/70" />
               </SelectTrigger>
-              <SelectContent className="bg-card border-border shadow-[var(--shadow-elegant)] z-50">
+              <SelectContent className="bg-black/90 border-white/20 backdrop-blur-xl">
                 {maskSizes.map((size) => (
-                  <SelectItem key={size.value} value={size.value} className="hover:bg-trust/10">
+                  <SelectItem key={size.value} value={size.value} className="text-white hover:bg-trust/10 focus:bg-trust/10">
                     {size.label}
                   </SelectItem>
                 ))}
@@ -195,65 +194,66 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
           </div>
 
           {/* Accessories */}
-          <div className="flex items-center space-x-3 p-3 rounded-lg border border-border/50 bg-background/30 hover:bg-background/50 transition-colors">
+          <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 transition-colors">
             <Switch
               id="chinstrap"
               checked={hasChinstrap}
               onCheckedChange={(checked) => { setHasChinstrap(checked); updateData({ hasChinstrap: checked }); }}
             />
-            <Label htmlFor="chinstrap" className="text-sm font-inter">Chinstrap</Label>
+            <label htmlFor="chinstrap" className="text-sm font-inter text-white">Chinstrap</label>
           </div>
 
           {/* Heated Humidifier for Therapeutic/Split-Night Studies */}
           {isTherapeuticOrSplitNight && (
-            <div className="flex items-center space-x-3 p-3 rounded-lg border border-border/50 bg-background/30 hover:bg-background/50 transition-colors">
+            <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 transition-colors">
               <Switch
                 id="heated-humidifier"
                 checked={hasHeatedHumidifier}
                 onCheckedChange={(checked) => { setHasHeatedHumidifier(checked); updateData({ hasHeatedHumidifier: checked }); }}
               />
-              <Label htmlFor="heated-humidifier" className="text-sm font-inter">Heated Humidifier</Label>
+              <label htmlFor="heated-humidifier" className="text-sm font-inter text-white">Heated Humidifier</label>
             </div>
           )}
         </div>
 
         {/* Study Information Section */}
-        <Separator />
+        <Separator className="border-white/20" />
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-primary" />
-            <Label className="text-base font-semibold">Study Information</Label>
+            <Settings className="h-4 w-4 text-trust protocol-icon" />
+            <label className="text-base font-semibold font-jakarta text-white">Study Information</label>
           </div>
 
-          <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+          <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 bg-white/5">
             <Switch
               id="repeated-study"
               checked={isRepeatedStudy}
               onCheckedChange={(checked) => { setIsRepeatedStudy(checked); updateData({ isRepeatedStudy: checked }); }}
             />
-            <Label htmlFor="repeated-study" className="text-sm">Repeated Study</Label>
+            <label htmlFor="repeated-study" className="text-sm text-white font-inter">Repeated Study</label>
           </div>
 
           {/* Oxygen Usage for Therapeutic/Split-Night Studies */}
           {isTherapeuticOrSplitNight && (
             <div className="space-y-3">
-              <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 bg-white/5">
                 <Switch
                   id="oxygen-used"
                   checked={oxygenUsed}
                   onCheckedChange={(checked) => { setOxygenUsed(checked); updateData({ oxygenUsed: checked }); }}
                 />
-                <Label htmlFor="oxygen-used" className="text-sm">O2 Used</Label>
+                <label htmlFor="oxygen-used" className="text-sm text-white font-inter">O2 Used</label>
               </div>
               
               {oxygenUsed && (
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Liters per minute</Label>
+                  <label className="text-sm font-medium text-white font-inter">Liters per minute</label>
                   <Input
                     type="number"
                     placeholder="e.g., 2"
                     value={oxygenLiters}
                     onChange={(e) => { setOxygenLiters(e.target.value); updateData({ oxygenLiters: e.target.value }); }}
+                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
                   />
                 </div>
               )}
@@ -262,27 +262,27 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
         </div>
 
         {/* Patient Comments Section */}
-        <Separator />
+        <Separator className="border-white/20" />
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-primary" />
-            <Label className="text-base font-semibold">Patient Comments</Label>
-            <Badge variant="outline" className="text-xs">Optional</Badge>
+            <MessageSquare className="h-4 w-4 text-trust protocol-icon" />
+            <label className="text-base font-semibold text-white font-jakarta">Patient Comments</label>
+            <Badge className="text-xs bg-white/10 text-white/70 border-white/20">Optional</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-white/70 font-inter">
             Select multiple comments that apply to this patient
           </p>
           
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full justify-start text-left font-normal">
+              <Button variant="outline" className="w-full justify-start text-left font-normal bg-white/5 border-white/20 text-white hover:bg-white/10">
                 <MessageSquare className="mr-2 h-4 w-4" />
                 {selectedComments.length === 0
                   ? "Select patient comments..."
                   : `${selectedComments.length} comment${selectedComments.length > 1 ? 's' : ''} selected`}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-3 bg-background border shadow-lg z-50" align="start">
+            <PopoverContent className="w-full p-3 bg-black/90 border-white/20 backdrop-blur-xl z-50" align="start">
               <div className="space-y-3 max-h-60 overflow-y-auto">
                 {patientComments.map((comment) => (
                   <div key={comment.value} className="flex items-start space-x-3">
@@ -297,9 +297,9 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
                         updateData({ selectedComments: newComments });
                       }}
                     />
-                    <Label htmlFor={comment.value} className="text-sm cursor-pointer leading-relaxed">
+                    <label htmlFor={comment.value} className="text-sm cursor-pointer leading-relaxed text-white font-inter">
                       {comment.label}
-                    </Label>
+                    </label>
                   </div>
                 ))}
               </div>
@@ -310,53 +310,56 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
         {/* Pressure Configuration Section */}
         {requiresPressureData && (
           <>
-            <Separator />
+            <Separator className="border-white/20" />
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-primary" />
-                <Label className="text-base font-semibold">Pressure Settings</Label>
-                <Badge variant="secondary" className="text-xs">Required</Badge>
+                <Activity className="h-4 w-4 text-trust protocol-icon" />
+                <label className="text-base font-semibold text-white font-jakarta">Pressure Settings</label>
+                <Badge className="text-xs bg-trust/20 text-trust border-trust/30">Required</Badge>
               </div>
 
               {/* BPAP Toggle */}
-              <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 bg-white/5">
                 <Switch
                   id="bpap"
                   checked={bpapUsed}
                   onCheckedChange={(checked) => { setBpapUsed(checked); updateData({ bpapUsed: checked }); }}
                 />
-                <Label htmlFor="bpap" className="text-sm font-medium">BPAP Used (instead of CPAP)</Label>
+                <label htmlFor="bpap" className="text-sm font-medium text-white font-inter">BPAP Used (instead of CPAP)</label>
               </div>
 
               {bpapUsed ? (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">IPAP Pressure (cmH2O) *</Label>
+                    <label className="text-sm font-medium text-white font-inter">IPAP Pressure (cmH2O) *</label>
                     <Input
                       type="number"
                       placeholder="e.g., 12"
                       value={ipapPressure}
                       onChange={(e) => { setIpapPressure(e.target.value); updateData({ ipapPressure: e.target.value }); }}
+                      className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">EPAP Pressure (cmH2O) *</Label>
+                    <label className="text-sm font-medium text-white font-inter">EPAP Pressure (cmH2O) *</label>
                     <Input
                       type="number"
                       placeholder="e.g., 8"
                       value={epapPressure}
                       onChange={(e) => { setEpapPressure(e.target.value); updateData({ epapPressure: e.target.value }); }}
+                      className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
                     />
                   </div>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">CPAP Pressure (cmH2O) *</Label>
+                  <label className="text-sm font-medium text-white font-inter">CPAP Pressure (cmH2O) *</label>
                   <Input
                     type="number"
                     placeholder="e.g., 10"
                     value={cpapPressure}
                     onChange={(e) => { setCpapPressure(e.target.value); updateData({ cpapPressure: e.target.value }); }}
+                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
                   />
                 </div>
               )}
@@ -365,43 +368,46 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
         )}
 
         {/* Optional Clinical Parameters */}
-        <Separator />
+        <Separator className="border-white/20" />
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Pill className="h-4 w-4 text-muted-foreground" />
-            <Label className="text-base font-semibold text-muted-foreground">Optional Clinical Data</Label>
-            <Badge variant="outline" className="text-xs">Optional</Badge>
+            <Pill className="h-4 w-4 text-white/70" />
+            <label className="text-base font-semibold text-white/70 font-jakarta">Optional Clinical Data</label>
+            <Badge className="text-xs bg-white/10 text-white/70 border-white/20">Optional</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-white/70 font-inter">
             These parameters are not extracted from uploaded files and must be entered manually if available
           </p>
 
           {/* EtCO2 Values */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">EtCO2 (mmHg)</Label>
+            <label className="text-sm font-medium text-white font-inter">EtCO2 (mmHg)</label>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Awake</Label>
+                <label className="text-xs text-white/70 font-inter">Awake</label>
                 <Input
                   placeholder="e.g., 35"
                   value={etco2Awake}
                   onChange={(e) => { setEtco2Awake(e.target.value); updateData({ etco2Awake: e.target.value }); }}
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">NREM</Label>
+                <label className="text-xs text-white/70 font-inter">NREM</label>
                 <Input
                   placeholder="e.g., 38"
                   value={etco2Nrem}
                   onChange={(e) => { setEtco2Nrem(e.target.value); updateData({ etco2Nrem: e.target.value }); }}
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">REM</Label>
+                <label className="text-xs text-white/70 font-inter">REM</label>
                 <Input
                   placeholder="e.g., 40"
                   value={etco2Rem}
                   onChange={(e) => { setEtco2Rem(e.target.value); updateData({ etco2Rem: e.target.value }); }}
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
                 />
               </div>
             </div>
@@ -409,30 +415,33 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
 
           {/* TcCO2 Values */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">TcCO2 (mmHg)</Label>
+            <label className="text-sm font-medium text-white font-inter">TcCO2 (mmHg)</label>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Awake</Label>
+                <label className="text-xs text-white/70 font-inter">Awake</label>
                 <Input
                   placeholder="e.g., 45"
                   value={tcco2Awake}
                   onChange={(e) => { setTcco2Awake(e.target.value); updateData({ tcco2Awake: e.target.value }); }}
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">NREM</Label>
+                <label className="text-xs text-white/70 font-inter">NREM</label>
                 <Input
                   placeholder="e.g., 47"
                   value={tcco2Nrem}
                   onChange={(e) => { setTcco2Nrem(e.target.value); updateData({ tcco2Nrem: e.target.value }); }}
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">REM</Label>
+                <label className="text-xs text-white/70 font-inter">REM</label>
                 <Input
                   placeholder="e.g., 48"
                   value={tcco2Rem}
                   onChange={(e) => { setTcco2Rem(e.target.value); updateData({ tcco2Rem: e.target.value }); }}
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
                 />
               </div>
             </div>
@@ -440,12 +449,13 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
 
           {/* Medication */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Medication</Label>
+            <label className="text-sm font-medium text-white font-inter">Medication</label>
             <Textarea
               placeholder="e.g., Tab. Zolpidem 10mg at 10:30 PM"
               value={medication}
               onChange={(e) => { setMedication(e.target.value); updateData({ medication: e.target.value }); }}
               rows={2}
+              className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
             />
           </div>
         </div>
@@ -453,25 +463,25 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
         {/* Configuration Summary */}
         {maskType && maskSize && (
           <div className="p-4 bg-success/10 rounded-lg border border-success/20">
-            <h4 className="text-sm font-medium text-success mb-2">Configuration Summary</h4>
+            <h4 className="text-sm font-medium text-success mb-2 font-jakarta">Configuration Summary</h4>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="border-success/30 text-success">
+              <Badge className="border-success/30 text-success bg-success/10">
                 {maskTypes.find(t => t.value === maskType)?.label}
               </Badge>
-              <Badge variant="outline" className="border-success/30 text-success">
+              <Badge className="border-success/30 text-success bg-success/10">
                 Size: {maskSizes.find(s => s.value === maskSize)?.label}
               </Badge>
               {requiresPressureData && (
                 <>
                   {bpapUsed ? (
                     ipapPressure && epapPressure && (
-                      <Badge variant="outline" className="border-success/30 text-success">
+                      <Badge className="border-success/30 text-success bg-success/10">
                         BPAP: {ipapPressure}/{epapPressure} cmH2O
                       </Badge>
                     )
                   ) : (
                     cpapPressure && (
-                      <Badge variant="outline" className="border-success/30 text-success">
+                      <Badge className="border-success/30 text-success bg-success/10">
                         CPAP: {cpapPressure} cmH2O
                       </Badge>
                     )
@@ -479,34 +489,34 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
                 </>
               )}
               {hasChinstrap && (
-                <Badge variant="outline" className="border-success/30 text-success">
+                <Badge className="border-success/30 text-success bg-success/10">
                   + Chinstrap
                 </Badge>
               )}
               {isTherapeuticOrSplitNight && hasHeatedHumidifier && (
-                <Badge variant="outline" className="border-success/30 text-success">
+                <Badge className="border-success/30 text-success bg-success/10">
                   + Heated Humidifier
                 </Badge>
               )}
               {isRepeatedStudy && (
-                <Badge variant="outline" className="border-success/30 text-success">
+                <Badge className="border-success/30 text-success bg-success/10">
                   Repeated Study
                 </Badge>
               )}
               {isTherapeuticOrSplitNight && oxygenUsed && oxygenLiters && (
-                <Badge variant="outline" className="border-success/30 text-success">
+                <Badge className="border-success/30 text-success bg-success/10">
                   O2: {oxygenLiters} L/min
                 </Badge>
               )}
               {selectedComments.length > 0 && (
-                <Badge variant="outline" className="border-success/30 text-success">
+                <Badge className="border-success/30 text-success bg-success/10">
                   {selectedComments.length} Comment{selectedComments.length > 1 ? 's' : ''}
                 </Badge>
               )}
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

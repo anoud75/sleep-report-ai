@@ -97,16 +97,16 @@ export const ContactForm = () => {
   }
 
   return (
-    <div className="medical-card rounded-2xl border-trust/20 bg-black/60 backdrop-blur-xl">
-      <div className="text-center p-8 border-b border-white/10">
-        <h2 className="text-3xl font-bold font-jakarta glow-text text-white mb-2">
+    <div className="medical-card rounded-2xl border-trust/20 bg-black/60 backdrop-blur-xl max-w-2xl mx-auto">
+      <div className="text-center p-6 border-b border-white/10">
+        <h2 className="text-2xl font-bold font-jakarta glow-text text-white mb-2">
           Get in Touch
         </h2>
-        <p className="text-lg text-white/70 font-inter">
+        <p className="text-white/70 font-inter">
           Have questions or need support? We're here to help.
         </p>
       </div>
-      <div className="p-8">
+      <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label htmlFor="fullName" className="text-sm font-medium text-white font-inter">
@@ -174,7 +174,7 @@ export const ContactForm = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="luxury-button haptic-feedback w-full font-inter tracking-wide py-4 rounded-xl"
+            className="w-full py-3 bg-gradient-to-r from-trust to-trust/80 text-white font-semibold font-inter rounded-xl hover:from-trust/90 hover:to-trust/70 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
