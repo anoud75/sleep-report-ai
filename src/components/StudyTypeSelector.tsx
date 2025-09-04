@@ -37,13 +37,13 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-3 animate-fade-in-up">
+      <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-1 bg-gradient-to-b from-trust to-success rounded-full animate-glow-pulse"></div>
-          <h2 className="text-2xl font-bold text-white font-jakarta glow-text">Study Type Selection</h2>
-          <Sparkles className="h-5 w-5 text-trust animate-rotate-slow protocol-icon" />
+          <div className="h-8 w-1 bg-gradient-to-b from-trust to-success rounded-full"></div>
+          <h2 className="text-2xl font-bold text-foreground font-heading">Study Type Selection</h2>
+          <Sparkles className="h-5 w-5 text-trust" />
         </div>
-        <p className="text-white/70 ml-7 font-inter">Choose the appropriate study protocol for analysis</p>
+        <p className="text-muted-foreground ml-7 font-body">Choose the appropriate study protocol for analysis</p>
       </div>
 
       {/* Study Type Cards */}
@@ -55,12 +55,11 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           return (
             <div
               key={type.id}
-              className={`group relative overflow-hidden cursor-pointer transition-all duration-700 ease-out border-2 animate-fade-in-up haptic-feedback rounded-2xl p-6 ${
+              className={`group relative overflow-hidden cursor-pointer transition-all duration-300 ease-out border-2 rounded-2xl p-6 ${
                 isSelected 
-                  ? 'border-primary bg-black/80 shadow-[var(--shadow-glow)] scale-[1.02] backdrop-blur-xl'
-                  : 'border-white/10 bg-black/40 hover:border-primary/50 hover:shadow-[var(--shadow-medical)] hover:bg-black/60 backdrop-blur-sm'
+                  ? 'border-primary bg-primary/5 shadow-lg shadow-primary/20 scale-[1.02]'
+                  : 'border-border bg-card hover:border-primary/50 hover:shadow-lg hover:bg-primary/5'
               }`}
-              style={{animationDelay: `${index * 0.1}s`}}
               onClick={() => onTypeSelect(type.id)}
             >
               {/* Selection Glow Effect */}
@@ -70,17 +69,17 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
               
               <div className="relative flex items-start gap-6">
                 {/* Icon Container */}
-                <div className={`protocol-icon relative p-4 rounded-2xl transition-all duration-700 ${
+                <div className={`relative p-4 rounded-2xl transition-all duration-300 ${
                   isSelected 
-                    ? 'bg-primary/20 shadow-[var(--shadow-glow)] border border-primary/30' 
-                    : 'bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-primary/30'
+                    ? 'bg-primary/20 shadow-lg shadow-primary/20 border border-primary/30' 
+                    : 'bg-muted/50 border border-border group-hover:bg-primary/10 group-hover:border-primary/30'
                 }`}>
-                  <Icon className={`h-7 w-7 transition-all duration-500 ${
-                    isSelected ? 'text-primary' : 'text-white/60 group-hover:text-white/90'
+                  <Icon className={`h-7 w-7 transition-all duration-300 ${
+                    isSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
                   }`} />
                   {isSelected && (
-                    <div className="absolute -top-1 -right-1 animate-scale-in">
-                      <CheckCircle className="h-5 w-5 text-primary bg-black rounded-full shadow-lg" />
+                    <div className="absolute -top-1 -right-1">
+                      <CheckCircle className="h-5 w-5 text-primary bg-background rounded-full shadow-lg" />
                     </div>
                   )}
                 </div>
@@ -91,14 +90,14 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-3">
-                        <h3 className={`text-xl font-bold font-jakarta transition-colors duration-500 ${
-                          isSelected ? 'text-primary' : 'text-white group-hover:text-white/95'
+                        <h3 className={`text-xl font-bold font-heading transition-colors duration-300 ${
+                          isSelected ? 'text-primary' : 'text-foreground group-hover:text-primary'
                         }`}>
                           {type.name}
                         </h3>
                       </div>
-                      <p className={`text-sm leading-relaxed font-inter transition-colors duration-500 ${
-                        isSelected ? 'text-white/90' : 'text-white/70 group-hover:text-white/85'
+                      <p className={`text-sm leading-relaxed font-body transition-colors duration-300 ${
+                        isSelected ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                       }`}>
                         {type.description}
                       </p>
@@ -108,16 +107,16 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
                   {/* Features Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {type.details.map((detail, detailIndex) => (
-                      <div key={detailIndex} className={`flex items-center gap-2 p-3 rounded-xl transition-all duration-500 hover:scale-105 haptic-feedback ${
+                      <div key={detailIndex} className={`flex items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 ${
                         isSelected 
-                          ? 'bg-primary/10 border border-primary/20 animate-fade-in shadow-sm' 
-                          : 'bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-white/20'
-                      }`} style={{animationDelay: `${detailIndex * 0.1}s`}}>
-                        <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all duration-500 ${
-                          isSelected ? 'bg-primary animate-glow-pulse shadow-sm' : 'bg-white/30 group-hover:bg-white/50'
+                          ? 'bg-primary/10 border border-primary/20 shadow-sm' 
+                          : 'bg-muted/30 border border-border group-hover:bg-primary/5 group-hover:border-primary/20'
+                      }`}>
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all duration-300 ${
+                          isSelected ? 'bg-primary shadow-sm' : 'bg-muted-foreground group-hover:bg-primary'
                         }`}></div>
-                        <span className={`text-xs font-medium font-inter leading-tight transition-colors duration-500 ${
-                          isSelected ? 'text-white/95' : 'text-white/70 group-hover:text-white/85'
+                        <span className={`text-xs font-medium font-body leading-tight transition-colors duration-300 ${
+                          isSelected ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                         }`}>
                           {detail}
                         </span>

@@ -84,11 +84,11 @@ export const ContactForm = () => {
 
   if (isSubmitted) {
     return (
-      <div className="medical-card rounded-2xl border-success/30 bg-black/60 backdrop-blur-xl">
+      <div className="bg-card border border-success/30 rounded-2xl shadow-lg">
         <div className="flex flex-col items-center justify-center py-12 px-8">
-          <CheckCircle className="h-16 w-16 text-success mb-4 protocol-icon" />
-          <h3 className="text-xl font-semibold text-white mb-2 font-jakarta">Message Sent Successfully!</h3>
-          <p className="text-white/70 text-center font-inter">
+          <CheckCircle className="h-16 w-16 text-success mb-4" />
+          <h3 className="text-xl font-semibold text-foreground mb-2 font-heading">Message Sent Successfully!</h3>
+          <p className="text-muted-foreground text-center font-body">
             Thank you for reaching out. We'll get back to you as soon as possible.
           </p>
         </div>
@@ -97,19 +97,19 @@ export const ContactForm = () => {
   }
 
   return (
-    <div className="medical-card rounded-2xl border-trust/20 bg-black/60 backdrop-blur-xl max-w-2xl mx-auto">
-      <div className="text-center p-6 border-b border-white/10">
-        <h2 className="text-2xl font-bold font-jakarta glow-text text-white mb-2">
+    <div className="bg-card border border-border rounded-2xl shadow-lg max-w-2xl mx-auto">
+      <div className="text-center p-6 border-b border-border">
+        <h2 className="text-2xl font-bold font-heading text-foreground mb-2">
           Get in Touch
         </h2>
-        <p className="text-white/70 font-inter">
+        <p className="text-muted-foreground font-body">
           Have questions or need support? We're here to help.
         </p>
       </div>
       <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="fullName" className="text-sm font-medium text-white font-inter">
+            <label htmlFor="fullName" className="text-sm font-medium text-foreground font-body">
               Full Name *
             </label>
             <input
@@ -118,13 +118,13 @@ export const ContactForm = () => {
               placeholder="Your full name"
               value={formData.fullName}
               onChange={(e) => handleInputChange('fullName', e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:border-trust hover:border-white/40 transition-colors font-inter focus:outline-none focus:ring-2 focus:ring-trust/20"
+              className="w-full px-4 py-3 bg-background border border-input rounded-xl text-foreground placeholder:text-muted-foreground focus:border-primary hover:border-primary/50 transition-colors font-body focus:outline-none focus:ring-2 focus:ring-primary/20"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-white font-inter">
+            <label htmlFor="email" className="text-sm font-medium text-foreground font-body">
               Email Address *
             </label>
             <input
@@ -133,24 +133,24 @@ export const ContactForm = () => {
               placeholder="example@email.com"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:border-trust hover:border-white/40 transition-colors font-inter focus:outline-none focus:ring-2 focus:ring-trust/20"
+              className="w-full px-4 py-3 bg-background border border-input rounded-xl text-foreground placeholder:text-muted-foreground focus:border-primary hover:border-primary/50 transition-colors font-body focus:outline-none focus:ring-2 focus:ring-primary/20"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="inquiryType" className="text-sm font-medium text-white font-inter">
+            <label htmlFor="inquiryType" className="text-sm font-medium text-foreground font-body">
               Type of Inquiry *
             </label>
             <select 
               value={formData.inquiryType} 
               onChange={(e) => handleInputChange('inquiryType', e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white focus:border-trust hover:border-white/40 transition-colors font-inter focus:outline-none focus:ring-2 focus:ring-trust/20"
+              className="w-full px-4 py-3 bg-background border border-input rounded-xl text-foreground focus:border-primary hover:border-primary/50 transition-colors font-body focus:outline-none focus:ring-2 focus:ring-primary/20"
               required
             >
-              <option value="" className="bg-black text-white">Select inquiry type</option>
+              <option value="" className="bg-background text-foreground">Select inquiry type</option>
               {inquiryTypes.map((type) => (
-                <option key={type} value={type} className="bg-black text-white">
+                <option key={type} value={type} className="bg-background text-foreground">
                   {type}
                 </option>
               ))}
@@ -158,7 +158,7 @@ export const ContactForm = () => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="message" className="text-sm font-medium text-white font-inter">
+            <label htmlFor="message" className="text-sm font-medium text-foreground font-body">
               Message *
             </label>
             <textarea
@@ -166,7 +166,7 @@ export const ContactForm = () => {
               placeholder="Write your message here…"
               value={formData.message}
               onChange={(e) => handleInputChange('message', e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:border-trust hover:border-white/40 transition-colors min-h-[120px] resize-none font-inter focus:outline-none focus:ring-2 focus:ring-trust/20"
+              className="w-full px-4 py-3 bg-background border border-input rounded-xl text-foreground placeholder:text-muted-foreground focus:border-primary hover:border-primary/50 transition-colors min-h-[120px] resize-none font-body focus:outline-none focus:ring-2 focus:ring-primary/20"
               required
             />
           </div>
@@ -174,7 +174,7 @@ export const ContactForm = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 bg-gradient-to-r from-trust to-trust/80 text-white font-semibold font-inter rounded-xl hover:from-trust/90 hover:to-trust/70 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold font-body rounded-xl hover:from-primary/90 hover:to-primary/70 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
