@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { SleepLogo } from './SleepLogo';
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,18 +16,28 @@ export const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    } else if (sectionId === 'home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleNavigation = (link: any) => {
+    if (link.path) {
+      // Navigate to different page
+      navigate(link.path);
+    } else if (location.pathname === '/' && link.id) {
+      // Scroll to section on home page
+      const element = document.getElementById(link.id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      } else if (link.id === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else if (link.id) {
+      // Navigate to home page and scroll to section
+      navigate('/', { state: { scrollTo: link.id } });
     }
   };
 
   const navLinks = [
     { name: 'Home', id: 'home' },
     { name: 'About', id: 'about-section' },
+    { name: 'Analysis', path: '/analysis' },
     { name: 'Contact', id: 'contact-section' }
   ];
 
@@ -40,7 +53,7 @@ export const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <button 
-            onClick={() => scrollToSection('home')}
+            onClick={() => navigate('/')}
             className="flex items-center space-x-3 hover:scale-105 transition-transform duration-300 group"
           >
             <SleepLogo size="md" className="group-hover:animate-float" />
@@ -53,9 +66,11 @@ export const Header = () => {
           <div className="flex items-center space-x-8">
             {navLinks.map((link) => (
               <button
-                key={link.id}
-                onClick={() => scrollToSection(link.id)}
-                className="text-white/80 hover:text-white transition-colors duration-300 font-medium relative group"
+                key={link.id || link.path}
+                onClick={() => handleNavigation(link)}
+                className={`text-white/80 hover:text-white transition-colors duration-300 font-medium relative group ${
+                  (link.path && location.pathname === link.path) ? 'text-white' : ''
+                }`}
               >
                 {link.name}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:w-full transition-all duration-300"></span>
