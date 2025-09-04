@@ -271,13 +271,13 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             </button>
             <button
               onClick={handlePreviewReport}
-              className="px-6 py-3 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors font-inter"
+              className="px-6 py-3 bg-muted/50 border rounded-xl text-foreground hover:bg-muted transition-colors font-inter"
             >
               Preview
             </button>
             <button
               onClick={onNewReport}
-              className="px-6 py-3 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors font-inter"
+              className="px-6 py-3 bg-muted/50 border rounded-xl text-foreground hover:bg-muted transition-colors font-inter"
             >
               New Report
             </button>
@@ -319,141 +319,141 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         </div>
 
         {/* Sleep Latency & Efficiency */}
-        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
-          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+        <div className="bg-background rounded-xl border p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
             <Activity className="h-4 w-4 text-trust protocol-icon" />
             Sleep Quality
           </h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Sleep Latency (min)</span>
-              <span className="font-medium text-white font-inter">{data.studyInfo?.sleepLatency || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Sleep Latency (min)</span>
+              <span className="font-medium text-foreground font-inter">{data.studyInfo?.sleepLatency || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">REM Latency (min)</span>
-              <span className="font-medium text-white font-inter">{data.studyInfo?.remLatency || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">REM Latency (min)</span>
+              <span className="font-medium text-foreground font-inter">{data.studyInfo?.remLatency || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Sleep Efficiency (%)</span>
-              <span className="font-medium text-white font-inter">{data.sleepArchitecture?.sleepEfficiency || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Sleep Efficiency (%)</span>
+              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.sleepEfficiency || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Arousal Index (/hr)</span>
-              <span className="font-medium text-white font-inter">{data.additionalMetrics?.arousalIndex || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Arousal Index (/hr)</span>
+              <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.arousalIndex || '---'}</span>
             </div>
           </div>
         </div>
 
         {/* Sleep Stages */}
-        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
-          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+        <div className="bg-background rounded-xl border p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-trust protocol-icon" />
             Sleep Architecture
           </h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Sleep Stage 1 (%)</span>
-              <span className="font-medium text-white font-inter">{data.sleepArchitecture?.stage1Percent || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Sleep Stage 1 (%)</span>
+              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.stage1Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Sleep Stage 2 (%)</span>
-              <span className="font-medium text-white font-inter">{data.sleepArchitecture?.stage2Percent || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Sleep Stage 2 (%)</span>
+              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.stage2Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Slow Wave Sleep (%)</span>
-              <span className="font-medium text-white font-inter">{data.sleepArchitecture?.stage3Percent || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Slow Wave Sleep (%)</span>
+              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.stage3Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">REM Sleep (%)</span>
-              <span className="font-medium text-white font-inter">{data.sleepArchitecture?.remPercent || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">REM Sleep (%)</span>
+              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.remPercent || '---'}</span>
             </div>
           </div>
         </div>
 
         {/* Respiratory Events */}
-        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
-          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+        <div className="bg-background rounded-xl border p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
             <Stethoscope className="h-4 w-4 text-trust protocol-icon" />
             Respiratory Events
           </h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">AHI (NREM/REM)</span>
-              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.ahiNrem || '---'} / {data.respiratoryEvents?.ahiRem || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">AHI (NREM/REM)</span>
+              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.ahiNrem || '---'} / {data.respiratoryEvents?.ahiRem || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">AHI (supine/lateral)</span>
-              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.ahiSupine || '---'} / {data.respiratoryEvents?.ahiLateral || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">AHI (supine/lateral)</span>
+              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.ahiSupine || '---'} / {data.respiratoryEvents?.ahiLateral || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Central Apnea Index</span>
-              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.centralApneaIndex || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Central Apnea Index</span>
+              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.centralApneaIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Obstructive Apnea Index (/hr)</span>
-              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.obstructiveApneaIndex || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Obstructive Apnea Index (/hr)</span>
+              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.obstructiveApneaIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Mixed Apnea Index</span>
-              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.mixedApneaIndex || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Mixed Apnea Index</span>
+              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.mixedApneaIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Hypopnea Index (/hr)</span>
-              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.hypopneaIndex || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Hypopnea Index (/hr)</span>
+              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.hypopneaIndex || '---'}</span>
             </div>
           </div>
         </div>
 
         {/* Additional Metrics */}
-        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
-          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+        <div className="bg-background rounded-xl border p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
             <Activity className="h-4 w-4 text-trust protocol-icon" />
             Additional Metrics
           </h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Hypopnea Mean Duration (sec)</span>
-              <span className="font-medium text-white font-inter">{data.respiratoryEvents?.meanHypopneaDuration || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Hypopnea Mean Duration (sec)</span>
+              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.meanHypopneaDuration || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Heart Rate (NREM/REM)</span>
-              <span className="font-medium text-white font-inter">
+              <span className="text-sm text-muted-foreground font-inter">Heart Rate (NREM/REM)</span>
+              <span className="font-medium text-foreground font-inter">
                 {data.cardiacData?.meanHeartRateNrem || '---'} / {data.cardiacData?.meanHeartRateRem || '---'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Desaturation Index (/hr)</span>
-              <span className="font-medium text-white font-inter">{data.oxygenation?.desaturationIndex || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Desaturation Index (/hr)</span>
+              <span className="font-medium text-foreground font-inter">{data.oxygenation?.desaturationIndex || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Snoring (%)</span>
-              <span className="font-medium text-white font-inter">{data.additionalMetrics?.snoringPercent || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Snoring (%)</span>
+              <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.snoringPercent || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Leg Movement Index (/hr)</span>
-              <span className="font-medium text-white font-inter">{data.additionalMetrics?.legMovementIndex || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Leg Movement Index (/hr)</span>
+              <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.legMovementIndex || '---'}</span>
             </div>
           </div>
         </div>
 
         {/* Oxygen Saturation */}
-        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
-          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+        <div className="bg-background rounded-xl border p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
             <User className="h-4 w-4 text-trust protocol-icon" />
             Oxygen Saturation
           </h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">% Time with O2 &lt; 90%</span>
-              <span className="font-medium text-white font-inter">{data.oxygenation?.timeBelow90Percent ?? '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 90%</span>
+              <span className="font-medium text-foreground font-inter">{data.oxygenation?.timeBelow90Percent ?? '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">% Time with O2 &lt; 95%</span>
-              <span className="font-medium text-white font-inter">{data.oxygenation?.timeBelow95Percent ?? '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 95%</span>
+              <span className="font-medium text-foreground font-inter">{data.oxygenation?.timeBelow95Percent ?? '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Lowest O2 / Average O2</span>
-              <span className="font-medium text-white font-inter">
+              <span className="text-sm text-muted-foreground font-inter">Lowest O2 / Average O2</span>
+              <span className="font-medium text-foreground font-inter">
                 {data.oxygenation?.lowestSpO2 || '---'} / {data.oxygenation?.averageSpO2 || '---'}
               </span>
             </div>
@@ -463,9 +463,9 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
 
       {/* AI Generated Summary */}
       {data.clinicalSummary && (
-        <div className="medical-card rounded-xl border-primary/20 bg-primary/5 backdrop-blur-xl p-6">
-          <h3 className="text-lg font-semibold font-jakarta text-white mb-4">Clinical Summary</h3>
-          <p className="text-sm text-white/70 leading-relaxed font-inter">
+        <div className="bg-primary/5 rounded-xl border border-primary/20 p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4">Clinical Summary</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed font-inter">
             {data.clinicalSummary}
           </p>
         </div>

@@ -333,7 +333,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                                 {uploadedFile.type}
                               </Badge>
                             </div>
-                            <p className="text-sm text-white/60">
+                            <p className="text-sm text-muted-foreground">
                               {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
                             </p>
                           </div>

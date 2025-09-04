@@ -39,7 +39,7 @@ export const LoadingAnimation = ({ message = "Processing sleep study..." }: Load
         </div>
 
         {/* Progress Shimmer */}
-        <div className="mt-6 h-1 bg-white/10 rounded-full overflow-hidden">
+        <div className="mt-6 h-1 bg-muted rounded-full overflow-hidden">
           <div className="h-full bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-shimmer bg-[length:200%_100%]"></div>
         </div>
       </div>
