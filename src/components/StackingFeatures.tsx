@@ -20,8 +20,7 @@ const features = [
 ];
 
 export const StackingFeatures = () => {
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeCards, setActiveCards] = useState([0]); // Start with first card active
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,26 +31,25 @@ export const StackingFeatures = () => {
       const rect = section.getBoundingClientRect();
       const windowHeight = window.innerHeight;
       
-      // Simple scroll detection: show cards based on how much the section is in view
-      const sectionTop = rect.top;
-      const sectionHeight = rect.height;
+      // Check if section is in viewport
+      const isInViewport = rect.top < windowHeight && rect.bottom > 0;
       
-      // Calculate progress from 0 to 1 as section scrolls through viewport
-      let progress = 0;
-      if (sectionTop <= 0 && sectionTop > -sectionHeight + windowHeight) {
-        progress = Math.abs(sectionTop) / (sectionHeight - windowHeight);
-        progress = Math.max(0, Math.min(1, progress));
-      }
-      
-      setScrollProgress(progress);
-
-      // Update active card based on scroll progress - more lenient timing
-      if (progress < 0.25) {
-        setActiveCardIndex(0);
-      } else if (progress < 0.65) {
-        setActiveCardIndex(1);
-      } else {
-        setActiveCardIndex(2);
+      if (isInViewport) {
+        // Calculate how much of the section is visible
+        const visibleHeight = Math.min(windowHeight, rect.bottom) - Math.max(0, rect.top);
+        const totalHeight = section.offsetHeight;
+        const scrollProgress = Math.max(0, Math.min(1, (windowHeight - rect.top) / totalHeight));
+        
+        // Show cards progressively based on scroll
+        if (scrollProgress > 0.1) {
+          setActiveCards([0]);
+        }
+        if (scrollProgress > 0.3) {
+          setActiveCards([0, 1]);
+        }
+        if (scrollProgress > 0.6) {
+          setActiveCards([0, 1, 2]);
+        }
       }
     };
 
@@ -81,21 +79,18 @@ export const StackingFeatures = () => {
         <div className="max-w-4xl mx-auto space-y-6">
           {features.map((feature, index) => {
             const Icon = feature.icon;
-            const isActive = activeCardIndex >= index;
-            const opacity = isActive ? 1 : 0.3;
-            const scale = isActive ? 1 : 0.95;
-            const translateY = isActive ? 0 : 20;
-
+            const isActive = activeCards.includes(index);
+            
             return (
               <div 
                 key={index}
-                className="transition-all duration-700 ease-out"
-                style={{
-                  opacity,
-                  transform: `translateY(${translateY}px) scale(${scale})`,
-                }}
+                className={`transition-all duration-800 ease-out ${
+                  isActive 
+                    ? 'opacity-100 translate-y-0 scale-100' 
+                    : 'opacity-30 translate-y-8 scale-95'
+                }`}
               >
-                <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 backdrop-blur-sm shadow-lg">
+                <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <div className="flex items-center gap-6">
                     <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-primary/20 backdrop-blur-sm border border-primary/30 flex items-center justify-center flex-shrink-0">
                       <Icon className="h-6 w-6 md:h-8 md:w-8 text-primary" />
@@ -129,7 +124,7 @@ export const StackingFeatures = () => {
                 key={index}
                 className={`
                   w-3 h-3 rounded-full transition-all duration-500
-                  ${index <= activeCardIndex 
+                  ${activeCards.includes(index)
                     ? 'bg-primary scale-125 shadow-lg shadow-primary/50' 
                     : 'bg-muted scale-100'
                   }
