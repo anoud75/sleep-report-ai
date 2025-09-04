@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -306,19 +305,19 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
         </Alert>
       )}
 
-      <Card className={`feature-card-enhanced transition-all duration-700 border-2 rounded-2xl ${
+      <div className={`medical-card transition-all duration-700 border-2 rounded-2xl bg-black/60 backdrop-blur-xl ${
         dragActive ? 'border-primary bg-primary/10 shadow-[var(--shadow-glow)] scale-[1.02]' : 
         success ? 'border-success bg-success/10 shadow-[var(--shadow-trust)]' :
-        'border-border/50 bg-card/50 hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]'
+        'border-white/20 hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]'
       }`}>
         {((files.length === 0) || (isSplitNight && files.length <= 2)) && !processing && !success && (
-          <CardContent className="p-8">
+          <div className="p-8">
             {isSplitNight ? (
               // Split Night Protocol - Two Upload Areas
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold mb-2 font-jakarta glow-text">Split Night Protocol</h3>
-                    <p className="text-muted-foreground font-inter">Upload both diagnostic and therapeutic files</p>
+                  <h3 className="text-xl font-bold mb-2 font-jakarta text-white glow-text">Split Night Protocol</h3>
+                    <p className="text-white/70 font-inter">Upload both diagnostic and therapeutic files</p>
                   </div>
                   
                   {/* Show uploaded files if any */}
@@ -334,7 +333,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                                 {uploadedFile.type}
                               </Badge>
                             </div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-white/60">
                               {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
                             </p>
                           </div>
@@ -357,7 +356,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                       }`}>
                         {files.some(f => f.type === 'diagnostic') ? '✓' : '1'}
                       </div>
-                      <h4 className="font-semibold">Diagnostic Part</h4>
+                      <h4 className="font-semibold text-white font-inter">Diagnostic Part</h4>
                     </div>
                     {!files.some(f => f.type === 'diagnostic') ? (
                         <div
@@ -372,7 +371,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                         >
                           <Upload className="mx-auto h-8 w-8 mb-2 text-trust protocol-icon" />
                           <p className="text-sm font-medium mb-1 font-inter">Drop diagnostic file here</p>
-                          <p className="text-xs text-muted-foreground">or click to select</p>
+                          <p className="text-xs text-white/60">or click to select</p>
                         </div>
                     ) : (
                       <div className="p-6 bg-success/10 border border-success/20 rounded-xl text-center">
@@ -392,7 +391,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                       }`}>
                         {files.some(f => f.type === 'therapeutic') ? '✓' : '2'}
                       </div>
-                      <h4 className="font-semibold">Therapeutic Part</h4>
+                      <h4 className="font-semibold text-white font-inter">Therapeutic Part</h4>
                     </div>
                     {!files.some(f => f.type === 'therapeutic') ? (
                         <div
@@ -407,7 +406,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                         >
                           <Upload className="mx-auto h-8 w-8 mb-2 text-success protocol-icon" />
                           <p className="text-sm font-medium mb-1 font-inter">Drop therapeutic file here</p>
-                          <p className="text-xs text-muted-foreground">or click to select</p>
+                          <p className="text-xs text-white/60">or click to select</p>
                         </div>
                     ) : (
                       <div className="p-6 bg-success/10 border border-success/20 rounded-xl text-center">
@@ -434,48 +433,48 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                     Process Studies
                   </Button>
                 
-                <div className="text-center text-sm text-muted-foreground">
+                <div className="text-center text-sm text-white/60 font-inter">
                   Supported formats: PDF, DOC, DOCX, RTF (Max 50MB each)
                 </div>
               </div>
             ) : (
               // Single File Upload
               <div
-                className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-500 overflow-hidden group ${
+                className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-700 overflow-hidden group ${
                   dragActive 
-                    ? 'border-primary bg-primary/5 scale-105 shadow-[var(--shadow-glow)] animate-pulse-glow' 
-                    : 'border-border hover:border-primary/50 hover:bg-primary/2'
+                    ? 'border-primary bg-primary/10 scale-105 shadow-[var(--shadow-glow)] animate-pulse-glow backdrop-blur-xl' 
+                    : 'border-white/20 bg-black/40 hover:border-primary/50 hover:bg-black/60 backdrop-blur-sm'
                 }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer bg-[length:200%_100%]"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer bg-[length:200%_100%]"></div>
                 
                 <div className="relative z-10 animate-fade-in-up">
                   <div className="relative mb-6">
-                    <Upload className={`mx-auto h-16 w-16 mb-4 transition-all duration-500 ${
-                      dragActive ? 'text-primary scale-110 animate-float' : 'text-muted-foreground group-hover:text-primary group-hover:scale-110'
+                    <Upload className={`mx-auto h-16 w-16 mb-4 transition-all duration-500 protocol-icon ${
+                      dragActive ? 'text-primary scale-110 animate-float' : 'text-white/60 group-hover:text-primary group-hover:scale-110'
                     }`} />
                     {dragActive && (
                       <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
                     )}
                   </div>
                   
-                  <h3 className={`text-xl font-bold mb-3 transition-colors duration-300 ${
-                    dragActive ? 'text-primary' : 'text-foreground'
+                  <h3 className={`text-xl font-bold mb-3 font-jakarta transition-colors duration-300 ${
+                    dragActive ? 'text-primary glow-text' : 'text-white'
                   }`}>
                     Drop your sleep study file here
                   </h3>
-                  <p className="text-muted-foreground mb-6">
+                  <p className="text-white/70 mb-6 font-inter">
                     Supported formats: PDF, DOC, DOCX, RTF
                   </p>
                   <Button 
                     variant="secondary" 
                     size="lg"
                     onClick={() => handleFileButtonClick()}
-                    className="shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] transition-all duration-300 hover:scale-105"
+                    className="luxury-button haptic-feedback font-inter tracking-wide"
                   >
                     <FileText className="h-5 w-5 mr-3" />
                     Select File
@@ -511,11 +510,11 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
               className="hidden"
               id="therapeutic-upload"
             />
-          </CardContent>
+          </div>
         )}
 
         {files.length > 0 && !isSplitNight && !processing && !success && (
-          <CardContent className="p-8 space-y-6">
+          <div className="p-8 space-y-6 border-t border-white/10">
             {/* Files List */}
             <div className="space-y-4">
               {files.map((uploadedFile, index) => (
@@ -523,14 +522,14 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                   {getFileIcon(uploadedFile.file.name)}
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-medium">{uploadedFile.file.name}</h4>
+                      <h4 className="font-medium text-white font-inter">{uploadedFile.file.name}</h4>
                       {isSplitNight && (
                         <Badge variant={uploadedFile.type === 'diagnostic' ? 'default' : 'secondary'}>
                           {uploadedFile.type}
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-white/60 font-inter">
                       {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
@@ -567,11 +566,11 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                 </AlertDescription>
               </Alert>
             )}
-          </CardContent>
+          </div>
         )}
 
         {processing && (
-          <CardContent className="p-8">
+          <div className="p-8 border-t border-white/10">
             <div className="flex items-start gap-6">
               <div className="relative p-4 rounded-2xl bg-primary/10 border border-primary/20 flex-shrink-0">
                 <Brain className="h-8 w-8 text-primary animate-pulse" />
@@ -580,15 +579,15 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
               
               <div className="flex-1 space-y-4">
                 <div className="space-y-1">
-                  <h3 className="text-xl font-bold text-foreground">Processing Sleep Study</h3>
-                  <p className="text-muted-foreground">AI is analyzing your sleep study data using medical-grade extraction...</p>
+                  <h3 className="text-xl font-bold text-white font-jakarta">Processing Sleep Study</h3>
+                  <p className="text-white/70 font-inter">AI is analyzing your sleep study data using medical-grade extraction...</p>
                 </div>
                 
                 <div className="space-y-3">
                   <Progress value={progress} className="h-3 bg-muted" />
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-white/70 font-inter">
                       {progress < 25 ? 'Extracting document content...' :
                        progress < 50 ? 'Analyzing clinical parameters...' :
                        progress < 75 ? 'Calculating sleep metrics...' :
@@ -598,11 +597,11 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                 </div>
               </div>
             </div>
-          </CardContent>
+          </div>
         )}
 
         {success && (
-          <CardContent className="p-8">
+          <div className="p-8 border-t border-white/10">
             <div className="flex items-start gap-6">
               <div className="relative p-4 rounded-2xl bg-success/10 border border-success/20 flex-shrink-0">
                 <CheckCircle className="h-8 w-8 text-success" />
@@ -611,8 +610,8 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
               
               <div className="flex-1 space-y-4">
                 <div className="space-y-1">
-                  <h3 className="text-xl font-bold text-foreground">Medical Analysis Complete!</h3>
-                  <p className="text-muted-foreground">Your professional sleep study report is ready for review</p>
+                  <h3 className="text-xl font-bold text-white font-jakarta">Medical Analysis Complete!</h3>
+                  <p className="text-white/70 font-inter">Your professional sleep study report is ready for review</p>
                 </div>
                 
                 <Button 
@@ -626,9 +625,9 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                 </Button>
               </div>
             </div>
-          </CardContent>
+          </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 };

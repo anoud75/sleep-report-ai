@@ -84,96 +84,97 @@ export const ContactForm = () => {
 
   if (isSubmitted) {
     return (
-      <Card className="bg-gradient-to-br from-background/80 to-background/60 backdrop-blur border-border/50 shadow-[var(--shadow-elegant)]">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <CheckCircle className="h-16 w-16 text-primary mb-4" />
-          <h3 className="text-xl font-semibold text-foreground mb-2">Message Sent Successfully!</h3>
-          <p className="text-muted-foreground text-center">
+      <div className="medical-card rounded-2xl border-success/30 bg-black/60 backdrop-blur-xl">
+        <div className="flex flex-col items-center justify-center py-12 px-8">
+          <CheckCircle className="h-16 w-16 text-success mb-4 protocol-icon" />
+          <h3 className="text-xl font-semibold text-white mb-2 font-jakarta">Message Sent Successfully!</h3>
+          <p className="text-white/70 text-center font-inter">
             Thank you for reaching out. We'll get back to you as soon as possible.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="medical-card rounded-2xl border-trust/20">
-      <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold font-jakarta glow-text">
+    <div className="medical-card rounded-2xl border-trust/20 bg-black/60 backdrop-blur-xl">
+      <div className="text-center p-8 border-b border-white/10">
+        <h2 className="text-3xl font-bold font-jakarta glow-text text-white mb-2">
           Get in Touch
-        </CardTitle>
-        <CardDescription className="text-lg text-muted-foreground font-inter">
+        </h2>
+        <p className="text-lg text-white/70 font-inter">
           Have questions or need support? We're here to help.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
+      <div className="p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="fullName" className="text-sm font-medium">
+            <label htmlFor="fullName" className="text-sm font-medium text-white font-inter">
               Full Name *
-            </Label>
-            <Input
+            </label>
+            <input
               id="fullName"
               type="text"
               placeholder="Your full name"
               value={formData.fullName}
               onChange={(e) => handleInputChange('fullName', e.target.value)}
-              className="bg-background/50 border-border/50 focus:border-trust hover:border-trust/50 transition-colors font-inter"
+              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:border-trust hover:border-white/40 transition-colors font-inter focus:outline-none focus:ring-2 focus:ring-trust/20"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
+            <label htmlFor="email" className="text-sm font-medium text-white font-inter">
               Email Address *
-            </Label>
-            <Input
+            </label>
+            <input
               id="email"
               type="email"
               placeholder="example@email.com"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className="bg-background/50 border-border/50 focus:border-primary transition-colors"
+              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:border-trust hover:border-white/40 transition-colors font-inter focus:outline-none focus:ring-2 focus:ring-trust/20"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="inquiryType" className="text-sm font-medium">
+            <label htmlFor="inquiryType" className="text-sm font-medium text-white font-inter">
               Type of Inquiry *
-            </Label>
-            <Select value={formData.inquiryType} onValueChange={(value) => handleInputChange('inquiryType', value)}>
-              <SelectTrigger className="bg-background/50 border-border/50 focus:border-primary transition-colors">
-                <SelectValue placeholder="Select inquiry type" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border-border/50">
-                {inquiryTypes.map((type) => (
-                  <SelectItem key={type} value={type} className="focus:bg-primary/10">
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            </label>
+            <select 
+              value={formData.inquiryType} 
+              onChange={(e) => handleInputChange('inquiryType', e.target.value)}
+              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white focus:border-trust hover:border-white/40 transition-colors font-inter focus:outline-none focus:ring-2 focus:ring-trust/20"
+              required
+            >
+              <option value="" className="bg-black text-white">Select inquiry type</option>
+              {inquiryTypes.map((type) => (
+                <option key={type} value={type} className="bg-black text-white">
+                  {type}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="message" className="text-sm font-medium">
+            <label htmlFor="message" className="text-sm font-medium text-white font-inter">
               Message *
-            </Label>
-            <Textarea
+            </label>
+            <textarea
               id="message"
               placeholder="Write your message here…"
               value={formData.message}
               onChange={(e) => handleInputChange('message', e.target.value)}
-              className="bg-background/50 border-border/50 focus:border-primary transition-colors min-h-[120px] resize-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:border-trust hover:border-white/40 transition-colors min-h-[120px] resize-none font-inter focus:outline-none focus:ring-2 focus:ring-trust/20"
               required
             />
           </div>
 
-          <Button
+          <button
             type="submit"
             disabled={isSubmitting}
-            className="luxury-button haptic-feedback w-full font-inter tracking-wide"
+            className="luxury-button haptic-feedback w-full font-inter tracking-wide py-4 rounded-xl"
           >
             {isSubmitting ? (
               <>
@@ -186,9 +187,9 @@ export const ContactForm = () => {
                 Send Message
               </>
             )}
-          </Button>
+          </button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
