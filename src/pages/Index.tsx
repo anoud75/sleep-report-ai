@@ -9,7 +9,6 @@ import { ProcessedResults } from "@/components/ProcessedResults";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
 import { ContactForm } from "@/components/ContactForm";
 import { Header } from "@/components/Header";
-import { StackingFeatures } from "@/components/StackingFeatures";
 
 const Index = () => {
   const [selectedStudyType, setSelectedStudyType] = useState('');
@@ -178,8 +177,56 @@ const Index = () => {
         </div>
       </section>
 
-      {/* How It Works Section - Stacking Cards */}
-      <StackingFeatures />
+      {/* How It Works Section */}
+      <section className="py-24 bg-background relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-primary/3 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-accent/3 rounded-full blur-3xl animate-float" style={{animationDelay: '3s'}}></div>
+        </div>
+
+        <div className="container mx-auto px-6 text-center relative z-10">
+          <div className="max-w-4xl mx-auto mb-16 animate-fade-in">
+            <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6">
+              <span className="bg-gradient-to-r from-primary via-accent to-highlight bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
+                How It Works – In 3 Easy Steps
+              </span>
+            </h2>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="text-center animate-fade-in" style={{animationDelay: '0.2s'}}>
+              <div className="w-20 h-20 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform duration-300">
+                <span className="text-primary-foreground font-bold text-2xl font-heading">1</span>
+              </div>
+              <h3 className="text-foreground font-bold text-2xl mb-4 font-heading">Smart Reading</h3>
+              <p className="text-muted-foreground leading-relaxed font-body">
+                Reads .docx reports from G3 and similar systems.
+              </p>
+            </div>
+
+            <div className="text-center animate-fade-in" style={{animationDelay: '0.4s'}}>
+              <div className="w-20 h-20 bg-gradient-to-r from-accent to-highlight rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform duration-300">
+                <span className="text-primary-foreground font-bold text-2xl font-heading">2</span>
+              </div>
+              <h3 className="text-foreground font-bold text-2xl mb-4 font-heading">Key Extraction & Summary</h3>
+              <p className="text-muted-foreground leading-relaxed font-body">
+                Extracts essential sleep metrics and generates a clear summary.
+              </p>
+            </div>
+
+            <div className="text-center animate-fade-in" style={{animationDelay: '0.6s'}}>
+              <div className="w-20 h-20 bg-gradient-to-r from-highlight to-primary rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform duration-300">
+                <span className="text-primary-foreground font-bold text-2xl font-heading">3</span>
+              </div>
+              <h3 className="text-foreground font-bold text-2xl mb-4 font-heading">Review & Export</h3>
+              <p className="text-muted-foreground leading-relaxed font-body">
+                Lets you review, edit, and export a ready-to-print PDF — in seconds.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Who Uses It Section */}
       <section className="py-24 bg-black relative overflow-hidden">
