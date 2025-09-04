@@ -19,9 +19,12 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
-				'inter': ['Inter', 'sans-serif'],
-				'sans': ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+				'heading': ['Inter', 'Satoshi', 'system-ui', 'sans-serif'],
+				'body': ['Helvetica Neue', 'Cairo', 'system-ui', 'sans-serif'],
+				'inter': ['Inter', 'system-ui', 'sans-serif'],
+				'cairo': ['Cairo', 'system-ui', 'sans-serif'],
+				'jakarta': ['Plus Jakarta Sans', 'sans-serif'], // Keep for backward compatibility
+				'sans': ['Helvetica Neue', 'Cairo', 'Inter', 'system-ui', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -37,6 +40,14 @@ export default {
 					DEFAULT: 'hsl(var(--secondary))',
 					foreground: 'hsl(var(--secondary-foreground))'
 				},
+				accent: {
+					DEFAULT: 'hsl(var(--accent))',
+					foreground: 'hsl(var(--accent-foreground))'
+				},
+				highlight: {
+					DEFAULT: 'hsl(var(--highlight))',
+					foreground: 'hsl(var(--highlight-foreground))'
+				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
 					foreground: 'hsl(var(--destructive-foreground))'
@@ -45,10 +56,6 @@ export default {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'
 				},
-				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
-				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'
@@ -56,6 +63,13 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				// Brand colors
+				brand: {
+					purple: 'hsl(var(--brand-purple))',
+					blue: 'hsl(var(--brand-blue))',
+					magenta: 'hsl(var(--brand-magenta))',
+					black: 'hsl(var(--brand-black))',
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
@@ -192,11 +206,11 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'fade-in': 'fade-in 0.6s ease-out',
-				'fade-in-up': 'fade-in-up 0.8s ease-out',
-				'scale-in': 'scale-in 0.4s ease-out',
-				'slide-in-right': 'slide-in-right 0.6s ease-out',
-				'slide-in-left': 'slide-in-left 0.6s ease-out',
+				'fade-in': 'fade-in 0.3s ease-in-out',
+				'fade-in-up': 'fade-in-up 0.3s ease-in-out',
+				'scale-in': 'scale-in 0.3s ease-in-out',
+				'slide-in-right': 'slide-in-right 0.3s ease-in-out',
+				'slide-in-left': 'slide-in-left 0.3s ease-in-out',
 				'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
 				'float': 'float 3s ease-in-out infinite',
 				'shimmer': 'shimmer 2s infinite linear',
