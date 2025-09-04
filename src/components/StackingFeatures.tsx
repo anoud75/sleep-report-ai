@@ -65,20 +65,21 @@ export const StackingFeatures = () => {
           const sectionRect = sectionRef.current.getBoundingClientRect();
           const viewportHeight = window.innerHeight;
           
-          // Match the 300vh section height - use 2vh for smooth scroll through the full section
-          const scrollDistance = viewportHeight * 2; // This matches the available scroll space within 300vh
+          // Use 200vh section height (reduced from 300vh)
+          const scrollDistance = viewportHeight; // 1 viewport height for 200vh section
           
-          // Calculate the scroll progress
-          let progress = 0;
+          // Calculate the scroll progress with faster timing
+          let scrollProgress = 0;
           if (sectionRect.top <= 0) {
-            progress = Math.min(1, Math.max(0, Math.abs(sectionRect.top) / scrollDistance));
+            scrollProgress = Math.abs(sectionRect.top) / scrollDistance;
           }
+          const progress = Math.min(scrollProgress / 0.7, 1); // Make section shorter
           
-          // Smoother, earlier transitions for better user experience
-          if (progress >= 0.4) {
-            setActiveCardIndex(2);
+          // Update card activation timing - faster transitions
+          if (progress >= 0.5) {
+            setActiveCardIndex(2);    // was 0.66
           } else if (progress >= 0.2) {
-            setActiveCardIndex(1);
+            setActiveCardIndex(1);    // was 0.33
           } else {
             setActiveCardIndex(0);
           }
@@ -110,7 +111,7 @@ export const StackingFeatures = () => {
     <div 
       ref={sectionRef} 
       className="relative" 
-      style={{ height: '300vh' }}
+      style={{ height: '200vh' }}
     >
       <section className="w-full h-screen py-10 md:py-16 sticky top-0 overflow-hidden bg-background">
         {/* Background Elements */}
