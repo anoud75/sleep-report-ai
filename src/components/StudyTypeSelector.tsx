@@ -53,82 +53,80 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
           const isSelected = selectedType === type.id;
           
           return (
-            <Card
+            <div
               key={type.id}
-              className={`medical-card group relative overflow-hidden cursor-pointer transition-all duration-700 ease-out border-2 animate-fade-in-up haptic-feedback rounded-2xl ${
+              className={`group relative overflow-hidden cursor-pointer transition-all duration-700 ease-out border-2 animate-fade-in-up haptic-feedback rounded-2xl p-6 ${
                 isSelected 
-                  ? `border-${type.themeColor} bg-${type.themeColor}/10 shadow-[var(--shadow-trust)] scale-[1.02]`
-                  : 'border-border/30 bg-card/30 hover:border-trust/50 hover:shadow-[var(--shadow-medical)] hover:bg-card/50'
+                  ? 'border-primary bg-black/80 shadow-[var(--shadow-glow)] scale-[1.02] backdrop-blur-xl'
+                  : 'border-white/10 bg-black/40 hover:border-primary/50 hover:shadow-[var(--shadow-medical)] hover:bg-black/60 backdrop-blur-sm'
               }`}
               style={{animationDelay: `${index * 0.1}s`}}
               onClick={() => onTypeSelect(type.id)}
             >
               {/* Selection Glow Effect */}
               {isSelected && (
-                <div className={`absolute inset-0 bg-gradient-to-r from-${type.themeColor}/15 to-transparent opacity-70 animate-shimmer bg-[length:200%_100%]`}></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent opacity-70 animate-shimmer bg-[length:200%_100%]"></div>
               )}
               
-              <CardContent className="p-6 relative">
-                <div className="flex items-start gap-6">
-                  {/* Icon Container */}
-                  <div className={`protocol-icon relative p-4 rounded-2xl transition-all duration-700 ${
-                    isSelected 
-                      ? `bg-${type.themeColor}/25 shadow-[var(--shadow-glow)] border border-${type.themeColor}/30` 
-                      : 'bg-background/50 border border-border/30 group-hover:bg-background/70 group-hover:border-trust/30'
-                  }`}>
-                    <Icon className={`h-7 w-7 transition-all duration-500 ${
-                      isSelected ? `text-${type.themeColor}` : 'text-white/60 group-hover:text-white/90'
-                    }`} />
-                    {isSelected && (
-                      <div className="absolute -top-1 -right-1 animate-scale-in">
-                        <CheckCircle className={`h-5 w-5 text-${type.themeColor} bg-black rounded-full shadow-lg`} />
+              <div className="relative flex items-start gap-6">
+                {/* Icon Container */}
+                <div className={`protocol-icon relative p-4 rounded-2xl transition-all duration-700 ${
+                  isSelected 
+                    ? 'bg-primary/20 shadow-[var(--shadow-glow)] border border-primary/30' 
+                    : 'bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-primary/30'
+                }`}>
+                  <Icon className={`h-7 w-7 transition-all duration-500 ${
+                    isSelected ? 'text-primary' : 'text-white/60 group-hover:text-white/90'
+                  }`} />
+                  {isSelected && (
+                    <div className="absolute -top-1 -right-1 animate-scale-in">
+                      <CheckCircle className="h-5 w-5 text-primary bg-black rounded-full shadow-lg" />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Content */}
+                <div className="flex-1 space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className={`text-xl font-bold font-jakarta transition-colors duration-500 ${
+                          isSelected ? 'text-primary' : 'text-white group-hover:text-white/95'
+                        }`}>
+                          {type.name}
+                        </h3>
                       </div>
-                    )}
+                      <p className={`text-sm leading-relaxed font-inter transition-colors duration-500 ${
+                        isSelected ? 'text-white/90' : 'text-white/70 group-hover:text-white/85'
+                      }`}>
+                        {type.description}
+                      </p>
+                    </div>
                   </div>
                   
-                  {/* Content */}
-                  <div className="flex-1 space-y-4">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                          <h3 className={`text-xl font-bold font-jakarta transition-colors duration-500 ${
-                            isSelected ? `text-${type.themeColor}` : 'text-white group-hover:text-white/95'
-                          }`}>
-                            {type.name}
-                          </h3>
-                        </div>
-                        <p className={`text-sm leading-relaxed font-inter transition-colors duration-500 ${
-                          isSelected ? 'text-white/90' : 'text-white/70 group-hover:text-white/85'
+                  {/* Features Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {type.details.map((detail, detailIndex) => (
+                      <div key={detailIndex} className={`flex items-center gap-2 p-3 rounded-xl transition-all duration-500 hover:scale-105 haptic-feedback ${
+                        isSelected 
+                          ? 'bg-primary/10 border border-primary/20 animate-fade-in shadow-sm' 
+                          : 'bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-white/20'
+                      }`} style={{animationDelay: `${detailIndex * 0.1}s`}}>
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all duration-500 ${
+                          isSelected ? 'bg-primary animate-glow-pulse shadow-sm' : 'bg-white/30 group-hover:bg-white/50'
+                        }`}></div>
+                        <span className={`text-xs font-medium font-inter leading-tight transition-colors duration-500 ${
+                          isSelected ? 'text-white/95' : 'text-white/70 group-hover:text-white/85'
                         }`}>
-                          {type.description}
-                        </p>
+                          {detail}
+                        </span>
                       </div>
-                    </div>
-                    
-                    {/* Features Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {type.details.map((detail, detailIndex) => (
-                        <div key={detailIndex} className={`flex items-center gap-2 p-3 rounded-xl transition-all duration-500 hover:scale-105 haptic-feedback ${
-                          isSelected 
-                            ? `bg-${type.themeColor}/15 border border-${type.themeColor}/25 animate-fade-in shadow-sm` 
-                            : 'bg-background/30 border border-border/20 group-hover:bg-background/50 group-hover:border-border/40'
-                        }`} style={{animationDelay: `${detailIndex * 0.1}s`}}>
-                          <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-all duration-500 ${
-                            isSelected ? `bg-${type.themeColor} animate-glow-pulse shadow-sm` : 'bg-white/30 group-hover:bg-white/50'
-                          }`}></div>
-                          <span className={`text-xs font-medium font-inter leading-tight transition-colors duration-500 ${
-                            isSelected ? 'text-white/95' : 'text-white/70 group-hover:text-white/85'
-                          }`}>
-                            {detail}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                    ))}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
       </div>
