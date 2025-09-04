@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,11 @@ const Index = () => {
   const [processedData, setProcessedData] = useState(null);
   const [reportCount, setReportCount] = useState(0);
   const [hasUploadedFile, setHasUploadedFile] = useState(false);
+
+  // Set document title on component mount
+  useEffect(() => {
+    document.title = "Sleep Report AI";
+  }, []);
 
   const handleFileProcessed = (data: any) => {
     setProcessedData(data);
