@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Wind, Activity, Pill, Settings, MessageSquare } from "lucide-react";
 
@@ -58,7 +60,7 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
   // Mask data
   const [maskType, setMaskType] = useState<string>('');
   const [maskSize, setMaskSize] = useState<string>('');
-  const [hasHeadgear, setHasHeadgear] = useState(false);
+  
   const [hasChinstrap, setHasChinstrap] = useState(false);
   const [hasHeatedHumidifier, setHasHeatedHumidifier] = useState(false);
 
@@ -93,7 +95,6 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
       // Mask data
       maskType,
       maskSize,
-      hasHeadgear,
       hasChinstrap,
       hasHeatedHumidifier: isTherapeuticOrSplitNight ? hasHeatedHumidifier : false,
       // Study information
@@ -195,23 +196,13 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
           </div>
 
           {/* Accessories */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
-              <Switch
-                id="headgear"
-                checked={hasHeadgear}
-                onCheckedChange={(checked) => { setHasHeadgear(checked); updateData({ hasHeadgear: checked }); }}
-              />
-              <Label htmlFor="headgear" className="text-sm">Headgear</Label>
-            </div>
-            <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
-              <Switch
-                id="chinstrap"
-                checked={hasChinstrap}
-                onCheckedChange={(checked) => { setHasChinstrap(checked); updateData({ hasChinstrap: checked }); }}
-              />
-              <Label htmlFor="chinstrap" className="text-sm">Chinstrap</Label>
-            </div>
+          <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background">
+            <Switch
+              id="chinstrap"
+              checked={hasChinstrap}
+              onCheckedChange={(checked) => { setHasChinstrap(checked); updateData({ hasChinstrap: checked }); }}
+            />
+            <Label htmlFor="chinstrap" className="text-sm">Chinstrap</Label>
           </div>
 
           {/* Heated Humidifier for Therapeutic/Split-Night Studies */}
@@ -283,26 +274,38 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
             Select multiple comments that apply to this patient
           </p>
           
-          <div className="space-y-3">
-            {patientComments.map((comment) => (
-              <div key={comment.value} className="flex items-start space-x-3">
-                <Checkbox
-                  id={comment.value}
-                  checked={selectedComments.includes(comment.value)}
-                  onCheckedChange={(checked) => {
-                    const newComments = checked 
-                      ? [...selectedComments, comment.value]
-                      : selectedComments.filter(c => c !== comment.value);
-                    setSelectedComments(newComments);
-                    updateData({ selectedComments: newComments });
-                  }}
-                />
-                <Label htmlFor={comment.value} className="text-sm cursor-pointer leading-relaxed">
-                  {comment.label}
-                </Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-start text-left font-normal">
+                <MessageSquare className="mr-2 h-4 w-4" />
+                {selectedComments.length === 0
+                  ? "Select patient comments..."
+                  : `${selectedComments.length} comment${selectedComments.length > 1 ? 's' : ''} selected`}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-3 bg-background border shadow-lg z-50" align="start">
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {patientComments.map((comment) => (
+                  <div key={comment.value} className="flex items-start space-x-3">
+                    <Checkbox
+                      id={comment.value}
+                      checked={selectedComments.includes(comment.value)}
+                      onCheckedChange={(checked) => {
+                        const newComments = checked 
+                          ? [...selectedComments, comment.value]
+                          : selectedComments.filter(c => c !== comment.value);
+                        setSelectedComments(newComments);
+                        updateData({ selectedComments: newComments });
+                      }}
+                    />
+                    <Label htmlFor={comment.value} className="text-sm cursor-pointer leading-relaxed">
+                      {comment.label}
+                    </Label>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Pressure Configuration Section */}
@@ -475,11 +478,6 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
                     )
                   )}
                 </>
-              )}
-              {hasHeadgear && (
-                <Badge variant="outline" className="border-success/30 text-success">
-                  + Headgear
-                </Badge>
               )}
               {hasChinstrap && (
                 <Badge variant="outline" className="border-success/30 text-success">
