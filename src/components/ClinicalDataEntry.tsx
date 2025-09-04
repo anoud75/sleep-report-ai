@@ -134,13 +134,13 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
   };
 
   return (
-    <div className="medical-card rounded-2xl border-trust/20 bg-black/60 backdrop-blur-xl">
-      <div className="text-center p-6 border-b border-white/10">
-        <h2 className="text-2xl font-bold font-jakarta glow-text text-white mb-2 flex items-center justify-center gap-2">
+    <div className="bg-background rounded-2xl border">
+      <div className="text-center p-6 border-b">
+        <h2 className="text-2xl font-bold font-jakarta text-foreground mb-2 flex items-center justify-center gap-2">
           <Wind className="h-5 w-5 text-trust protocol-icon" />
           Clinical Data Entry
         </h2>
-        <p className="text-white/70 font-inter">
+        <p className="text-muted-foreground font-inter">
           {requiresPressureData 
             ? "CPAP/BPAP pressure and mask details are required for this study type"
             : "Mask configuration and clinical parameters (optional)"
@@ -152,23 +152,23 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Settings className="h-4 w-4 text-trust protocol-icon" />
-            <label className="text-base font-semibold font-jakarta text-white">Mask Configuration</label>
+            <label className="text-base font-semibold font-jakarta text-foreground">Mask Configuration</label>
             {requiresPressureData && <Badge className="text-xs bg-trust/20 text-trust border-trust/30">Required</Badge>}
           </div>
 
           {/* Mask Type Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium font-inter text-white">Mask Type *</label>
+            <label className="text-sm font-medium font-inter text-foreground">Mask Type *</label>
             <Select value={maskType} onValueChange={(value) => { setMaskType(value); updateData({ maskType: value }); }}>
-              <SelectTrigger className="w-full bg-white/5 border-white/20 text-white hover:border-trust/50 transition-colors">
-                <SelectValue placeholder="Select mask type" className="text-white/70" />
+              <SelectTrigger className="w-full bg-background border text-foreground">
+                <SelectValue placeholder="Select mask type" />
               </SelectTrigger>
-              <SelectContent className="bg-black/90 border-white/20 backdrop-blur-xl">
+              <SelectContent className="bg-background border">
                 {maskTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value} className="text-white hover:bg-trust/10 focus:bg-trust/10">
+                  <SelectItem key={type.value} value={type.value} className="text-foreground">
                     <div className="flex flex-col">
-                      <span className="font-medium font-inter text-white">{type.label}</span>
-                      <span className="text-xs text-white/70">{type.description}</span>
+                      <span className="font-medium font-inter text-foreground">{type.label}</span>
+                      <span className="text-xs text-muted-foreground">{type.description}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -178,14 +178,14 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
 
           {/* Mask Size Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium font-inter text-white">Mask Size *</label>
+            <label className="text-sm font-medium font-inter text-foreground">Mask Size *</label>
             <Select value={maskSize} onValueChange={(value) => { setMaskSize(value); updateData({ maskSize: value }); }}>
-              <SelectTrigger className="w-full bg-white/5 border-white/20 text-white hover:border-trust/50 transition-colors">
-                <SelectValue placeholder="Select mask size" className="text-white/70" />
+              <SelectTrigger className="w-full bg-background border text-foreground">
+                <SelectValue placeholder="Select mask size" />
               </SelectTrigger>
-              <SelectContent className="bg-black/90 border-white/20 backdrop-blur-xl">
+              <SelectContent className="bg-background border">
                 {maskSizes.map((size) => (
-                  <SelectItem key={size.value} value={size.value} className="text-white hover:bg-trust/10 focus:bg-trust/10">
+                  <SelectItem key={size.value} value={size.value} className="text-foreground">
                     {size.label}
                   </SelectItem>
                 ))}
@@ -194,66 +194,66 @@ export const ClinicalDataEntry = ({ onDataChange, studyType }: ClinicalDataEntry
           </div>
 
           {/* Accessories */}
-          <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 transition-colors">
+          <div className="flex items-center space-x-3 p-3 rounded-lg border bg-muted/30">
             <Switch
               id="chinstrap"
               checked={hasChinstrap}
               onCheckedChange={(checked) => { setHasChinstrap(checked); updateData({ hasChinstrap: checked }); }}
             />
-            <label htmlFor="chinstrap" className="text-sm font-inter text-white">Chinstrap</label>
+            <label htmlFor="chinstrap" className="text-sm font-inter text-foreground">Chinstrap</label>
           </div>
 
           {/* Heated Humidifier for Therapeutic/Split-Night Studies */}
           {isTherapeuticOrSplitNight && (
-            <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 transition-colors">
+            <div className="flex items-center space-x-3 p-3 rounded-lg border bg-muted/30">
               <Switch
                 id="heated-humidifier"
                 checked={hasHeatedHumidifier}
                 onCheckedChange={(checked) => { setHasHeatedHumidifier(checked); updateData({ hasHeatedHumidifier: checked }); }}
               />
-              <label htmlFor="heated-humidifier" className="text-sm font-inter text-white">Heated Humidifier</label>
+              <label htmlFor="heated-humidifier" className="text-sm font-inter text-foreground">Heated Humidifier</label>
             </div>
           )}
         </div>
 
         {/* Study Information Section */}
-        <Separator className="border-white/20" />
+        <Separator />
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Settings className="h-4 w-4 text-trust protocol-icon" />
-            <label className="text-base font-semibold font-jakarta text-white">Study Information</label>
+            <label className="text-base font-semibold font-jakarta text-foreground">Study Information</label>
           </div>
 
-          <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 bg-white/5">
+          <div className="flex items-center space-x-3 p-3 rounded-lg border bg-muted/30">
             <Switch
               id="repeated-study"
               checked={isRepeatedStudy}
               onCheckedChange={(checked) => { setIsRepeatedStudy(checked); updateData({ isRepeatedStudy: checked }); }}
             />
-            <label htmlFor="repeated-study" className="text-sm text-white font-inter">Repeated Study</label>
+            <label htmlFor="repeated-study" className="text-sm text-foreground font-inter">Repeated Study</label>
           </div>
 
           {/* Oxygen Usage for Therapeutic/Split-Night Studies */}
           {isTherapeuticOrSplitNight && (
             <div className="space-y-3">
-              <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 bg-white/5">
+              <div className="flex items-center space-x-3 p-3 rounded-lg border bg-muted/30">
                 <Switch
                   id="oxygen-used"
                   checked={oxygenUsed}
                   onCheckedChange={(checked) => { setOxygenUsed(checked); updateData({ oxygenUsed: checked }); }}
                 />
-                <label htmlFor="oxygen-used" className="text-sm text-white font-inter">O2 Used</label>
+                <label htmlFor="oxygen-used" className="text-sm text-foreground font-inter">O2 Used</label>
               </div>
               
               {oxygenUsed && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white font-inter">Liters per minute</label>
+                  <label className="text-sm font-medium text-foreground font-inter">Liters per minute</label>
                   <Input
                     type="number"
                     placeholder="e.g., 2"
                     value={oxygenLiters}
                     onChange={(e) => { setOxygenLiters(e.target.value); updateData({ oxygenLiters: e.target.value }); }}
-                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-trust"
+                    className="bg-background border text-foreground placeholder:text-muted-foreground focus:border-trust"
                   />
                 </div>
               )}

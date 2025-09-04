@@ -7,7 +7,7 @@ interface LoadingAnimationProps {
 export const LoadingAnimation = ({ message = "Processing sleep study..." }: LoadingAnimationProps) => {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="luxury-button rounded-2xl p-8 max-w-md w-full mx-4">
+      <div className="bg-background border rounded-2xl p-8 max-w-md w-full mx-4">
         {/* Animated Icons */}
         <div className="flex justify-center items-center gap-6 mb-6">
           <div className="protocol-icon p-3 rounded-xl bg-blue-500/20 animate-bounce-subtle">
@@ -23,10 +23,10 @@ export const LoadingAnimation = ({ message = "Processing sleep study..." }: Load
 
         {/* Loading Text */}
         <div className="text-center space-y-4">
-          <h3 className="text-xl font-bold text-white font-jakarta glow-text">
+          <h3 className="text-xl font-bold text-foreground font-jakarta">
             AI Analysis in Progress
           </h3>
-          <p className="text-white/70 font-inter">
+          <p className="text-muted-foreground font-inter">
             {message}
           </p>
           

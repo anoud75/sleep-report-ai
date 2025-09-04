@@ -242,15 +242,15 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
   return (
     <div className="space-y-6">
       {/* Header with Actions */}
-      <div className="medical-card rounded-2xl border-success/30 bg-black/60 backdrop-blur-xl">
-        <div className="text-center p-8 border-b border-white/10">
+        <div className="bg-background rounded-2xl border">
+        <div className="text-center p-8 border-b">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold font-jakarta glow-text text-white mb-2 flex items-center gap-2">
+              <h2 className="text-2xl font-bold font-jakarta text-foreground mb-2 flex items-center gap-2">
                 <FileText className="h-5 w-5 text-success protocol-icon" />
                 Sleep Study Analysis Complete
               </h2>
-              <p className="text-lg text-white/70 font-inter">
+              <p className="text-lg text-muted-foreground font-inter">
                 Report generated for {data.patientInfo?.name || 'Patient'} • {data.studyInfo?.studyDate || 'N/A'}
               </p>
             </div>
@@ -289,31 +289,31 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Sleep Timing */}
-        <div className="medical-card rounded-xl border-trust/20 bg-black/40 backdrop-blur-xl p-6">
-          <h3 className="text-lg font-semibold font-jakarta text-white mb-4 flex items-center gap-2">
+        <div className="bg-background rounded-xl border p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
             <Calendar className="h-4 w-4 text-trust protocol-icon" />
             Sleep Timing
           </h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Light Off</span>
-              <span className="font-medium text-white font-inter">{data.studyInfo?.lightsOff || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Light Off</span>
+              <span className="font-medium text-foreground font-inter">{data.studyInfo?.lightsOff || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Light On</span>
-              <span className="font-medium text-white font-inter">{data.studyInfo?.lightsOn || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Light On</span>
+              <span className="font-medium text-foreground font-inter">{data.studyInfo?.lightsOn || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Time in Bed (min)</span>
-              <span className="font-medium text-white font-inter">{data.studyInfo?.timeInBed || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Time in Bed (min)</span>
+              <span className="font-medium text-foreground font-inter">{data.studyInfo?.timeInBed || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">Total Sleep Time (min)</span>
-              <span className="font-medium text-white font-inter">{data.studyInfo?.totalSleepTime || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">Total Sleep Time (min)</span>
+              <span className="font-medium text-foreground font-inter">{data.studyInfo?.totalSleepTime || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-white/70 font-inter">CPAP/BPAP/O2</span>
-              <span className="font-medium text-white font-inter">{data.titrationData?.pressureType || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">CPAP/BPAP/O2</span>
+              <span className="font-medium text-foreground font-inter">{data.titrationData?.pressureType || '---'}</span>
             </div>
           </div>
         </div>
