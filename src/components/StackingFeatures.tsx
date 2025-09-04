@@ -47,7 +47,7 @@ export const StackingFeatures = () => {
         const [entry] = entries;
         setIsIntersecting(entry.isIntersecting);
       },
-      { threshold: 0.1 } // Start observing when 10% of element is visible
+      { threshold: 0.3 } // Start observing when 30% of element is visible
     );
 
     if (sectionRef.current) {
@@ -75,13 +75,22 @@ export const StackingFeatures = () => {
           }
           const progress = Math.min(scrollProgress, 1);
           
-          // Update card activation timing - evenly spaced through the full scroll
-          if (progress >= 0.7) {
-            setActiveCardIndex(2);    // Third card at 70%
-          } else if (progress >= 0.35) {
-            setActiveCardIndex(1);    // Second card at 35%
+          // Debug logging
+          console.log('Card Progress:', {
+            sectionTop: sectionRect.top,
+            scrollProgress: scrollProgress.toFixed(2),
+            progress: progress.toFixed(2),
+            activeCardIndex,
+            isIntersecting
+          });
+          
+          // Update card activation timing - earlier transitions to ensure all cards are seen
+          if (progress >= 0.5) {
+            setActiveCardIndex(2);    // Third card at 50%
+          } else if (progress >= 0.2) {
+            setActiveCardIndex(1);    // Second card at 20%
           } else {
-            setActiveCardIndex(0);    // First card 0-35%
+            setActiveCardIndex(0);    // First card 0-20%
           }
           
           ticking.current = false;
@@ -102,10 +111,10 @@ export const StackingFeatures = () => {
     };
   }, []);
 
-  // Card visibility based on active index
-  const isFirstCardVisible = isIntersecting;
-  const isSecondCardVisible = activeCardIndex >= 1;
-  const isThirdCardVisible = activeCardIndex >= 2;
+  // Card visibility based on active index - show cards while scrolling through section
+  const isFirstCardVisible = isIntersecting || activeCardIndex >= 0;
+  const isSecondCardVisible = isIntersecting && activeCardIndex >= 1;
+  const isThirdCardVisible = isIntersecting && activeCardIndex >= 2;
 
   return (
     <div 
