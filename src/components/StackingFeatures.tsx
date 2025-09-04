@@ -1,138 +1,72 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Shield, Zap, Clock } from "lucide-react";
+import React, { useEffect, useRef, useState } from 'react';
+import { Shield, Clock, Stethoscope } from 'lucide-react';
 
 const features = [
   {
     icon: Shield,
     title: "Accurate Analysis",
     description: "Advanced AI algorithms ensure precise extraction of sleep study data with medical-grade accuracy",
-    gradient: "from-primary to-accent",
-  },
-  {
-    icon: Zap,
-    title: "Secure by Design", 
-    description: "End-to-end encryption and HIPAA-compliant infrastructure protect sensitive patient information",
-    gradient: "from-accent to-highlight",
   },
   {
     icon: Clock,
-    title: "Streamlined Output",
-    description: "Generate professional, ready-to-use reports in seconds, not hours of manual work",
-    gradient: "from-highlight to-primary",
+    title: "Fast Turnaround", 
+    description: "Transform hours of manual report processing into minutes of automated analysis and summary generation",
+  },
+  {
+    icon: Stethoscope,
+    title: "Clinical Consistency",
+    description: "Standardized reporting format ensures consistent clinical documentation across all sleep studies",
   }
 ];
 
 export const StackingFeatures = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const cardsContainerRef = useRef<HTMLDivElement>(null);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
-  const [isIntersecting, setIsIntersecting] = useState(false);
-  const ticking = useRef(false);
-  const lastScrollY = useRef(0);
-
-  // Card styling
-  const cardStyle: React.CSSProperties = {
-    height: '60vh',
-    maxHeight: '600px',
-    borderRadius: '20px',
-    transition: 'all 0.6s cubic-bezier(0.19, 1, 0.22, 1)',
-    willChange: 'transform, opacity',
-    backfaceVisibility: 'hidden'
-  };
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Create intersection observer to detect when section is in view
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        setIsIntersecting(entry.isIntersecting);
-      },
-      { threshold: 0.3 } // Start observing when 30% of element is visible
-    );
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-    
-    // Optimized scroll handler using requestAnimationFrame
     const handleScroll = () => {
-      if (!ticking.current) {
-        lastScrollY.current = window.scrollY;
-        
-        window.requestAnimationFrame(() => {
-          if (!sectionRef.current) return;
-          
-          const sectionRect = sectionRef.current.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-          
-          // Use 250vh section height - ensure users see all cards
-          const scrollDistance = viewportHeight * 1.5; // 1.5 viewport heights for 250vh section
-          
-          // Calculate the scroll progress - slower timing to show all cards
-          let scrollProgress = 0;
-          if (sectionRect.top <= 0) {
-            scrollProgress = Math.abs(sectionRect.top) / scrollDistance;
-          }
-          const progress = Math.min(scrollProgress, 1);
-          
-          // Debug logging
-          console.log('Card Progress:', {
-            sectionTop: sectionRect.top,
-            scrollProgress: scrollProgress.toFixed(2),
-            progress: progress.toFixed(2),
-            activeCardIndex,
-            isIntersecting
-          });
-          
-          // Update card activation timing - earlier transitions to ensure all cards are seen
-          if (progress >= 0.5) {
-            setActiveCardIndex(2);    // Third card at 50%
-          } else if (progress >= 0.2) {
-            setActiveCardIndex(1);    // Second card at 20%
-          } else {
-            setActiveCardIndex(0);    // First card 0-20%
-          }
-          
-          ticking.current = false;
-        });
-        
-        ticking.current = true;
+      if (!sectionRef.current) return;
+
+      const section = sectionRef.current;
+      const rect = section.getBoundingClientRect();
+      const sectionHeight = section.offsetHeight;
+      const windowHeight = window.innerHeight;
+      
+      // Calculate how much of the section has been scrolled through
+      const scrollableHeight = sectionHeight - windowHeight;
+      const scrolled = Math.max(0, -rect.top);
+      const progress = Math.min(scrolled / scrollableHeight, 1);
+
+      setScrollProgress(progress);
+
+      // Update active card based on scroll progress
+      if (progress < 0.33) {
+        setActiveCardIndex(0);
+      } else if (progress < 0.66) {
+        setActiveCardIndex(1);
+      } else {
+        setActiveCardIndex(2);
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial calculation
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
-    };
-  }, []);
+    handleScroll(); // Initial call
 
-  // Card visibility based on active index - show cards while scrolling through section
-  const isFirstCardVisible = isIntersecting || activeCardIndex >= 0;
-  const isSecondCardVisible = isIntersecting && activeCardIndex >= 1;
-  const isThirdCardVisible = isIntersecting && activeCardIndex >= 2;
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div 
       ref={sectionRef} 
       className="relative" 
-      style={{ height: '250vh' }}
+      style={{ height: '300vh' }}
     >
-      <section className="w-full h-screen py-10 md:py-16 sticky top-0 overflow-hidden bg-background">
-        {/* Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 right-1/6 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 left-1/6 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-        </div>
-
-        <div className="container px-6 lg:px-8 mx-auto h-full flex flex-col relative z-10">
-          <div className="mb-8 md:mb-12 text-center">
+      <section className="w-full h-screen py-8 md:py-12 sticky top-0 overflow-hidden bg-background">
+        <div className="container px-6 lg:px-8 mx-auto h-full flex flex-col">
+          <div className="mb-8 text-center">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold mb-4">
-              <span className="bg-gradient-to-r from-primary via-accent to-highlight bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
+              <span className="bg-gradient-to-r from-primary via-accent to-highlight bg-clip-text text-transparent">
                 Key Features
               </span>
             </h2>
@@ -141,55 +75,50 @@ export const StackingFeatures = () => {
             </p>
           </div>
           
-          <div ref={cardsContainerRef} className="relative flex-1">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              const isCardVisible = 
-                (index === 0 && isFirstCardVisible) ||
-                (index === 1 && isSecondCardVisible) ||
-                (index === 2 && isThirdCardVisible);
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-full max-w-4xl mx-auto">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                const isActive = activeCardIndex === index;
+                const opacity = isActive ? 1 : 0.3;
+                const scale = isActive ? 1 : 0.9;
+                const translateY = isActive ? 0 : index < activeCardIndex ? -20 : 20;
 
-              return (
-                <div 
-                  key={index}
-                  className="absolute inset-0 overflow-hidden shadow-2xl rounded-2xl" 
-                  style={{
-                    ...cardStyle,
-                    zIndex: activeCardIndex === index ? 30 : index === 1 ? 20 : 10,
-                    transform: `translateY(${activeCardIndex === index ? '0px' : activeCardIndex > index ? '20px' : '40px'}) scale(${activeCardIndex === index ? 1 : activeCardIndex > index ? 0.95 : 0.9})`,
-                    opacity: isCardVisible ? (activeCardIndex === index ? 1 : 0.7) : 0,
-                    pointerEvents: isCardVisible ? 'auto' : 'none'
-                  }}
-                >
-                  <div className={`absolute inset-0 z-0 bg-gradient-to-br ${feature.gradient}`}></div>
-                  
-                  <div className="absolute top-4 right-4 z-20">
-                    <div className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                      <span className="text-sm font-medium text-primary-foreground">Feature {index + 1}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="relative z-10 p-5 sm:p-6 md:p-8 h-full flex items-center">
-                    <div className="max-w-2xl">
-                      <div className="flex items-start gap-6 mb-6">
+                return (
+                  <div 
+                    key={index}
+                    className="absolute inset-0 flex items-center justify-center transition-all duration-700 ease-out"
+                    style={{
+                      opacity,
+                      transform: `translateY(${translateY}px) scale(${scale})`,
+                      zIndex: isActive ? 10 : 1,
+                    }}
+                  >
+                    <div className="w-full max-w-3xl mx-auto p-8 rounded-3xl bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--accent))] shadow-2xl border border-white/10">
+                      <div className="flex items-center gap-6 mb-6">
                         <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center flex-shrink-0">
-                          <Icon className="h-8 w-8 text-primary-foreground" />
+                          <Icon className="h-8 w-8 text-white" />
                         </div>
                         
                         <div className="flex-1">
-                          <h3 className="text-2xl sm:text-3xl md:text-4xl text-primary-foreground font-heading font-bold leading-tight mb-4">
-                            {feature.title}
-                          </h3>
-                          <p className="text-primary-foreground/90 leading-relaxed font-body text-base sm:text-lg">
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-2xl sm:text-3xl text-white font-heading font-bold">
+                              {feature.title}
+                            </h3>
+                            <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+                              <span className="text-sm font-medium text-white">Feature {index + 1}</span>
+                            </div>
+                          </div>
+                          <p className="text-white/90 leading-relaxed font-body text-base sm:text-lg">
                             {feature.description}
                           </p>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
           {/* Progress indicator */}
