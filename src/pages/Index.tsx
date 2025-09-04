@@ -9,6 +9,7 @@ import { ProcessedResults } from "@/components/ProcessedResults";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
 import { ContactForm } from "@/components/ContactForm";
 import { Header } from "@/components/Header";
+import { StackingFeatures } from "@/components/StackingFeatures";
 
 const Index = () => {
   const [selectedStudyType, setSelectedStudyType] = useState('');
@@ -177,56 +178,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="py-24 bg-black relative overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-blue-500/3 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
-          <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-purple-500/3 rounded-full blur-3xl animate-float" style={{animationDelay: '3s'}}></div>
-        </div>
-
-        <div className="container mx-auto px-6 text-center relative z-10">
-          <div className="max-w-4xl mx-auto mb-16 animate-fade-in-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%]">
-                How It Works – In 3 Easy Steps
-              </span>
-            </h2>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="text-center animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform duration-300">
-                <span className="text-white font-bold text-2xl">1</span>
-              </div>
-              <h3 className="text-white font-bold text-2xl mb-4">Smart Reading</h3>
-              <p className="text-white/70 leading-relaxed">
-                Reads .docx reports from G3 and similar systems.
-              </p>
-            </div>
-
-            <div className="text-center animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-              <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform duration-300">
-                <span className="text-white font-bold text-2xl">2</span>
-              </div>
-              <h3 className="text-white font-bold text-2xl mb-4">Key Extraction & Summary</h3>
-              <p className="text-white/70 leading-relaxed">
-                Extracts essential sleep metrics and generates a clear summary.
-              </p>
-            </div>
-
-            <div className="text-center animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-              <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform duration-300">
-                <span className="text-white font-bold text-2xl">3</span>
-              </div>
-              <h3 className="text-white font-bold text-2xl mb-4">Review & Export</h3>
-              <p className="text-white/70 leading-relaxed">
-                Lets you review, edit, and export a ready-to-print PDF — in seconds.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* How It Works Section - Stacking Cards */}
+      <StackingFeatures />
 
       {/* Who Uses It Section */}
       <section className="py-24 bg-black relative overflow-hidden">
