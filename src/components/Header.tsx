@@ -54,16 +54,6 @@ export const Header = () => {
     >
       <nav className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          {/* Back Arrow for Analysis Page */}
-          {isAnalysisPage && (
-            <button
-              onClick={() => navigate('/')}
-              className="text-white/90 hover:text-white transition-colors duration-300 mr-4"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-          )}
-          
           {/* Logo */}
           <button 
             onClick={() => navigate('/')}
@@ -75,9 +65,10 @@ export const Header = () => {
             </span>
           </button>
 
-          {/* Navigation */}
+          {/* Navigation and Back Arrow */}
           <div className="flex items-center space-x-8">
-            {navLinks.map((link) => (
+            {/* Navigation Links */}
+            {!isAnalysisPage && navLinks.map((link) => (
               <button
                 key={link.id || link.path}
                 onClick={() => handleNavigation(link)}
@@ -89,6 +80,16 @@ export const Header = () => {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
               </button>
             ))}
+            
+            {/* Back Arrow for Analysis Page */}
+            {isAnalysisPage && (
+              <button
+                onClick={() => navigate('/')}
+                className="text-white/90 hover:text-white transition-colors duration-300 p-2 hover:bg-white/10 rounded-lg"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
+            )}
           </div>
         </div>
       </nav>
