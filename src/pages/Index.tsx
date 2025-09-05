@@ -178,9 +178,6 @@ const Index = () => {
             <p className="text-base leading-relaxed text-muted-foreground">
               Transforming sleep study analysis with AI-powered precision, delivering professional reports in seconds.
             </p>
-            <div className="mt-4 inline-block bg-primary/10 text-primary px-4 py-2 rounded-full font-semibold text-sm">
-              AI
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -220,7 +217,6 @@ const Index = () => {
         {/* Bottom Bar */}
         <div className="mt-12 border-t border-border pt-6 text-center text-sm text-muted-foreground">
           <p>© 2025 Sleep Report AI. All rights reserved to <span className="font-semibold text-primary">Alanoud Alsamil</span>.</p>
-          <p className="mt-2 text-xs">Powered by Advanced AI •</p>
         </div>
       </footer>
 

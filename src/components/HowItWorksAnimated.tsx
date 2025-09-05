@@ -248,7 +248,7 @@ const HowItWorksAnimated: React.FC = () => {
                       Ready to Transform Your Sleep Reports?
                     </h3>
                     <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                      Start analyzing your sleep studies now and create professional reports in seconds.
+                      Transform your sleep study workflow with professional AI-powered analysis.
                     </p>
                     <Button 
                       onClick={navigateToAnalysis}
