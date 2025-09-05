@@ -70,22 +70,24 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       style={{ minHeight: '100vh' }}
     >
       <div className="max-w-6xl mx-auto px-6 text-center">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-brockmann font-bold text-white mb-12 opacity-90">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-brockmann font-bold text-white mb-12 drop-shadow-2xl">
           About Sleep Report AI
         </h1>
         <div className="relative min-h-[300px] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/20 rounded-2xl backdrop-blur-sm"></div>
           {textParts.map((part, index) => (
             <div
               key={index}
-              className={`absolute w-full text-3xl md:text-4xl lg:text-5xl leading-relaxed font-brockmann transition-all duration-1000 ease-out ${
+              className={`relative z-10 w-full text-3xl md:text-4xl lg:text-5xl leading-relaxed font-brockmann transition-all duration-1000 ease-out ${
                 index === currentPart
-                  ? 'opacity-100 translate-y-0 text-white'
+                  ? 'opacity-100 translate-y-0 text-white drop-shadow-2xl'
                   : index < currentPart
-                  ? 'opacity-30 translate-y-0 text-white/40'
-                  : 'opacity-0 translate-y-8 text-white'
+                  ? 'opacity-20 translate-y-0 text-white/60 drop-shadow-lg'
+                  : 'opacity-0 translate-y-8 text-white/80 drop-shadow-lg'
               }`}
+              style={{ position: 'absolute' }}
             >
-              <p className="text-center">
+              <p className="text-center px-8">
                 {renderTextWithEmphasis(part, index)}
               </p>
             </div>
