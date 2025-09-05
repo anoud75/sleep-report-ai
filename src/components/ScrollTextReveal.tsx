@@ -6,7 +6,7 @@ interface ScrollTextRevealProps {
 }
 
 const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, className = "" }) => {
-  const [visibleParts, setVisibleParts] = useState(0);
+  const [visibleParts, setVisibleParts] = useState(1); // Start with first part visible
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -14,16 +14,19 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       if (!sectionRef.current) return;
 
       const rect = sectionRef.current.getBoundingClientRect();
-      const sectionHeight = rect.height;
-      const sectionTop = rect.top;
       const windowHeight = window.innerHeight;
-
-      // Calculate scroll progress within the section
-      const scrollProgress = Math.max(0, Math.min(1, (windowHeight - sectionTop) / (windowHeight + sectionHeight)));
       
-      // Determine how many parts should be visible
-      const newVisibleParts = Math.floor(scrollProgress * textParts.length);
-      setVisibleParts(Math.min(newVisibleParts, textParts.length));
+      // Check if section is in viewport
+      const isInViewport = rect.top < windowHeight && rect.bottom > 0;
+      
+      if (isInViewport) {
+        // Calculate scroll progress within the section
+        const scrollProgress = Math.max(0, Math.min(1, (windowHeight - rect.top) / windowHeight));
+        
+        // Show all parts when scrolled into view
+        const newVisibleParts = Math.min(textParts.length, Math.floor(scrollProgress * textParts.length) + 1);
+        setVisibleParts(newVisibleParts);
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -42,7 +45,7 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
           {textParts.map((part, index) => (
             <p
               key={index}
-              className={`text-2xl md:text-3xl lg:text-4xl leading-relaxed font-brockmann transition-all duration-1000 ease-out ${
+              className={`text-2xl md:text-3xl lg:text-4xl leading-relaxed font-brockmann transition-all duration-1000 ease-out text-foreground ${
                 index < visibleParts
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-8'
