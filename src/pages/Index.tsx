@@ -170,53 +170,53 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-muted py-8 text-muted-foreground">
+      <footer className="bg-pulse-50 py-12 text-pulse-700 border-t border-pulse-100">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
-            {/* Brand Section */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 mb-10">
+            {/* Branding */}
             <div>
-              <h3 className="text-xl font-bold text-primary mb-3">Sleep Report AI</h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">
+              <h2 className="text-xl font-bold text-primary mb-3 gradient-text">Sleep Report AI</h2>
+              <p className="text-sm leading-relaxed text-pulse-700">
                 AI-powered sleep study analysis delivering professional reports in seconds.
               </p>
             </div>
 
             {/* Quick Links */}
             <div>
-              <h4 className="font-semibold mb-3 text-primary">Quick Links</h4>
+              <h3 className="font-semibold text-pulse-900 mb-3">Quick Links</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="/analysis" className="hover:underline hover:text-primary transition-colors">Start Analysis</a></li>
-                <li><a href="#" className="hover:underline hover:text-primary transition-colors">Features</a></li>
-                <li><a href="#contact-section" className="hover:underline hover:text-primary transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:underline hover:text-primary transition-colors">Documentation</a></li>
+                <li><a href="/analysis" className="text-pulse-700 hover:text-primary hover:underline transition-colors duration-200">Start Analysis</a></li>
+                <li><a href="#" className="text-pulse-700 hover:text-primary hover:underline transition-colors duration-200">Features</a></li>
+                <li><a href="#contact-section" className="text-pulse-700 hover:text-primary hover:underline transition-colors duration-200">Contact</a></li>
+                <li><a href="#" className="text-pulse-700 hover:text-primary hover:underline transition-colors duration-200">Documentation</a></li>
               </ul>
             </div>
 
             {/* Company */}
             <div>
-              <h4 className="font-semibold mb-3 text-primary">Company</h4>
+              <h3 className="font-semibold text-pulse-900 mb-3">Company</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:underline hover:text-primary transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:underline hover:text-primary transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:underline hover:text-primary transition-colors">Help Center</a></li>
-                <li><a href="#contact-section" className="hover:underline hover:text-primary transition-colors">Support</a></li>
+                <li><a href="#" className="text-pulse-700 hover:text-primary hover:underline transition-colors duration-200">About Us</a></li>
+                <li><a href="#" className="text-pulse-700 hover:text-primary hover:underline transition-colors duration-200">Careers</a></li>
+                <li><a href="#" className="text-pulse-700 hover:text-primary hover:underline transition-colors duration-200">Help Center</a></li>
+                <li><a href="#contact-section" className="text-pulse-700 hover:text-primary hover:underline transition-colors duration-200">Support</a></li>
               </ul>
             </div>
 
             {/* Legal */}
             <div>
-              <h4 className="font-semibold mb-3 text-primary">Legal</h4>
+              <h3 className="font-semibold text-pulse-900 mb-3">Legal</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:underline hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:underline hover:text-primary transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="text-pulse-700 hover:text-primary hover:underline transition-colors duration-200">Privacy Policy</a></li>
+                <li><a href="#" className="text-pulse-700 hover:text-primary hover:underline transition-colors duration-200">Terms of Service</a></li>
               </ul>
             </div>
           </div>
 
           {/* Bottom Bar */}
-          <div className="pt-8 border-t border-border text-center">
-            <p className="text-sm text-muted-foreground">
-              © 2025 Sleep Report AI. All rights reserved to <span className="font-semibold text-primary">Alanoud Alsamil</span>.
+          <div className="pt-6 border-t border-pulse-200 text-center">
+            <p className="text-xs text-pulse-600">
+              © 2025 Sleep Report AI. All rights reserved to <span className="text-primary font-semibold">Alanoud Alsamil</span>.
             </p>
           </div>
         </div>
