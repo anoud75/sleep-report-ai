@@ -72,7 +72,7 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       }}
     >
       <div className="max-w-2xl mx-auto px-4 text-center pt-24 pb-24 md:pt-16 md:pb-16">
-        <h1 className="text-4xl md:text-5xl font-bold mb-8">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">
           <span className="gradient-text">About Sleep Report AI</span>
         </h1>
         <div className="relative min-h-[400px] flex items-center justify-center">
@@ -86,7 +86,7 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
               }`}
             >
               <p 
-                className="text-center text-xl md:text-2xl font-normal px-4 max-w-2xl text-foreground/80" 
+                className="text-center text-2xl md:text-4xl font-normal px-4 max-w-2xl text-foreground/80" 
                 style={{ lineHeight: '1.6' }}
               >
                 {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
