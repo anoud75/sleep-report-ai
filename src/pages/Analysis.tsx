@@ -58,44 +58,44 @@ const Analysis = () => {
           <div className="max-w-6xl mx-auto mb-16">
             <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Today's Activity</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300">
-                <div className="flex items-center justify-center mb-2">
-                  <Activity className="w-6 h-6 text-primary mr-2" />
-                  <div className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                    {reportCount}
-                  </div>
+              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover-lift">
+                <div className="w-12 h-12 bg-gradient-to-br from-pulse-100 to-pulse-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Activity className="w-6 h-6 text-pulse-600" />
                 </div>
-                <p className="text-muted-foreground text-sm font-medium font-body">Reports Generated</p>
+                <div className="text-3xl font-bold text-pulse-600 mb-2 font-brockmann">
+                  {reportCount}
+                </div>
+                <p className="text-muted-foreground text-sm font-medium">Reports Generated</p>
               </div>
 
-              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300">
-                <div className="flex items-center justify-center mb-2">
-                  <Zap className="w-6 h-6 text-success mr-2" />
-                  <div className="text-3xl font-bold bg-gradient-to-r from-success to-success bg-clip-text text-transparent">
-                    &lt;45s
-                  </div>
+              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover-lift">
+                <div className="w-12 h-12 bg-gradient-to-br from-pulse-100 to-pulse-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-6 h-6 text-pulse-600" />
                 </div>
-                <p className="text-muted-foreground text-sm font-medium font-body">Processing Time</p>
+                <div className="text-3xl font-bold text-pulse-600 mb-2 font-brockmann">
+                  &lt;45s
+                </div>
+                <p className="text-muted-foreground text-sm font-medium">Processing Time</p>
               </div>
 
-              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300">
-                <div className="flex items-center justify-center mb-2">
-                  <Shield className="w-6 h-6 text-premium mr-2" />
-                  <div className="text-3xl font-bold bg-gradient-to-r from-premium to-highlight bg-clip-text text-transparent">
-                    100%
-                  </div>
+              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover-lift">
+                <div className="w-12 h-12 bg-gradient-to-br from-pulse-100 to-pulse-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-6 h-6 text-pulse-600" />
                 </div>
-                <p className="text-muted-foreground text-sm font-medium font-body">Success Rate</p>
+                <div className="text-3xl font-bold text-pulse-600 mb-2 font-brockmann">
+                  100%
+                </div>
+                <p className="text-muted-foreground text-sm font-medium">Success Rate</p>
               </div>
 
-              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300">
-                <div className="flex items-center justify-center mb-2">
-                  <Heart className="w-6 h-6 text-trust mr-2" />
-                  <div className="text-3xl font-bold bg-gradient-to-r from-trust to-trust-light bg-clip-text text-transparent">
-                    0
-                  </div>
+              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover-lift">
+                <div className="w-12 h-12 bg-gradient-to-br from-pulse-100 to-pulse-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Heart className="w-6 h-6 text-pulse-600" />
                 </div>
-                <p className="text-muted-foreground text-sm font-medium font-body">Recent Reports</p>
+                <div className="text-3xl font-bold text-pulse-600 mb-2 font-brockmann">
+                  0
+                </div>
+                <p className="text-muted-foreground text-sm font-medium">Recent Reports</p>
               </div>
             </div>
 

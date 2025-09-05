@@ -45,7 +45,7 @@ export const Header = () => {
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'bg-black/80 backdrop-blur-md border-b border-white/10 shadow-lg' 
+          ? 'bg-pulse-900/90 backdrop-blur-md border-b border-pulse-700/30 shadow-lg' 
           : 'bg-transparent'
       }`}
     >
@@ -57,7 +57,7 @@ export const Header = () => {
             className="flex items-center space-x-3 hover:scale-105 transition-transform duration-300 group"
           >
             <SleepLogo size="md" className="group-hover:animate-float" />
-            <span className="text-white font-semibold text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <span className="text-white font-semibold text-xl font-brockmann">
               Sleep Report AI
             </span>
           </button>
@@ -68,12 +68,12 @@ export const Header = () => {
               <button
                 key={link.id || link.path}
                 onClick={() => handleNavigation(link)}
-                className={`text-white/80 hover:text-white transition-colors duration-300 font-medium relative group ${
+                className={`text-white/90 hover:text-white transition-colors duration-300 font-medium relative group ${
                   (link.path && location.pathname === link.path) ? 'text-white' : ''
                 }`}
               >
                 {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:w-full transition-all duration-300"></span>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
               </button>
             ))}
           </div>
