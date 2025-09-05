@@ -71,28 +71,30 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
         minHeight: '100vh'
       }}
     >
-      <div className="max-w-2xl mx-auto px-4 text-center pt-24 pb-24 md:pt-16 md:pb-16">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          <span className="gradient-text">About Sleep Report AI</span>
-        </h1>
-        <div className="relative min-h-[400px] flex items-center justify-center">
-          {textParts.map((part, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 w-full flex items-center justify-center transition-all duration-1000 ease-out ${
-                index === currentPart
-                  ? 'opacity-100'
-                  : 'opacity-0'
-              }`}
-            >
-              <p 
-                className="text-center text-2xl md:text-4xl font-light px-6 max-w-3xl text-foreground/80 tracking-wide" 
-                style={{ lineHeight: '1.6' }}
+      <div className="max-w-4xl mx-auto px-6 text-center pt-24 pb-24 md:pt-16 md:pb-16">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <span className="gradient-text">About Sleep Report AI</span>
+          </h1>
+          <div className="relative min-h-[400px] flex items-center justify-center">
+            {textParts.map((part, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 w-full flex items-center justify-center transition-all duration-1000 ease-out ${
+                  index === currentPart
+                    ? 'opacity-100'
+                    : 'opacity-0'
+                }`}
               >
-                {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
-              </p>
-            </div>
-          ))}
+                <p 
+                  className="text-center text-2xl md:text-4xl font-light px-6 max-w-3xl text-foreground/80 tracking-wide" 
+                  style={{ lineHeight: '1.3' }}
+                >
+                  {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
