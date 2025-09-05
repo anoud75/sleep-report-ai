@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Upload, Cpu, FileText, ArrowRight } from 'lucide-react';
+import { Upload, Cpu, FileText } from 'lucide-react';
 
 interface Step {
   id: number;
@@ -9,7 +9,7 @@ interface Step {
 }
 
 const HowItWorksAnimated: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState(-1); // -1 means no step is active yet
+  const [scrollProgress, setScrollProgress] = useState(0);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   const steps: Step[] = [
@@ -21,7 +21,7 @@ const HowItWorksAnimated: React.FC = () => {
     },
     {
       id: 2,
-      title: "Key Extraction & Summary",
+      title: "Key Extraction & Summary", 
       description: "Extracts essential sleep metrics and generates a clear summary.",
       icon: Cpu
     },
@@ -41,156 +41,160 @@ const HowItWorksAnimated: React.FC = () => {
       const windowHeight = window.innerHeight;
       const sectionHeight = rect.height;
       
-      // Only trigger when section is in viewport
-      if (rect.top <= windowHeight * 0.2 && rect.bottom >= windowHeight * 0.2) {
-        // Calculate how far we've scrolled through the section
-        const scrolledIntoSection = Math.abs(Math.min(0, rect.top));
-        const maxScroll = sectionHeight - windowHeight;
-        const scrollProgress = Math.min(scrolledIntoSection / Math.max(maxScroll, 1), 1);
-        
-        // Map scroll progress to steps
-        let newStep = -1;
-        if (scrollProgress > 0.8) {
-          newStep = 2; // Step 3
-        } else if (scrollProgress > 0.5) {
-          newStep = 1; // Step 2
-        } else if (scrollProgress > 0.2) {
-          newStep = 0; // Step 1
-        }
-        
-        setCurrentStep(newStep);
-      } else if (rect.top > windowHeight * 0.2) {
-        // Section not reached yet
-        setCurrentStep(-1);
+      // Calculate scroll progress through the section (0 to 1)
+      if (rect.top <= 0 && rect.bottom >= windowHeight) {
+        const progress = Math.abs(rect.top) / (sectionHeight - windowHeight);
+        setScrollProgress(Math.min(Math.max(progress, 0), 1));
+      } else if (rect.top > 0) {
+        setScrollProgress(0);
+      } else if (rect.bottom < windowHeight) {
+        setScrollProgress(1);
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check
+    handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Calculate which step should be visible and their states
+  const getStepState = (stepIndex: number) => {
+    const stepProgress = scrollProgress * 3.5; // Slightly overlap for smoother transitions
+    const stepStart = stepIndex * 1.1;
+    const stepEnd = stepStart + 1;
+    
+    if (stepProgress < stepStart) {
+      return { 
+        opacity: 0, 
+        transform: 'translateY(50px)', 
+        textColor: 'text-foreground',
+        visibility: 'opacity-0'
+      };
+    } else if (stepProgress >= stepStart && stepProgress < stepEnd) {
+      const localProgress = (stepProgress - stepStart) / 1;
+      return {
+        opacity: Math.min(localProgress * 1.5, 1),
+        transform: `translateY(${(1 - localProgress) * 30}px)`,
+        textColor: 'text-pulse-600',
+        visibility: 'opacity-100'
+      };
+    } else {
+      // Fade to white when scrolling past
+      const fadeProgress = Math.min((stepProgress - stepEnd) / 0.8, 1);
+      return {
+        opacity: Math.max(1 - fadeProgress * 1.2, 0),
+        transform: `translateY(-${fadeProgress * 40}px)`,
+        textColor: fadeProgress > 0.3 ? 'text-white' : 'text-pulse-600',
+        visibility: fadeProgress > 0.9 ? 'opacity-0' : 'opacity-100'
+      };
+    }
+  };
+
+  // Progress line calculation
+  const getProgressLineHeight = () => {
+    const progress = Math.min(scrollProgress * 100, 100);
+    return `${progress}%`;
+  };
+
   return (
     <section 
       ref={sectionRef}
-      className="py-24 bg-gradient-to-br from-pulse-50 to-background relative overflow-hidden"
-      style={{ minHeight: '200vh' }}
+      className="relative bg-background overflow-hidden"
+      style={{ minHeight: '300vh' }}
     >
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center space-y-6 mb-16">
-          <h2 className="section-title">
-            <span className="gradient-text">
-              How It Works – In 3 Easy Steps
-            </span>
+      {/* Vertical progress line */}
+      <div className="fixed left-1/2 top-0 bottom-0 w-px bg-muted-foreground/20 z-10" style={{ transform: 'translateX(-50%)' }}>
+        <div 
+          className="w-full bg-pulse-600 transition-all duration-300 ease-out"
+          style={{ height: getProgressLineHeight() }}
+        />
+      </div>
+
+      <div className="container mx-auto px-6 relative z-20">
+        {/* Section Title - Fixed at top */}
+        <div className="text-center py-16">
+          <h2 className="text-4xl md:text-5xl font-brockmann font-bold text-foreground">
+            How It Works – In 3 Easy Steps
           </h2>
         </div>
         
-        <div className="max-w-6xl mx-auto">
-          {/* Progress indicator */}
-          <div className="flex justify-center mb-16">
-            <div className="flex items-center space-x-4">
-              {steps.map((step, index) => (
-                <React.Fragment key={step.id}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${
-                    index <= currentStep 
-                      ? 'bg-gradient-to-r from-pulse-500 to-pulse-600 scale-110' 
-                      : 'bg-muted border-2 border-muted-foreground/20'
-                  }`}>
-                    <span className={`font-bold text-lg transition-colors duration-500 ${
-                      index <= currentStep ? 'text-white' : 'text-muted-foreground'
+        <div className="max-w-4xl mx-auto">
+          {/* Steps content - Each step takes full viewport */}
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            const state = getStepState(index);
+            
+            return (
+              <div
+                key={step.id}
+                className={`min-h-screen flex items-center justify-center transition-all duration-700 ease-out ${state.visibility}`}
+                style={{
+                  opacity: state.opacity,
+                  transform: state.transform
+                }}
+              >
+                <div className="text-center max-w-2xl mx-auto px-8">
+                  {/* Animated step number circle */}
+                  <div className="flex items-center justify-center mb-8">
+                    <div className={`relative w-20 h-20 rounded-full border-4 transition-all duration-500 ${
+                      state.opacity > 0.7 ? 'border-pulse-600 bg-pulse-600/10' : 'border-muted-foreground/30'
                     }`}>
-                      {step.id}
-                    </span>
-                  </div>
-                  {index < steps.length - 1 && (
-                    <ArrowRight className={`w-6 h-6 transition-all duration-500 ${
-                      index < currentStep 
-                        ? 'text-pulse-600 scale-110' 
-                        : 'text-muted-foreground/40'
-                    }`} />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-
-          {/* Steps content */}
-          <div className="relative min-h-[400px] flex items-center justify-center">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              const isActive = index === currentStep;
-              const isPast = index < currentStep;
-              
-              return (
-                <div
-                  key={step.id}
-                  className={`absolute inset-0 w-full flex items-center justify-center transition-all duration-1000 ease-out ${
-                    isActive
-                      ? 'opacity-100 translate-y-0 scale-100'
-                      : isPast
-                      ? 'opacity-20 -translate-y-8 scale-95'
-                      : 'opacity-0 translate-y-8 scale-95'
-                  }`}
-                >
-                  <div className="glass-card p-12 text-center max-w-2xl mx-auto">
-                    {/* Animated icon */}
-                    <div className={`w-24 h-24 bg-gradient-to-r from-pulse-500 to-pulse-600 rounded-full flex items-center justify-center mx-auto mb-8 transition-all duration-500 ${
-                      isActive ? 'animate-pulse scale-110' : 'scale-100'
-                    }`}>
-                      <Icon className="w-12 h-12 text-white" />
-                    </div>
-                    
-                    {/* Step number */}
-                    <div className="flex items-center justify-center mb-6">
-                      <div className={`w-8 h-8 bg-gradient-to-r from-pulse-500 to-pulse-600 rounded-full flex items-center justify-center transition-all duration-500 ${
-                        isActive ? 'scale-110' : 'scale-100'
+                      <span className={`absolute inset-0 flex items-center justify-center text-2xl font-bold transition-colors duration-500 ${
+                        state.opacity > 0.7 ? 'text-pulse-600' : 'text-muted-foreground'
                       }`}>
-                        <span className="text-white font-bold text-sm">{step.id}</span>
-                      </div>
+                        {step.id}
+                      </span>
+                      
+                      {/* Progress circle fill */}
+                      <div 
+                        className="absolute inset-0 rounded-full bg-pulse-600/20 transition-all duration-500"
+                        style={{ 
+                          transform: `scale(${state.opacity > 0.7 ? state.opacity : 0})`,
+                          opacity: state.opacity > 0.7 ? 0.3 : 0
+                        }}
+                      />
                     </div>
-                    
-                    {/* Content */}
-                    <h3 className={`text-foreground font-bold text-4xl md:text-5xl font-brockmann mb-6 transition-all duration-500 ${
-                      isActive ? 'text-pulse-600' : 'text-foreground'
-                    }`}>
-                      {step.title}
-                    </h3>
-                    
-                    <p className="text-muted-foreground text-xl leading-relaxed">
-                      {step.description}
-                    </p>
-
-                    {/* Animated decorative elements */}
-                    {isActive && (
-                      <div className="absolute inset-0 pointer-events-none">
-                        <div className="absolute top-4 left-4 w-2 h-2 bg-pulse-400 rounded-full animate-ping opacity-75"></div>
-                        <div className="absolute top-8 right-8 w-1 h-1 bg-pulse-500 rounded-full animate-ping opacity-50" style={{ animationDelay: '0.5s' }}></div>
-                        <div className="absolute bottom-12 left-12 w-1.5 h-1.5 bg-pulse-300 rounded-full animate-ping opacity-60" style={{ animationDelay: '1s' }}></div>
-                        <div className="absolute bottom-6 right-6 w-1 h-1 bg-pulse-600 rounded-full animate-ping opacity-40" style={{ animationDelay: '1.5s' }}></div>
-                      </div>
-                    )}
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                  
+                  {/* Floating Icon */}
+                  <div className="flex justify-center mb-8">
+                    <div 
+                      className={`w-16 h-16 rounded-xl flex items-center justify-center transition-all duration-500 ${
+                        state.opacity > 0.7 ? 'bg-pulse-100 text-pulse-600 scale-110' : 'bg-muted text-muted-foreground scale-100'
+                      }`}
+                      style={{
+                        transform: `scale(${state.opacity > 0.7 ? 1.1 : 1}) translateY(${Math.sin(Date.now() / 1000 + index) * 3}px)`
+                      }}
+                    >
+                      <Icon className="w-8 h-8" />
+                    </div>
+                  </div>
+                  
+                  {/* Step Title */}
+                  <h3 className={`text-5xl md:text-6xl font-brockmann font-bold mb-6 transition-all duration-500 ${state.textColor}`}>
+                    {step.title}
+                  </h3>
+                  
+                  {/* Step Description */}
+                  <p className={`text-xl leading-relaxed transition-colors duration-500 ${
+                    state.textColor === 'text-white' ? 'text-white/80' : 'text-muted-foreground'
+                  }`}>
+                    {step.description}
+                  </p>
 
-          {/* Bottom indicator */}
-          <div className="text-center mt-16">
-            <div className="flex justify-center space-x-2">
-              {steps.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${
-                    index <= currentStep 
-                      ? 'bg-pulse-600 scale-125' 
-                      : 'bg-muted-foreground/30'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
+                  {/* Decorative elements that appear when step is active */}
+                  {state.opacity > 0.8 && (
+                    <>
+                      <div className="absolute left-1/4 top-1/4 w-2 h-2 bg-pulse-400/60 rounded-full animate-ping" />
+                      <div className="absolute right-1/3 top-1/3 w-1 h-1 bg-pulse-500/40 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+                      <div className="absolute left-1/3 bottom-1/3 w-1.5 h-1.5 bg-pulse-300/50 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
