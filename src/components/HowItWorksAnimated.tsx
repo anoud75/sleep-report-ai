@@ -60,9 +60,11 @@ const HowItWorksAnimated: React.FC = () => {
 
   // Calculate which step should be visible and their states
   const getStepState = (stepIndex: number) => {
-    const stepProgress = scrollProgress * 3.5; // Slightly overlap for smoother transitions
-    const stepStart = stepIndex * 1.1;
-    const stepEnd = stepStart + 1;
+    const stepProgress = scrollProgress * 4; // More steps for smoother control
+    const stepStart = stepIndex * 1.2;
+    const stepEnd = stepStart + 0.8; // Shorter active period
+    const fadeStart = stepEnd;
+    const fadeEnd = fadeStart + 1.5; // Much longer fade period
     
     if (stepProgress < stepStart) {
       return { 
@@ -72,21 +74,28 @@ const HowItWorksAnimated: React.FC = () => {
         visibility: 'opacity-0'
       };
     } else if (stepProgress >= stepStart && stepProgress < stepEnd) {
-      const localProgress = (stepProgress - stepStart) / 1;
+      const localProgress = (stepProgress - stepStart) / (stepEnd - stepStart);
       return {
         opacity: Math.min(localProgress * 1.5, 1),
         transform: `translateY(${(1 - localProgress) * 30}px)`,
         textColor: 'text-pulse-600',
         visibility: 'opacity-100'
       };
-    } else {
-      // Fade to white when scrolling past
-      const fadeProgress = Math.min((stepProgress - stepEnd) / 0.8, 1);
+    } else if (stepProgress >= fadeStart && stepProgress < fadeEnd) {
+      // Much slower fade to white
+      const fadeProgress = (stepProgress - fadeStart) / (fadeEnd - fadeStart);
       return {
-        opacity: Math.max(1 - fadeProgress * 1.2, 0),
-        transform: `translateY(-${fadeProgress * 40}px)`,
-        textColor: fadeProgress > 0.3 ? 'text-white' : 'text-pulse-600',
-        visibility: fadeProgress > 0.9 ? 'opacity-0' : 'opacity-100'
+        opacity: Math.max(1 - fadeProgress * 0.7, 0.3), // Don't fade completely
+        transform: `translateY(-${fadeProgress * 20}px)`, // Less movement
+        textColor: fadeProgress > 0.6 ? 'text-white' : 'text-pulse-600',
+        visibility: 'opacity-100'
+      };
+    } else {
+      return {
+        opacity: 0,
+        transform: 'translateY(-50px)',
+        textColor: 'text-white',
+        visibility: 'opacity-0'
       };
     }
   };
@@ -101,7 +110,7 @@ const HowItWorksAnimated: React.FC = () => {
     <section 
       ref={sectionRef}
       className="relative py-24 bg-background overflow-hidden"
-      style={{ minHeight: '150vh' }}
+      style={{ minHeight: '120vh' }}
     >
       <div className="container mx-auto px-6 relative z-20">
         {/* Section Title */}
@@ -112,14 +121,14 @@ const HowItWorksAnimated: React.FC = () => {
         </div>
         
         {/* Vertical progress line - only within section */}
-        <div className="absolute left-1/2 top-32 bottom-24 w-px bg-muted-foreground/20 z-10" style={{ transform: 'translateX(-50%)' }}>
+        <div className="absolute left-1/2 top-32 bottom-24 w-px bg-muted-foreground/20 z-0" style={{ transform: 'translateX(-50%)' }}>
           <div 
             className="w-full bg-pulse-600 transition-all duration-300 ease-out"
             style={{ height: getProgressLineHeight() }}
           />
         </div>
         
-        <div className="max-w-3xl mx-auto relative z-20">
+        <div className="max-w-3xl mx-auto relative z-30">
           {/* Steps content - Reduced spacing */}
           {steps.map((step, index) => {
             const Icon = step.icon;
@@ -128,7 +137,7 @@ const HowItWorksAnimated: React.FC = () => {
             return (
               <div
                 key={step.id}
-                className={`py-20 flex items-center justify-center transition-all duration-700 ease-out ${state.visibility}`}
+                className={`py-12 flex items-center justify-center transition-all duration-700 ease-out ${state.visibility}`}
                 style={{
                   opacity: state.opacity,
                   transform: state.transform
