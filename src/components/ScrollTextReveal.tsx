@@ -74,10 +74,10 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       }}
     >
       <div className="max-w-[600px] mx-auto px-8 md:px-6 text-center">
-        <h1 className="section-title mb-8">
+        <h1 className="section-title mb-4">
           <span className="gradient-text">About Sleep Report AI</span>
         </h1>
-        <div className="relative min-h-[300px] flex items-center justify-center">
+        <div className="relative min-h-[400px] flex items-center justify-center">
           {textParts.map((part, index) => (
             <div
               key={index}
@@ -87,7 +87,7 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
                   : 'opacity-0'
               }`}
             >
-              <p className="text-center text-xl md:text-2xl leading-relaxed font-medium">
+              <p className="text-center text-2xl md:text-4xl leading-relaxed font-medium px-4">
                 {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
               </p>
             </div>
