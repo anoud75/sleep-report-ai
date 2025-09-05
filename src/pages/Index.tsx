@@ -167,6 +167,61 @@ const Index = () => {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-24 bg-gradient-to-br from-pulse-50 to-background relative overflow-hidden">
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="text-center space-y-6 mb-16">
+            <h2 className="section-title">
+              <span className="gradient-text">
+                How It Works – In 3 Easy Steps
+              </span>
+            </h2>
+          </div>
+          
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Step 1 */}
+              <div className="glass-card p-8 text-center group hover-lift">
+                <div className="w-16 h-16 bg-gradient-to-r from-pulse-500 to-pulse-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-white font-bold text-xl">1</span>
+                </div>
+                <h3 className="text-foreground font-bold text-2xl font-brockmann mb-4">
+                  Smart Reading
+                </h3>
+                <p className="text-muted-foreground text-base leading-relaxed">
+                  Upload your .docx, .rtf, or .pdf sleep reports from G3 and similar systems.
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="glass-card p-8 text-center group hover-lift">
+                <div className="w-16 h-16 bg-gradient-to-r from-pulse-500 to-pulse-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-white font-bold text-xl">2</span>
+                </div>
+                <h3 className="text-foreground font-bold text-2xl font-brockmann mb-4">
+                  Key Extraction & Summary
+                </h3>
+                <p className="text-muted-foreground text-base leading-relaxed">
+                  Extracts essential sleep metrics and generates a clear summary.
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="glass-card p-8 text-center group hover-lift">
+                <div className="w-16 h-16 bg-gradient-to-r from-pulse-500 to-pulse-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-white font-bold text-xl">3</span>
+                </div>
+                <h3 className="text-foreground font-bold text-2xl font-brockmann mb-4">
+                  Review & Export
+                </h3>
+                <p className="text-muted-foreground text-base leading-relaxed">
+                  Lets you review, edit, and export a ready-to-print PDF in seconds.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Contact Section */}
       <section id="contact-section" className="py-20 bg-background relative overflow-hidden">
