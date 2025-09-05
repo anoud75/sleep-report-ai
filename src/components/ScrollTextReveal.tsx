@@ -71,30 +71,27 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
         minHeight: '100vh'
       }}
     >
-      <div className="max-w-4xl mx-auto px-6 text-center pt-20 pb-20">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="gradient-text">About Sleep Report AI</span>
-          </h1>
-          <div className="relative min-h-[400px] flex items-center justify-center">
-            {textParts.map((part, index) => (
-              <div
-                key={index}
-                className={`absolute inset-0 w-full flex items-center justify-center transition-all duration-1000 ease-out ${
-                  index === currentPart
-                    ? 'opacity-100'
-                    : 'opacity-0'
-                }`}
+      <div className="text-center px-6 md:px-20 lg:px-48 py-16">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <span className="gradient-text">About Sleep Report AI</span>
+        </h1>
+        <div className="relative min-h-[400px] flex items-center justify-center">
+          {textParts.map((part, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 w-full flex items-center justify-center transition-all duration-1000 ease-out ${
+                index === currentPart
+                  ? 'opacity-100'
+                  : 'opacity-0'
+              }`}
+            >
+              <p 
+                className="text-center text-2xl md:text-4xl font-light text-foreground/80 tracking-wide leading-relaxed max-w-4xl mx-auto" 
               >
-                <p 
-                  className="text-center text-2xl md:text-4xl font-light text-foreground/80 tracking-wide" 
-                  style={{ lineHeight: '1.3' }}
-                >
-                  {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
-                </p>
-              </div>
-            ))}
-          </div>
+                {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
