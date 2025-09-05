@@ -86,7 +86,7 @@ const ScrollableCardsSection: React.FC<ScrollableCardsSectionProps> = ({
                   ? `scale(1) translateY(${index * -20}px)` 
                   : `scale(0.8) translateY(${100 + index * 20}px)`,
                 opacity: isActive ? 1 : 0,
-                zIndex: cards.length - index,
+                zIndex: isActive ? index + 1 : 0,
                 transitionDelay: `${index * 0.1}s`,
               };
 
