@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Upload, Cpu, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 interface Step {
   id: number;
@@ -11,6 +13,11 @@ interface Step {
 const HowItWorksAnimated: React.FC = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  const navigateToAnalysis = () => {
+    navigate('/analysis');
+  };
 
   const steps: Step[] = [
     {
@@ -106,11 +113,33 @@ const HowItWorksAnimated: React.FC = () => {
     return `${progress}%`;
   };
 
+  // CTA state calculation
+  const getCTAState = () => {
+    const ctaProgress = scrollProgress * 4; // Same scale as steps
+    const ctaStart = 3.8; // Appears after all steps fade
+    const ctaEnd = 4;
+    
+    if (ctaProgress < ctaStart) {
+      return {
+        opacity: 0,
+        transform: 'translateY(50px)',
+        visibility: 'opacity-0'
+      };
+    } else {
+      const localProgress = Math.min((ctaProgress - ctaStart) / (ctaEnd - ctaStart), 1);
+      return {
+        opacity: localProgress,
+        transform: `translateY(${(1 - localProgress) * 30}px)`,
+        visibility: localProgress > 0.1 ? 'opacity-100' : 'opacity-0'
+      };
+    }
+  };
+
   return (
     <section 
       ref={sectionRef}
       className="relative py-24 bg-background overflow-hidden"
-      style={{ minHeight: '120vh' }}
+      style={{ minHeight: '140vh' }}
     >
       <div className="container mx-auto px-6 relative z-20">
         {/* Section Title */}
@@ -201,6 +230,38 @@ const HowItWorksAnimated: React.FC = () => {
               </div>
             );
           })}
+
+          {/* Call to Action Section */}
+          {(() => {
+            const ctaState = getCTAState();
+            return (
+              <div
+                className={`py-16 flex items-center justify-center transition-all duration-700 ease-out ${ctaState.visibility}`}
+                style={{
+                  opacity: ctaState.opacity,
+                  transform: ctaState.transform
+                }}
+              >
+                <div className="text-center max-w-2xl mx-auto px-8">
+                  <div className="bg-gradient-to-br from-pulse-50 to-pulse-100 rounded-2xl p-8 border border-pulse-200 shadow-lg">
+                    <h3 className="text-2xl md:text-3xl font-brockmann font-bold text-pulse-600 mb-4">
+                      Ready to Transform Your Sleep Reports?
+                    </h3>
+                    <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+                      Start analyzing your sleep studies now and create professional reports in seconds.
+                    </p>
+                    <Button 
+                      onClick={navigateToAnalysis}
+                      size="lg"
+                      className="bg-pulse-600 hover:bg-pulse-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      Start Sleep Analysis
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </section>
