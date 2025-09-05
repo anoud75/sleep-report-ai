@@ -17,7 +17,7 @@ export const SleepLogo: React.FC<SleepLogoProps> = ({ size = 'md', className = '
       <img
         src="/lovable-uploads/ee69495b-37e5-4911-b938-1a112b2a08cd.png"
         alt="Sleep Logo"
-        className="w-full h-full object-contain drop-shadow-lg bg-transparent"
+        className="w-full h-full object-contain drop-shadow-lg bg-transparent rounded-full"
       />
     </div>
   );
