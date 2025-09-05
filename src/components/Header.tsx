@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { SleepLogo } from './SleepLogo';
 
 export const Header = () => {
@@ -87,7 +87,7 @@ export const Header = () => {
                 onClick={() => navigate('/')}
                 className="text-white/90 hover:text-white transition-colors duration-300 p-2 hover:bg-white/10 rounded-lg"
               >
-                <ArrowLeft className="w-6 h-6" />
+                <ArrowRight className="w-6 h-6" />
               </button>
             )}
           </div>
