@@ -4,6 +4,7 @@ import { Building2, CheckCircle, Zap } from "lucide-react";
 import { ContactForm } from "@/components/ContactForm";
 import { Header } from "@/components/Header";
 import ScrollableCardsSection from "@/components/ScrollableCardsSection";
+import ScrollTextReveal from "@/components/ScrollTextReveal";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -90,24 +91,20 @@ const Index = () => {
         </div>
       </section>
 
-      {/* About Section - Enhanced */}
-      <section id="about-section" className="min-h-screen flex items-center justify-center bg-gradient-to-r from-pulse-600 to-pulse-400 text-white relative overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <div className="space-y-8">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-brockmann font-bold animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-              About Sleep Report AI
-            </h1>
-            <p className="text-xl md:text-2xl leading-relaxed max-w-4xl mx-auto opacity-0 animate-fade-in-up" style={{animationDelay: '0.7s', animationFillMode: 'forwards'}}>
-              Sleep Report AI simplifies how healthcare professionals handle sleep study data.
-              Our AI engine reads raw sleep reports, extracts critical values, and generates structured,
-              printable summaries — all within seconds.
-            </p>
-            <p className="text-xl md:text-2xl font-semibold opacity-0 animate-fade-in-up" style={{animationDelay: '1.2s', animationFillMode: 'forwards'}}>
-              Precision. Speed. Built for sleep labs.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* About Section - Scroll Text Reveal */}
+      <ScrollTextReveal 
+        textParts={[
+          "Sleep Report AI simplifies",
+          "how healthcare professionals", 
+          "handle sleep study data.",
+          "Our AI engine reads raw sleep reports,",
+          "extracts critical values,",
+          "and generates structured,",
+          "printable summaries",
+          "all within seconds."
+        ]}
+        className="bg-white"
+      />
 
       {/* Key Features Section - Scrollable Cards */}
       <ScrollableCardsSection
