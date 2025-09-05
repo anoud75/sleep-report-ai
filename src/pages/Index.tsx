@@ -170,57 +170,57 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-background border-t border-border/30 py-12 relative overflow-hidden">
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-12 mb-8">
-              {/* Logo & Description */}
-              <div>
-                <h3 className="text-2xl font-brockmann text-primary mb-3">
-                  Sleep Report AI
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4 max-w-xs">
-                  Transforming sleep study analysis with AI-powered precision, delivering professional reports in seconds.
-                </p>
-                <div className="inline-flex items-center justify-center w-8 h-8 bg-primary/10 rounded-md">
-                  <span className="text-primary font-semibold text-sm">AI</span>
-                </div>
-              </div>
-              
-              {/* Quick Links */}
-              <div>
-                <h4 className="text-foreground font-medium mb-4 text-sm">Quick Links</h4>
-                <ul className="space-y-2">
-                  <li><a href="/analysis" className="text-muted-foreground text-sm hover:text-primary transition-colors">Start Analysis</a></li>
-                  <li><a href="#" className="text-muted-foreground text-sm hover:text-primary transition-colors">Features</a></li>
-                  <li><a href="#contact-section" className="text-muted-foreground text-sm hover:text-primary transition-colors">Contact</a></li>
-                  <li><a href="#" className="text-muted-foreground text-sm hover:text-primary transition-colors">Documentation</a></li>
-                </ul>
-              </div>
-              
-              {/* Support */}
-              <div>
-                <h4 className="text-foreground font-medium mb-4 text-sm">Support</h4>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-muted-foreground text-sm hover:text-primary transition-colors">Help Center</a></li>
-                  <li><a href="#" className="text-muted-foreground text-sm hover:text-primary transition-colors">Privacy Policy</a></li>
-                  <li><a href="#" className="text-muted-foreground text-sm hover:text-primary transition-colors">Terms of Service</a></li>
-                  <li><a href="#contact-section" className="text-muted-foreground text-sm hover:text-primary transition-colors">Get in Touch</a></li>
-                </ul>
-              </div>
-            </div>
-            
-            {/* Bottom Bar */}
-            <div className="flex flex-col md:flex-row justify-between items-center pt-6 border-t border-border/30">
-              <div className="text-muted-foreground text-xs mb-3 md:mb-0">
-                © 2025 Sleep Report AI. All rights reserved to Alanoud Alsamil.
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-muted-foreground">Powered by Advanced AI</span>
-                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-              </div>
+      <footer className="bg-muted py-16 text-muted-foreground">
+        <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Brand Section */}
+          <div>
+            <h3 className="text-2xl font-bold text-primary mb-4">Sleep Report AI</h3>
+            <p className="text-base leading-relaxed text-muted-foreground">
+              Transforming sleep study analysis with AI-powered precision, delivering professional reports in seconds.
+            </p>
+            <div className="mt-4 inline-block bg-primary/10 text-primary px-4 py-2 rounded-full font-semibold text-sm">
+              AI
             </div>
           </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="font-semibold mb-3 text-primary">Quick Links</h4>
+            <ul className="space-y-2">
+              <li><a href="/analysis" className="hover:underline transition-colors">Start Analysis</a></li>
+              <li><a href="#" className="hover:underline transition-colors">Features</a></li>
+              <li><a href="#contact-section" className="hover:underline transition-colors">Contact</a></li>
+              <li><a href="#" className="hover:underline transition-colors">Documentation</a></li>
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h4 className="font-semibold mb-3 text-primary">Support</h4>
+            <ul className="space-y-2">
+              <li><a href="#" className="hover:underline transition-colors">Help Center</a></li>
+              <li><a href="#" className="hover:underline transition-colors">Privacy Policy</a></li>
+              <li><a href="#" className="hover:underline transition-colors">Terms of Service</a></li>
+              <li><a href="#contact-section" className="hover:underline transition-colors">Get in Touch</a></li>
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <h4 className="font-semibold mb-3 text-primary">Company</h4>
+            <ul className="space-y-2">
+              <li><a href="#" className="hover:underline transition-colors">About Us</a></li>
+              <li><a href="#" className="hover:underline transition-colors">Our Mission</a></li>
+              <li><a href="#" className="hover:underline transition-colors">Careers</a></li>
+              <li><a href="#" className="hover:underline transition-colors">News</a></li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="mt-12 border-t border-border pt-6 text-center text-sm text-muted-foreground">
+          <p>© 2025 Sleep Report AI. All rights reserved to <span className="font-semibold text-primary">Alanoud Alsamil</span>.</p>
+          <p className="mt-2 text-xs">Powered by Advanced AI •</p>
         </div>
       </footer>
 
