@@ -94,9 +94,11 @@ const Index = () => {
       {/* About Section - Scroll Text Reveal */}
       <ScrollTextReveal 
         textParts={[
-          "Sleep Report AI simplifies how healthcare professionals handle sleep study data. Our AI engine reads raw sleep reports, extracts critical values, and generates structured, printable summaries all within seconds."
+          "Sleep Report AI simplifies the way healthcare professionals handle sleep study data.",
+          "Using reliable AI models, the system extracts core metrics and produces clear, structured reports — all within seconds.",
+          "All within seconds."
         ]}
-        className="bg-white"
+        className="bg-gradient-to-br from-pulse-600 via-pulse-700 to-pulse-800"
       />
 
       {/* Key Features Section - Scrollable Cards */}

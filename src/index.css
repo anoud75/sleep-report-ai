@@ -106,6 +106,16 @@
 }
 
 @layer base {
+  /* Scroll snap behavior for smooth section transitions */
+  html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+
+  .scroll-snap-start {
+    scroll-snap-align: start;
+  }
+
   * {
     @apply border-border;
   }
