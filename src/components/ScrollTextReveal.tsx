@@ -15,22 +15,22 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
 
       const rect = sectionRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      const sectionHeight = rect.height;
       
-      // Only animate when section is prominently in view
-      const isInViewport = rect.top < windowHeight * 0.8 && rect.bottom > windowHeight * 0.2;
-      
-      if (isInViewport) {
-        // Calculate how far through the section we've scrolled (0 to 1)
-        const scrollProgress = Math.max(0, Math.min(1, 
-          (windowHeight * 0.8 - rect.top) / (sectionHeight + windowHeight * 0.6)
-        ));
+      // Calculate scroll progress through the section
+      if (rect.top <= 0 && rect.bottom >= windowHeight) {
+        // We're scrolling through the section
+        const scrolledDistance = Math.abs(rect.top);
+        const totalScrollDistance = rect.height - windowHeight;
+        const scrollProgress = Math.min(scrolledDistance / totalScrollDistance, 1);
         
-        // Map scroll progress to text parts with better timing
-        const partProgress = scrollProgress * (textParts.length + 0.5); // Add buffer for smoother transitions
-        const newCurrentPart = Math.min(Math.floor(partProgress), textParts.length - 1);
+        // Map scroll progress to text parts (0 to textParts.length - 1)
+        const partIndex = Math.floor(scrollProgress * textParts.length);
+        const newCurrentPart = Math.min(partIndex, textParts.length - 1);
         
         setCurrentPart(newCurrentPart);
+      } else if (rect.top > 0) {
+        // Section hasn't entered yet
+        setCurrentPart(0);
       }
     };
 
