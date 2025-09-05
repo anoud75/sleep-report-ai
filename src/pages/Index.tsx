@@ -94,14 +94,7 @@ const Index = () => {
       {/* About Section - Scroll Text Reveal */}
       <ScrollTextReveal 
         textParts={[
-          "Sleep Report AI simplifies",
-          "how healthcare professionals", 
-          "handle sleep study data.",
-          "Our AI engine reads raw sleep reports,",
-          "extracts critical values,",
-          "and generates structured,",
-          "printable summaries",
-          "all within seconds."
+          "Sleep Report AI simplifies how healthcare professionals handle sleep study data. Our AI engine reads raw sleep reports, extracts critical values, and generates structured, printable summaries all within seconds."
         ]}
         className="bg-white"
       />
