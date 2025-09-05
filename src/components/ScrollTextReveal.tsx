@@ -86,7 +86,7 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
                     : 'opacity-0'
                 }`}
               >
-                <div className="max-w-[900px] mx-auto px-4">
+                <div className="max-w-[1000px] mx-auto px-4">
                   <p 
                     className="text-center text-2xl md:text-4xl font-light text-foreground/80 tracking-wide" 
                     style={{ lineHeight: '1.3' }}
