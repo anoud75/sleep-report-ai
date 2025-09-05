@@ -16,23 +16,27 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
 
       const rect = sectionRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
+      const sectionHeight = rect.height;
       
-      // Check if section is in viewport
-      if (rect.top < windowHeight && rect.bottom > 0) {
-        setIsVisible(true);
+      // Only trigger when section is in the center of viewport
+      if (rect.top <= windowHeight * 0.1 && rect.bottom >= windowHeight * 0.9) {
+        // Calculate how far we've scrolled through the section
+        const scrolledIntoSection = Math.abs(Math.min(0, rect.top));
+        const maxScroll = sectionHeight - windowHeight;
+        const scrollProgress = Math.min(scrolledIntoSection / Math.max(maxScroll, 1), 1);
         
-        // Calculate scroll progress within the section
-        const sectionProgress = Math.max(0, Math.min(1, 
-          (windowHeight - rect.top) / (windowHeight + rect.height)
-        ));
+        // Map to text parts with clear thresholds
+        let newPart = 0;
+        if (scrollProgress > 0.6) {
+          newPart = 1; // Second sentence
+        } else if (scrollProgress > 0.1) {
+          newPart = 0; // First sentence
+        }
         
-        // Determine which text part to show
-        const partIndex = Math.floor(sectionProgress * textParts.length);
-        const clampedIndex = Math.min(Math.max(0, partIndex), textParts.length - 1);
-        
-        setCurrentPart(clampedIndex);
-      } else {
-        setIsVisible(false);
+        setCurrentPart(Math.min(newPart, textParts.length - 1));
+      } else if (rect.top > windowHeight * 0.1) {
+        // Section not reached yet
+        setCurrentPart(0);
       }
     };
 
