@@ -70,8 +70,8 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       style={{ minHeight: '100vh' }}
     >
       <div className="max-w-6xl mx-auto px-6 text-center">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-brockmann font-bold mb-12">
-          About <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Sleep</span> Report AI
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-brockmann font-bold mb-12 text-primary">
+          About Sleep Report AI
         </h1>
         <div className="relative min-h-[300px] flex items-center justify-center">
           {textParts.map((part, index) => (
