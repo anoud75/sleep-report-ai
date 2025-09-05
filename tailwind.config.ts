@@ -20,8 +20,9 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        brockmann: ['Inter', 'system-ui', 'sans-serif'],
-        playfair: ['Playfair Display', 'serif'],
+        brockmann: ['Montserrat', 'system-ui', 'sans-serif'],
+        playfair: ['IBM Plex Mono', 'monospace'],
+        mono: ['IBM Plex Mono', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",

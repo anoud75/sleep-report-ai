@@ -14,40 +14,40 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
     
-    /* Brand Colors */
-    --primary: 262 83% 58%;        /* Vibrant purple */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 94%;
-    --accent-foreground: 222.2 84% 4.9%;
+    /* Brand Colors - Royal Blue System */
+    --primary: 227 74% 42%;        /* Royal Blue #1D40BA */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 48% 82%;      /* Powder Blue #BFD0E6 */
+    --secondary-foreground: 220 34% 16%;
+    --muted: 42 33% 93%;          /* Linen #F3EFE7 */
+    --muted-foreground: 220 48% 32%;
+    --accent: 35 41% 84%;         /* Sand #E5D6C4 */
+    --accent-foreground: 220 34% 16%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 262 83% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 48% 82%;
+    --input: 220 48% 82%;
+    --ring: 227 74% 42%;
     --radius: 0.75rem;
 
-    /* Extended Brand Palette */
-    --pulse-50: 305 100% 98%;
-    --pulse-100: 305 86% 95%;
-    --pulse-200: 305 85% 89%;
-    --pulse-300: 305 85% 79%;
-    --pulse-400: 305 85% 69%;
-    --pulse-500: 305 85% 53%;
-    --pulse-600: 305 85% 42%;
-    --pulse-700: 305 85% 35%;
-    --pulse-800: 305 85% 29%;
-    --pulse-900: 305 85% 24%;
+    /* Extended Royal Blue Palette */
+    --pulse-50: 220 48% 98%;      /* Very light blue */
+    --pulse-100: 220 48% 92%;     /* Light blue */
+    --pulse-200: 220 48% 82%;     /* Powder Blue */
+    --pulse-300: 220 48% 72%;     /* Medium light blue */
+    --pulse-400: 220 48% 52%;     /* Medium blue */
+    --pulse-500: 227 74% 42%;     /* Royal Blue */
+    --pulse-600: 227 74% 38%;     /* Darker royal blue */
+    --pulse-700: 220 48% 32%;     /* Slate Blue */
+    --pulse-800: 220 34% 20%;     /* Dark navy */
+    --pulse-900: 220 34% 16%;     /* Deep Navy */
     
     /* Glass Effects */
     --glass-bg: 255 255 255 / 0.05;
     --glass-border: 255 255 255 / 0.1;
     --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     
-    /* Gradients */
+    /* Gradients - Royal Blue System */
     --gradient-primary: linear-gradient(135deg, hsl(var(--pulse-500)), hsl(var(--pulse-600)));
     --gradient-secondary: linear-gradient(135deg, hsl(var(--pulse-100)), hsl(var(--pulse-200)));
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
@@ -84,8 +84,8 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 227 74% 42%;        /* Royal Blue in dark mode */
+    --primary-foreground: 0 0% 100%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
@@ -96,7 +96,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 262 83% 58%;
+    --ring: 227 74% 42%;
     
     /* Dark mode glass effects */
     --glass-bg: 0 0 0 / 0.2;
@@ -116,15 +116,19 @@
     font-feature-settings: "cv11", "ss01";
   }
 
-  /* Typography Classes */
+  /* Typography Classes - Professional Editorial Stack */
   .font-brockmann {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
   
   .font-playfair {
-    font-family: 'Playfair Display', serif;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  
+  .font-mono {
+    font-family: 'IBM Plex Mono', monospace;
   }
 
   /* Text Size Utilities */
