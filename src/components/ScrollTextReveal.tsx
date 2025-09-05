@@ -53,7 +53,10 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       return (
         <>
           {parts[0]}
-           <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-pulse font-bold text-2xl md:text-3xl">
+           <span className="animate-pulse font-bold text-lg md:text-xl" style={{ 
+             color: '#365EFF',
+             fontFamily: 'Inter, Helvetica, Arial, sans-serif'
+           }}>
              seconds
            </span>
           {parts[1]}
@@ -67,23 +70,36 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
     <div 
       ref={sectionRef} 
       className={`min-h-screen flex items-center justify-center bg-white ${className}`}
-      style={{ minHeight: '100vh' }}
+      style={{ 
+        minHeight: '100vh',
+        paddingTop: '10vh',
+        paddingBottom: '10vh'
+      }}
     >
-      <div className="max-w-6xl mx-auto px-6 text-center">
-        <h1 className="section-title mb-8">
-          <span className="gradient-text">About Sleep Report AI</span>
+      <div className="max-w-[600px] mx-auto px-8 md:px-6 text-center">
+        <h1 className="text-2xl md:text-[2rem] font-bold mb-8" style={{ 
+          fontFamily: 'Inter, Helvetica, Arial, sans-serif',
+          color: '#1E2B6B',
+          fontWeight: '700'
+        }}>
+          About Sleep Report AI
         </h1>
-        <div className="relative min-h-[200px] flex items-center justify-center">
+        <div className="relative min-h-[200px] flex items-center justify-center" style={{ lineHeight: '1.7' }}>
           {textParts.map((part, index) => (
             <div
               key={index}
-              className={`absolute inset-0 w-full flex items-center justify-center text-xl md:text-2xl leading-relaxed font-brockmann transition-all duration-1000 ease-out ${
+              className={`absolute inset-0 w-full flex items-center justify-center transition-all duration-1000 ease-out ${
                 index === currentPart
-                  ? 'opacity-100 text-muted-foreground'
-                  : 'opacity-0 text-muted-foreground/60'
+                  ? 'opacity-100'
+                  : 'opacity-0'
               }`}
             >
-              <p className="text-center px-8 max-w-4xl">
+              <p className="text-center text-base md:text-[1.125rem] font-medium" style={{ 
+                fontFamily: 'Inter, Helvetica, Arial, sans-serif',
+                color: '#1E2B6B',
+                fontWeight: '500',
+                lineHeight: '1.7'
+              }}>
                 {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
               </p>
             </div>
