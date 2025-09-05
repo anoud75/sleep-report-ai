@@ -68,9 +68,6 @@ const Index = () => {
                 Into Professional Reports
               </span>
             </h1>
-            <p className="section-subtitle mx-auto animate-fade-in-up" style={{animationDelay: '0.8s'}}>
-              Transform complex sleep study data into clear, professional reports.
-            </p>
           </div>
 
           {/* CTA Buttons */}
