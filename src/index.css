@@ -210,7 +210,7 @@
   /* Scrollable Cards Specific Styles */
   .scrollable-card {
     @apply relative overflow-hidden rounded-2xl transition-all duration-700 ease-out;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    background: linear-gradient(135deg, hsl(var(--pulse-500)), hsl(var(--pulse-200)), rgb(156, 163, 175));
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }

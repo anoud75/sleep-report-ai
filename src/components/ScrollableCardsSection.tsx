@@ -107,12 +107,12 @@ const ScrollableCardsSection: React.FC<ScrollableCardsSectionProps> = ({
                     </div>
                   )}
                   
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/60 to-background/30 backdrop-blur-sm flex flex-col justify-end p-8 border border-border/20 rounded-2xl">
-                    <div className="text-foreground">
-                      <h3 className="text-2xl lg:text-3xl font-brockmann font-bold mb-3 gradient-text">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent backdrop-blur-sm flex flex-col justify-end p-8 border border-white/10 rounded-2xl">
+                    <div className="text-white">
+                      <h3 className="text-2xl lg:text-3xl font-brockmann font-bold mb-3 text-white">
                         {card.title}
                       </h3>
-                      <p className="text-lg text-muted-foreground leading-relaxed max-w-md">
+                      <p className="text-lg text-white/90 leading-relaxed max-w-md">
                         {card.subtitle}
                       </p>
                     </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { SleepLogo } from './SleepLogo';
 
 export const Header = () => {
@@ -41,6 +42,8 @@ export const Header = () => {
     { name: 'Contact', id: 'contact-section' }
   ];
 
+  const isAnalysisPage = location.pathname === '/analysis';
+
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -51,6 +54,16 @@ export const Header = () => {
     >
       <nav className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
+          {/* Back Arrow for Analysis Page */}
+          {isAnalysisPage && (
+            <button
+              onClick={() => navigate('/')}
+              className="text-white/90 hover:text-white transition-colors duration-300 mr-4"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+          )}
+          
           {/* Logo */}
           <button 
             onClick={() => navigate('/')}
