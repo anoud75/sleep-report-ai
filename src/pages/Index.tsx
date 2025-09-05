@@ -60,8 +60,8 @@ const Index = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
           {/* Main Heading */}
           <div className="space-y-6 mb-12">
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-brockmann animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-              <span className="block mb-6 hover:text-pulse-600 transition-colors duration-500">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-brockmann animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+              <span className="block mb-4 hover:text-pulse-600 transition-colors duration-500">
                 Transform Sleep Studies
               </span>
               <span className="block gradient-text">
