@@ -100,27 +100,27 @@ const HowItWorksAnimated: React.FC = () => {
   return (
     <section 
       ref={sectionRef}
-      className="relative bg-background overflow-hidden"
-      style={{ minHeight: '300vh' }}
+      className="relative py-24 bg-background overflow-hidden"
+      style={{ minHeight: '150vh' }}
     >
-      {/* Vertical progress line */}
-      <div className="fixed left-1/2 top-0 bottom-0 w-px bg-muted-foreground/20 z-10" style={{ transform: 'translateX(-50%)' }}>
-        <div 
-          className="w-full bg-pulse-600 transition-all duration-300 ease-out"
-          style={{ height: getProgressLineHeight() }}
-        />
-      </div>
-
       <div className="container mx-auto px-6 relative z-20">
-        {/* Section Title - Fixed at top */}
-        <div className="text-center py-16">
-          <h2 className="text-4xl md:text-5xl font-brockmann font-bold text-foreground">
+        {/* Section Title */}
+        <div className="text-center mb-20">
+          <h2 className="text-3xl md:text-4xl font-brockmann font-bold text-foreground">
             How It Works – In 3 Easy Steps
           </h2>
         </div>
         
-        <div className="max-w-4xl mx-auto">
-          {/* Steps content - Each step takes full viewport */}
+        {/* Vertical progress line - only within section */}
+        <div className="absolute left-1/2 top-32 bottom-24 w-px bg-muted-foreground/20 z-10" style={{ transform: 'translateX(-50%)' }}>
+          <div 
+            className="w-full bg-pulse-600 transition-all duration-300 ease-out"
+            style={{ height: getProgressLineHeight() }}
+          />
+        </div>
+        
+        <div className="max-w-3xl mx-auto relative z-20">
+          {/* Steps content - Reduced spacing */}
           {steps.map((step, index) => {
             const Icon = step.icon;
             const state = getStepState(index);
@@ -128,19 +128,19 @@ const HowItWorksAnimated: React.FC = () => {
             return (
               <div
                 key={step.id}
-                className={`min-h-screen flex items-center justify-center transition-all duration-700 ease-out ${state.visibility}`}
+                className={`py-20 flex items-center justify-center transition-all duration-700 ease-out ${state.visibility}`}
                 style={{
                   opacity: state.opacity,
                   transform: state.transform
                 }}
               >
-                <div className="text-center max-w-2xl mx-auto px-8">
+                <div className="text-center max-w-xl mx-auto px-8">
                   {/* Animated step number circle */}
-                  <div className="flex items-center justify-center mb-8">
-                    <div className={`relative w-20 h-20 rounded-full border-4 transition-all duration-500 ${
+                  <div className="flex items-center justify-center mb-6">
+                    <div className={`relative w-16 h-16 rounded-full border-3 transition-all duration-500 ${
                       state.opacity > 0.7 ? 'border-pulse-600 bg-pulse-600/10' : 'border-muted-foreground/30'
                     }`}>
-                      <span className={`absolute inset-0 flex items-center justify-center text-2xl font-bold transition-colors duration-500 ${
+                      <span className={`absolute inset-0 flex items-center justify-center text-xl font-bold transition-colors duration-500 ${
                         state.opacity > 0.7 ? 'text-pulse-600' : 'text-muted-foreground'
                       }`}>
                         {step.id}
@@ -158,26 +158,23 @@ const HowItWorksAnimated: React.FC = () => {
                   </div>
                   
                   {/* Floating Icon */}
-                  <div className="flex justify-center mb-8">
+                  <div className="flex justify-center mb-6">
                     <div 
-                      className={`w-16 h-16 rounded-xl flex items-center justify-center transition-all duration-500 ${
+                      className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-500 ${
                         state.opacity > 0.7 ? 'bg-pulse-100 text-pulse-600 scale-110' : 'bg-muted text-muted-foreground scale-100'
                       }`}
-                      style={{
-                        transform: `scale(${state.opacity > 0.7 ? 1.1 : 1}) translateY(${Math.sin(Date.now() / 1000 + index) * 3}px)`
-                      }}
                     >
-                      <Icon className="w-8 h-8" />
+                      <Icon className="w-6 h-6" />
                     </div>
                   </div>
                   
                   {/* Step Title */}
-                  <h3 className={`text-5xl md:text-6xl font-brockmann font-bold mb-6 transition-all duration-500 ${state.textColor}`}>
+                  <h3 className={`text-2xl md:text-3xl font-brockmann font-bold mb-4 transition-all duration-500 ${state.textColor}`}>
                     {step.title}
                   </h3>
                   
                   {/* Step Description */}
-                  <p className={`text-xl leading-relaxed transition-colors duration-500 ${
+                  <p className={`text-lg leading-relaxed transition-colors duration-500 ${
                     state.textColor === 'text-white' ? 'text-white/80' : 'text-muted-foreground'
                   }`}>
                     {step.description}
