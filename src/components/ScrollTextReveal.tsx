@@ -17,25 +17,31 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       const windowHeight = window.innerHeight;
       const sectionHeight = rect.height;
       
-      // Check if section is in viewport
-      const isInViewport = rect.top < windowHeight && rect.bottom > 0;
+      // Only animate when section is prominently in view
+      const isInViewport = rect.top < windowHeight * 0.8 && rect.bottom > windowHeight * 0.2;
       
       if (isInViewport) {
-        // Calculate scroll progress through the section (0 to 1)
-        const scrollProgress = Math.max(0, Math.min(1, (windowHeight - rect.top) / (windowHeight + sectionHeight * 0.5)));
+        // Calculate how far through the section we've scrolled (0 to 1)
+        const scrollProgress = Math.max(0, Math.min(1, 
+          (windowHeight * 0.8 - rect.top) / (sectionHeight + windowHeight * 0.6)
+        ));
         
-        // Determine which part should be active based on scroll progress
-        const partProgress = scrollProgress * textParts.length;
-        const newCurrentPart = Math.min(Math.floor(partProgress), textParts.length - 1);
+        // Map scroll progress to text parts
+        const partIndex = Math.floor(scrollProgress * textParts.length);
+        const newCurrentPart = Math.min(Math.max(0, partIndex), textParts.length - 1);
         
         setCurrentPart(newCurrentPart);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    const throttledScroll = () => {
+      requestAnimationFrame(handleScroll);
+    };
+
+    window.addEventListener('scroll', throttledScroll);
     handleScroll(); // Initial check
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', throttledScroll);
   }, [textParts.length]);
 
   const renderTextWithEmphasis = (text: string, index: number) => {
@@ -58,7 +64,7 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
   return (
     <div 
       ref={sectionRef} 
-      className={`min-h-screen flex items-center justify-center scroll-snap-start ${className}`}
+      className={`min-h-screen flex items-center justify-center ${className}`}
       style={{ minHeight: '100vh' }}
     >
       <div className="max-w-6xl mx-auto px-6 text-center">
