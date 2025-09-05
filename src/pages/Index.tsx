@@ -172,11 +172,11 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-pulse-50 py-12 text-pulse-700 border-t border-pulse-100">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12 mb-10">
             {/* Branding */}
-            <div>
+            <div className="lg:col-span-2">
               <h2 className="text-xl font-bold text-primary mb-3 gradient-text">Sleep Report AI</h2>
-              <p className="text-sm leading-relaxed text-pulse-700">
+              <p className="text-sm leading-relaxed text-pulse-700 max-w-sm">
                 AI-powered sleep study analysis delivering professional reports in seconds.
               </p>
             </div>
