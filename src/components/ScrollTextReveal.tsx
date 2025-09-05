@@ -53,12 +53,9 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       return (
         <>
           {parts[0]}
-           <span className="animate-pulse font-bold text-lg md:text-xl" style={{ 
-             color: '#365EFF',
-             fontFamily: 'Inter, Helvetica, Arial, sans-serif'
-           }}>
-             seconds
-           </span>
+           <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-pulse font-bold text-2xl md:text-3xl">
+              seconds
+            </span>
           {parts[1]}
         </>
       );
@@ -77,14 +74,10 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       }}
     >
       <div className="max-w-[600px] mx-auto px-8 md:px-6 text-center">
-        <h1 className="text-2xl md:text-[2rem] font-bold mb-8" style={{ 
-          fontFamily: 'Inter, Helvetica, Arial, sans-serif',
-          color: '#1E2B6B',
-          fontWeight: '700'
-        }}>
-          About Sleep Report AI
+        <h1 className="section-title mb-8">
+          <span className="gradient-text">About Sleep Report AI</span>
         </h1>
-        <div className="relative min-h-[200px] flex items-center justify-center" style={{ lineHeight: '1.7' }}>
+        <div className="relative min-h-[300px] flex items-center justify-center">
           {textParts.map((part, index) => (
             <div
               key={index}
@@ -94,12 +87,7 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
                   : 'opacity-0'
               }`}
             >
-              <p className="text-center text-base md:text-[1.125rem] font-medium" style={{ 
-                fontFamily: 'Inter, Helvetica, Arial, sans-serif',
-                color: '#1E2B6B',
-                fontWeight: '500',
-                lineHeight: '1.7'
-              }}>
+              <p className="text-center text-xl md:text-2xl leading-relaxed font-medium">
                 {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
               </p>
             </div>
