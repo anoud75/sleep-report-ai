@@ -8,6 +8,7 @@ interface ScrollTextRevealProps {
 const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, className = "" }) => {
   const [currentPart, setCurrentPart] = useState(0);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,32 +17,29 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       const rect = sectionRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
       
-      // Calculate scroll progress through the section
-      if (rect.top <= 0 && rect.bottom >= windowHeight) {
-        // We're scrolling through the section
-        const scrolledDistance = Math.abs(rect.top);
-        const totalScrollDistance = rect.height - windowHeight;
-        const scrollProgress = Math.min(scrolledDistance / totalScrollDistance, 1);
+      // Check if section is in viewport
+      if (rect.top < windowHeight && rect.bottom > 0) {
+        setIsVisible(true);
         
-        // Map scroll progress to text parts (0 to textParts.length - 1)
-        const partIndex = Math.floor(scrollProgress * textParts.length);
-        const newCurrentPart = Math.min(partIndex, textParts.length - 1);
+        // Calculate scroll progress within the section
+        const sectionProgress = Math.max(0, Math.min(1, 
+          (windowHeight - rect.top) / (windowHeight + rect.height)
+        ));
         
-        setCurrentPart(newCurrentPart);
-      } else if (rect.top > 0) {
-        // Section hasn't entered yet
-        setCurrentPart(0);
+        // Determine which text part to show
+        const partIndex = Math.floor(sectionProgress * textParts.length);
+        const clampedIndex = Math.min(Math.max(0, partIndex), textParts.length - 1);
+        
+        setCurrentPart(clampedIndex);
+      } else {
+        setIsVisible(false);
       }
     };
 
-    const throttledScroll = () => {
-      requestAnimationFrame(handleScroll);
-    };
-
-    window.addEventListener('scroll', throttledScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll(); // Initial check
 
-    return () => window.removeEventListener('scroll', throttledScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [textParts.length]);
 
   const renderTextWithEmphasis = (text: string, index: number) => {
@@ -71,28 +69,22 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-brockmann font-bold text-white mb-12 opacity-90">
           About Sleep Report AI
         </h1>
-        <div className="relative">
+        <div className="relative min-h-[300px] flex items-center justify-center">
           {textParts.map((part, index) => (
-            <p
+            <div
               key={index}
-              className={`absolute inset-0 text-3xl md:text-4xl lg:text-5xl leading-relaxed font-brockmann transition-all duration-1000 ease-out ${
+              className={`absolute w-full text-3xl md:text-4xl lg:text-5xl leading-relaxed font-brockmann transition-all duration-1000 ease-out ${
                 index === currentPart
                   ? 'opacity-100 translate-y-0 text-white'
                   : index < currentPart
-                  ? 'opacity-30 translate-y-0 text-white/20'
+                  ? 'opacity-30 translate-y-0 text-white/40'
                   : 'opacity-0 translate-y-8 text-white'
               }`}
-              style={{
-                position: index === 0 ? 'relative' : 'absolute',
-                top: index === 0 ? 'auto' : '0',
-                minHeight: '200px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
             >
-              {renderTextWithEmphasis(part, index)}
-            </p>
+              <p className="text-center">
+                {renderTextWithEmphasis(part, index)}
+              </p>
+            </div>
           ))}
         </div>
       </div>
