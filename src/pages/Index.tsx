@@ -90,18 +90,20 @@ const Index = () => {
         </div>
       </section>
 
-      {/* About Section */}
-      <section id="about-section" className="py-24 bg-background relative overflow-hidden">
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="text-center space-y-6 mb-20">
-            <h2 className="section-title">
-              <span className="gradient-text">
-                About Sleep Report AI
-              </span>
-            </h2>
-            <p className="section-subtitle mx-auto">
-              Sleep Report AI simplifies the way healthcare professionals handle sleep study data. Using reliable AI models, 
-              the system extracts core metrics and produces clear, structured reports — all within seconds.
+      {/* About Section - Enhanced */}
+      <section id="about-section" className="min-h-screen flex items-center justify-center bg-gradient-to-r from-pulse-600 to-pulse-400 text-white relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <div className="space-y-8">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-brockmann font-bold animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+              About Sleep Report AI
+            </h1>
+            <p className="text-xl md:text-2xl leading-relaxed max-w-4xl mx-auto opacity-0 animate-fade-in-up" style={{animationDelay: '0.7s', animationFillMode: 'forwards'}}>
+              Sleep Report AI simplifies how healthcare professionals handle sleep study data.
+              Our AI engine reads raw sleep reports, extracts critical values, and generates structured,
+              printable summaries — all within seconds.
+            </p>
+            <p className="text-xl md:text-2xl font-semibold opacity-0 animate-fade-in-up" style={{animationDelay: '1.2s', animationFillMode: 'forwards'}}>
+              Precision. Speed. Built for sleep labs.
             </p>
           </div>
         </div>
