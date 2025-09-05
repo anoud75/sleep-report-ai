@@ -87,7 +87,7 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
                   : 'opacity-0'
               }`}
             >
-              <p className="text-center text-2xl md:text-4xl leading-relaxed font-medium px-4">
+              <p className="text-center text-2xl md:text-4xl leading-loose font-medium px-4 max-w-4xl">
                 {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
               </p>
             </div>
