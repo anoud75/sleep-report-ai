@@ -170,47 +170,46 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-muted py-16 text-muted-foreground">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12 mb-12">
+      <footer className="bg-muted py-20 text-muted-foreground">
+        <div className="max-w-6xl mx-auto px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 mb-16">
             {/* Brand Section */}
-            <div className="md:col-span-2">
-              <h3 className="text-2xl font-bold text-primary mb-4">Sleep Report AI</h3>
-              <p className="text-base leading-relaxed text-muted-foreground max-w-md">
+            <div className="md:col-span-1">
+              <h3 className="text-2xl font-bold text-primary mb-6">Sleep Report AI</h3>
+              <p className="text-base leading-relaxed text-muted-foreground">
                 Transforming sleep study analysis with AI-powered precision, delivering professional reports in seconds.
               </p>
             </div>
 
-            {/* Quick Links */}
+            {/* Quick Links & Support Combined */}
             <div>
-              <h4 className="font-semibold text-lg mb-4 text-primary">Quick Links</h4>
-              <ul className="space-y-3">
+              <h4 className="font-semibold text-lg mb-6 text-primary">Quick Links</h4>
+              <ul className="space-y-3 mb-8">
                 <li><a href="/analysis" className="hover:underline hover:text-primary transition-colors">Start Analysis</a></li>
                 <li><a href="#" className="hover:underline hover:text-primary transition-colors">Features</a></li>
                 <li><a href="#contact-section" className="hover:underline hover:text-primary transition-colors">Contact</a></li>
                 <li><a href="#" className="hover:underline hover:text-primary transition-colors">Documentation</a></li>
               </ul>
-            </div>
-
-            {/* Support */}
-            <div>
               <h4 className="font-semibold text-lg mb-4 text-primary">Support</h4>
               <ul className="space-y-3">
                 <li><a href="#" className="hover:underline hover:text-primary transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:underline hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:underline hover:text-primary transition-colors">Terms of Service</a></li>
                 <li><a href="#contact-section" className="hover:underline hover:text-primary transition-colors">Get in Touch</a></li>
               </ul>
             </div>
 
-            {/* Company */}
+            {/* Company & Legal Combined */}
             <div>
-              <h4 className="font-semibold text-lg mb-4 text-primary">Company</h4>
-              <ul className="space-y-3">
+              <h4 className="font-semibold text-lg mb-6 text-primary">Company</h4>
+              <ul className="space-y-3 mb-8">
                 <li><a href="#" className="hover:underline hover:text-primary transition-colors">About Us</a></li>
                 <li><a href="#" className="hover:underline hover:text-primary transition-colors">Our Mission</a></li>
                 <li><a href="#" className="hover:underline hover:text-primary transition-colors">Careers</a></li>
                 <li><a href="#" className="hover:underline hover:text-primary transition-colors">News</a></li>
+              </ul>
+              <h4 className="font-semibold text-lg mb-4 text-primary">Legal</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="hover:underline hover:text-primary transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:underline hover:text-primary transition-colors">Terms of Service</a></li>
               </ul>
             </div>
           </div>
