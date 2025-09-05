@@ -69,7 +69,7 @@ const Index = () => {
               </span>
             </h1>
             <p className="section-subtitle mx-auto animate-fade-in-up" style={{animationDelay: '0.8s'}}>
-              AI-powered analysis that transforms complex sleep study data into clear, professional reports in minutes.
+              Transform complex sleep study data into clear, professional reports.
             </p>
           </div>
 
