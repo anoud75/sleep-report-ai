@@ -26,9 +26,9 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
           (windowHeight * 0.8 - rect.top) / (sectionHeight + windowHeight * 0.6)
         ));
         
-        // Map scroll progress to text parts
-        const partIndex = Math.floor(scrollProgress * textParts.length);
-        const newCurrentPart = Math.min(Math.max(0, partIndex), textParts.length - 1);
+        // Map scroll progress to text parts with better timing
+        const partProgress = scrollProgress * (textParts.length + 0.5); // Add buffer for smoother transitions
+        const newCurrentPart = Math.min(Math.floor(partProgress), textParts.length - 1);
         
         setCurrentPart(newCurrentPart);
       }
@@ -51,7 +51,7 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       return (
         <>
           {parts[0]}
-          <span className="text-primary animate-pulse font-bold text-5xl md:text-6xl lg:text-7xl">
+          <span className="text-white animate-pulse font-bold text-5xl md:text-6xl lg:text-7xl drop-shadow-lg">
             seconds
           </span>
           {parts[1]}

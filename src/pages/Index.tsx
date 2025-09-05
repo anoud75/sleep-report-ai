@@ -95,8 +95,7 @@ const Index = () => {
       <ScrollTextReveal 
         textParts={[
           "Sleep Report AI simplifies the way healthcare professionals handle sleep study data.",
-          "Using reliable AI models, the system extracts core metrics and produces clear, structured reports — all within seconds.",
-          "All within seconds."
+          "Using reliable AI models, the system extracts core metrics and produces clear, structured reports — all within seconds."
         ]}
         className="bg-gradient-to-br from-pulse-600 via-pulse-700 to-pulse-800"
       />
