@@ -174,8 +174,7 @@ const Index = () => {
         <div className="container mx-auto px-6 relative z-10">
           <div className="text-center">
             <h3 className="text-2xl font-brockmann hover-lift cursor-default">
-              <span className="text-foreground">Digital Sleep Lab </span>
-              <span className="gradient-text">Intelligence</span>
+              <span className="text-foreground">All rights reserved to Alanoud Alsamil 2025</span>
             </h3>
           </div>
         </div>

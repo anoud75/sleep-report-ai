@@ -144,8 +144,8 @@ const HowItWorksAnimated: React.FC = () => {
       <div className="container mx-auto px-6 relative z-20">
         {/* Section Title */}
         <div className="text-center mb-20">
-          <h2 className="text-3xl md:text-4xl font-brockmann font-bold text-foreground">
-            How It Works – In 3 Easy Steps
+          <h2 className="section-title">
+            <span className="gradient-text">How It Works – In 3 Easy Steps</span>
           </h2>
         </div>
         
