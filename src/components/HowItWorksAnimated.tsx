@@ -244,12 +244,9 @@ const HowItWorksAnimated: React.FC = () => {
               >
                 <div className="text-center max-w-2xl mx-auto px-8">
                   <div className="bg-gradient-to-br from-pulse-50 to-pulse-100 rounded-2xl p-8 border border-pulse-200 shadow-lg">
-                    <h3 className="text-2xl md:text-3xl font-brockmann font-bold text-pulse-600 mb-4">
+                    <h3 className="text-2xl md:text-3xl font-brockmann font-bold text-pulse-600 mb-8">
                       Ready to Transform Your Sleep Reports?
                     </h3>
-                    <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                      Transform your sleep study workflow with professional AI-powered analysis.
-                    </p>
                     <Button 
                       onClick={navigateToAnalysis}
                       size="lg"
