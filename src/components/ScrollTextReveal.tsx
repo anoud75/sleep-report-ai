@@ -68,16 +68,14 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
       ref={sectionRef} 
       className={`min-h-screen flex items-center justify-center bg-white ${className}`}
       style={{ 
-        minHeight: '100vh',
-        paddingTop: '10vh',
-        paddingBottom: '10vh'
+        minHeight: '100vh'
       }}
     >
-      <div className="max-w-[600px] mx-auto px-8 md:px-6 text-center">
-        <h1 className="section-title mb-4">
+      <div className="max-w-2xl mx-auto px-4 text-center pt-24 pb-24 md:pt-16 md:pb-16">
+        <h1 className="text-4xl md:text-5xl font-bold mb-8">
           <span className="gradient-text">About Sleep Report AI</span>
         </h1>
-        <div className="relative min-h-[500px] flex items-center justify-center py-12">
+        <div className="relative min-h-[400px] flex items-center justify-center">
           {textParts.map((part, index) => (
             <div
               key={index}
@@ -87,7 +85,10 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
                   : 'opacity-0'
               }`}
             >
-              <p className="text-center text-2xl md:text-4xl font-light px-4 max-w-4xl" style={{ lineHeight: '1.8' }}>
+              <p 
+                className="text-center text-xl md:text-2xl font-normal px-4 max-w-2xl text-foreground/80" 
+                style={{ lineHeight: '1.6' }}
+              >
                 {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
               </p>
             </div>
