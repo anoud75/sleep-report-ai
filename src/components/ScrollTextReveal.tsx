@@ -86,7 +86,7 @@ const ScrollTextReveal: React.FC<ScrollTextRevealProps> = ({ textParts, classNam
               }`}
             >
               <p 
-                className="text-center text-2xl md:text-4xl font-light text-foreground/80 tracking-wide leading-relaxed max-w-6xl lg:max-w-7xl xl:max-w-none mx-auto"
+                className="text-center text-2xl md:text-4xl font-light text-foreground/80 tracking-wide leading-relaxed max-w-7xl lg:max-w-none mx-auto"
               >
                 {renderTextWithEmphasis(part.replace(/^-\s*/, '').replace(/—\s*/, ''), index)}
               </p>
