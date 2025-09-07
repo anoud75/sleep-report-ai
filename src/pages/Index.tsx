@@ -4,7 +4,7 @@ import { Building2, CheckCircle, Zap } from "lucide-react";
 import { ContactForm } from "@/components/ContactForm";
 import { Header } from "@/components/Header";
 import ScrollableCardsSection from "@/components/ScrollableCardsSection";
-import ScrollTextReveal from "@/components/ScrollTextReveal";
+import { TextReveal } from "@/components/TextReveal";
 import HowItWorksAnimated from "@/components/HowItWorksAnimated";
 
 const Index = () => {
@@ -93,12 +93,9 @@ const Index = () => {
       </section>
 
       {/* About Section - Scroll Text Reveal */}
-      <ScrollTextReveal 
-        textParts={[
-          "Sleep Report AI simplifies the way healthcare professionals handle sleep study data.",
-          "Using reliable AI models, the system extracts core metrics and produces clear, structured reports all within seconds."
-        ]}
-      />
+      <TextReveal>
+        Sleep Report AI simplifies the way healthcare professionals handle sleep study data. Using reliable AI models, the system extracts core metrics and produces clear, structured reports all within seconds.
+      </TextReveal>
 
       {/* Key Features Section - Scrollable Cards */}
       <ScrollableCardsSection
