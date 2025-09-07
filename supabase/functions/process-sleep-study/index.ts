@@ -984,42 +984,30 @@ DOCUMENT: ${truncatedContent}`;
       studyType: studyType
     };
 
-    // Process patient comments from clinical data
-    let patientComments = '';
-    if (clinicalData && (clinicalData.selectedComments || clinicalData.isRepeatedStudy)) {
-      const comments = [];
+    // Process patient comments from clinical data (excluding repeated study note)
+    let patientComments = [];
+    if (clinicalData && clinicalData.selectedComments && clinicalData.selectedComments.length > 0) {
+      const patientCommentLabels = [
+        { value: 'sleeping_better_center', label: 'Patient reports sleeping better in the center compared to home.' },
+        { value: 'no_difference', label: 'Patient reports no difference in sleep quality between the center and home.' },
+        { value: 'sleeping_better_home', label: 'Patient reports sleeping better at home.' },
+        { value: 'improved_with_cpap', label: 'Patient reports improved sleep in the center with CPAP and will discuss continuation at home with the physician.' },
+        { value: 'willing_cpap_home', label: 'Patient reports improved sleep in the center and expresses willingness to initiate CPAP therapy at home.' },
+        { value: 'better_without_cpap', label: 'Patient reports better sleep without CPAP.' },
+        { value: 'undecided_cpap', label: 'Patient remains undecided regarding the use of CPAP at home.' },
+        { value: 'no_comment', label: 'No comment provided' }
+      ];
       
-      // Add repeated study note if applicable
-      if (clinicalData.isRepeatedStudy) {
-        comments.push('This is a repeated sleep study.');
-      }
-      
-      // Convert selected comment values to text labels
-      if (clinicalData.selectedComments && clinicalData.selectedComments.length > 0) {
-        const patientCommentLabels = [
-          { value: 'sleeping_better_center', label: 'Patient reports sleeping better in the center compared to home.' },
-          { value: 'no_difference', label: 'Patient reports no difference in sleep quality between the center and home.' },
-          { value: 'sleeping_better_home', label: 'Patient reports sleeping better at home.' },
-          { value: 'improved_with_cpap', label: 'Patient reports improved sleep in the center with CPAP and will discuss continuation at home with the physician.' },
-          { value: 'willing_cpap_home', label: 'Patient reports improved sleep in the center and expresses willingness to initiate CPAP therapy at home.' },
-          { value: 'better_without_cpap', label: 'Patient reports better sleep without CPAP.' },
-          { value: 'undecided_cpap', label: 'Patient remains undecided regarding the use of CPAP at home.' },
-          { value: 'no_comment', label: 'No comment provided' }
-        ];
-        
-        clinicalData.selectedComments.forEach(commentValue => {
-          const comment = patientCommentLabels.find(c => c.value === commentValue);
-          if (comment) {
-            comments.push(comment.label);
-          }
-        });
-      }
-      
-      patientComments = comments.join(' ');
+      clinicalData.selectedComments.forEach(commentValue => {
+        const comment = patientCommentLabels.find(c => c.value === commentValue);
+        if (comment) {
+          patientComments.push(comment.label);
+        }
+      });
     }
     
-    // Add patient comments to processed data
-    if (patientComments) {
+    // Add patient comments to processed data as array
+    if (patientComments.length > 0) {
       processedData.patientComments = patientComments;
     }
 
