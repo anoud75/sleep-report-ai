@@ -58,8 +58,8 @@ export function InteractiveGridPattern({
             y={y}
             width={width}
             height={height}
-            fill={hoveredSquare === index ? "hsl(var(--primary) / 0.3)" : "transparent"}
-            stroke="hsl(var(--muted-foreground) / 0.2)"
+            fill={hoveredSquare === index ? "hsl(var(--muted-foreground) / 0.1)" : "transparent"}
+            stroke="hsl(var(--muted-foreground) / 0.1)"
             strokeWidth="0.5"
             style={{ 
               cursor: 'pointer',
