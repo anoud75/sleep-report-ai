@@ -503,6 +503,16 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         </div>
       )}
 
+      {/* Patient Comments */}
+      {data.patientComments && (
+        <div className="bg-secondary/5 rounded-xl border border-secondary/20 p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4">Patient Comments</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed font-inter">
+            {data.patientComments}
+          </p>
+        </div>
+      )}
+
       {/* Feedback Dialog */}
       <FeedbackDialog 
         isOpen={showFeedback}
