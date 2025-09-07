@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import ScrollableCardsSection from "@/components/ScrollableCardsSection";
 import { TextReveal } from "@/components/TextReveal";
 import HowItWorksAnimated from "@/components/HowItWorksAnimated";
+import { InteractiveGridPattern } from "@/components/InteractiveGridPattern";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -45,18 +46,14 @@ const Index = () => {
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-pulse-50 to-background">
-        {/* Background Video */}
+        {/* Interactive Grid Background */}
         <div className="absolute inset-0 z-0">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="w-full h-full object-cover opacity-30"
-            style={{ filter: 'brightness(0.7) contrast(1.1)' }}
-          >
-            <source src="https://cdn.midjourney.com/video/f6cee227-c4ac-48f9-acf8-eb9b1b060864/1.mp4" type="video/mp4" />
-          </video>
+          <InteractiveGridPattern 
+            width={40}
+            height={40}
+            squares={[32, 32]}
+            className="opacity-40"
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background/80"></div>
         </div>
 
@@ -73,8 +70,8 @@ const Index = () => {
             </h1>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up" style={{animationDelay: '1.4s'}}>
+          {/* CTA Button */}
+          <div className="flex justify-center items-center animate-fade-in-up" style={{animationDelay: '1.4s'}}>
             <Button 
               onClick={navigateToAnalysis}
               size="lg"
@@ -82,13 +79,6 @@ const Index = () => {
             >
               <Zap className="w-5 h-5" />
               Start Analysis
-            </Button>
-            
-            <Button variant="ghost" size="lg" className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-pulse-100 flex items-center justify-center hover:bg-pulse-200 transition-colors duration-300">
-                <div className="w-0 h-0 border-l-[6px] border-l-pulse-600 border-y-[4px] border-y-transparent ml-1 group-hover:scale-110 transition-transform duration-300"></div>
-              </div>
-              <span className="font-medium">Watch Demo</span>
             </Button>
           </div>
         </div>
