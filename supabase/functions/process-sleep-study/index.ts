@@ -611,6 +611,22 @@ ${clinicalData.etco2?.awake || clinicalData.etco2?.nrem || clinicalData.etco2?.r
 ${clinicalData.tcco2?.awake || clinicalData.tcco2?.nrem || clinicalData.tcco2?.rem ? 
   `TcCO2 Values: Awake ${clinicalData.tcco2.awake || 'N/A'} mmHg, NREM ${clinicalData.tcco2.nrem || 'N/A'} mmHg, REM ${clinicalData.tcco2.rem || 'N/A'} mmHg` : ''}
 ${clinicalData.medication ? `Medication: ${clinicalData.medication}` : ''}
+${clinicalData.isRepeatedStudy ? 'NOTE: This is a repeated sleep study.' : ''}
+${clinicalData.selectedComments && clinicalData.selectedComments.length > 0 ? 
+  `Patient Comments: ${clinicalData.selectedComments.map(comment => {
+    const patientCommentLabels = [
+      { value: 'sleeping_better_center', label: 'Patient reports sleeping better in the center compared to home.' },
+      { value: 'no_difference', label: 'Patient reports no difference in sleep quality between the center and home.' },
+      { value: 'sleeping_better_home', label: 'Patient reports sleeping better at home.' },
+      { value: 'improved_with_cpap', label: 'Patient reports improved sleep in the center with CPAP and will discuss continuation at home with the physician.' },
+      { value: 'willing_cpap_home', label: 'Patient reports improved sleep in the center and expresses willingness to initiate CPAP therapy at home.' },
+      { value: 'better_without_cpap', label: 'Patient reports better sleep without CPAP.' },
+      { value: 'undecided_cpap', label: 'Patient remains undecided regarding the use of CPAP at home.' },
+      { value: 'no_comment', label: 'No comment provided' }
+    ];
+    const foundComment = patientCommentLabels.find(c => c.value === comment);
+    return foundComment ? foundComment.label : comment;
+  }).join(' ')}` : ''}
 
 IMPORTANT: Incorporate this user-provided clinical data into your analysis and clinical summary. Use these values for mask details, pressure settings, CO2 monitoring, and medication information in your clinical summary.` : ''}
 
@@ -694,7 +710,8 @@ Expected JSON structure:
   "clinicalSummary": "Auto-generated clinical interpretation following the medical structure above",
   "ahiClassification": "Normal Study|Mild OSA|Moderate OSA|Severe OSA",
   "sleepEfficiencyStatus": "Normal|Reduced",
-  "oxygenationSeverity": "Normal|Mild|Moderate|Severe|Critical desaturation"
+  "oxygenationSeverity": "Normal|Mild|Moderate|Severe|Critical desaturation",
+  "patientComments": "string or null - Combined patient comments and study notes"
 }`;
 
   // Separate focused extraction for desaturation index
@@ -962,11 +979,49 @@ DOCUMENT: ${truncatedContent}`;
       };
     }
 
-    // Return the extracted data with additional metadata
     const processedData = {
       ...extractedData,
       studyType: studyType
     };
+
+    // Process patient comments from clinical data
+    let patientComments = '';
+    if (clinicalData && (clinicalData.selectedComments || clinicalData.isRepeatedStudy)) {
+      const comments = [];
+      
+      // Add repeated study note if applicable
+      if (clinicalData.isRepeatedStudy) {
+        comments.push('This is a repeated sleep study.');
+      }
+      
+      // Convert selected comment values to text labels
+      if (clinicalData.selectedComments && clinicalData.selectedComments.length > 0) {
+        const patientCommentLabels = [
+          { value: 'sleeping_better_center', label: 'Patient reports sleeping better in the center compared to home.' },
+          { value: 'no_difference', label: 'Patient reports no difference in sleep quality between the center and home.' },
+          { value: 'sleeping_better_home', label: 'Patient reports sleeping better at home.' },
+          { value: 'improved_with_cpap', label: 'Patient reports improved sleep in the center with CPAP and will discuss continuation at home with the physician.' },
+          { value: 'willing_cpap_home', label: 'Patient reports improved sleep in the center and expresses willingness to initiate CPAP therapy at home.' },
+          { value: 'better_without_cpap', label: 'Patient reports better sleep without CPAP.' },
+          { value: 'undecided_cpap', label: 'Patient remains undecided regarding the use of CPAP at home.' },
+          { value: 'no_comment', label: 'No comment provided' }
+        ];
+        
+        clinicalData.selectedComments.forEach(commentValue => {
+          const comment = patientCommentLabels.find(c => c.value === commentValue);
+          if (comment) {
+            comments.push(comment.label);
+          }
+        });
+      }
+      
+      patientComments = comments.join(' ');
+    }
+    
+    // Add patient comments to processed data
+    if (patientComments) {
+      processedData.patientComments = patientComments;
+    }
 
     // Call the separate desaturation index extraction  
     console.log('=== DESATURATION INDEX EXTRACTION START ===');
