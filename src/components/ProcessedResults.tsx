@@ -262,25 +262,30 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         </div>
         <div className="p-8">
           <div className="flex space-x-3">
-            <button
+            <Button
               onClick={handleDownloadPDF}
-              className="luxury-button haptic-feedback flex-1 font-inter tracking-wide py-3 rounded-xl flex items-center justify-center"
+              size="lg"
+              className="flex-1 flex items-center justify-center gap-2"
             >
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="w-5 h-5" />
               Download PDF Report
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handlePreviewReport}
-              className="px-6 py-3 bg-muted/50 border rounded-xl text-foreground hover:bg-muted transition-colors font-inter"
+              variant="outline"
+              size="lg"
+              className="flex-1"
             >
               Preview
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={onNewReport}
-              className="px-6 py-3 bg-muted/50 border rounded-xl text-foreground hover:bg-muted transition-colors font-inter"
+              variant="outline"
+              size="lg"
+              className="flex-1"
             >
               New Report
-            </button>
+            </Button>
           </div>
         </div>
       </div>

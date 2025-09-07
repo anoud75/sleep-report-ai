@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Building2, CheckCircle, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/ContactForm";
 import { Header } from "@/components/Header";
 import ScrollableCardsSection from "@/components/ScrollableCardsSection";
@@ -74,20 +75,21 @@ const Index = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up" style={{animationDelay: '1.4s'}}>
-            <button 
+            <Button 
               onClick={navigateToAnalysis}
-              className="button-primary flex items-center gap-3 text-lg font-brockmann"
+              size="lg"
+              className="flex items-center gap-3"
             >
               <Zap className="w-5 h-5" />
               Start Analysis
-            </button>
+            </Button>
             
-            <button className="button-ghost group flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-pulse-100 flex items-center justify-center group-hover:bg-pulse-200 transition-colors duration-300">
+            <Button variant="ghost" size="lg" className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-pulse-100 flex items-center justify-center hover:bg-pulse-200 transition-colors duration-300">
                 <div className="w-0 h-0 border-l-[6px] border-l-pulse-600 border-y-[4px] border-y-transparent ml-1 group-hover:scale-110 transition-transform duration-300"></div>
               </div>
               <span className="font-medium">Watch Demo</span>
-            </button>
+            </Button>
           </div>
         </div>
       </section>

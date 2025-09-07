@@ -171,23 +171,24 @@ export const ContactForm = () => {
             />
           </div>
 
-          <button
-            type="submit"
+          <Button 
+            type="submit" 
             disabled={isSubmitting}
-            className="w-full py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold font-body rounded-xl hover:from-primary/90 hover:to-primary/70 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+            size="lg"
+            className="w-full flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Sending...
               </>
             ) : (
               <>
-                <Send className="h-4 w-4 mr-2" />
+                <Send className="h-4 w-4" />
                 Send Message
               </>
             )}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

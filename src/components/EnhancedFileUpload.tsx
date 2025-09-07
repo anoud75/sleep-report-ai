@@ -423,15 +423,15 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                 )}
                 
                 {/* Process Button for Split Night */}
-                  <Button 
-                    onClick={processFiles} 
-                    className="luxury-button haptic-feedback w-full text-lg font-inter tracking-wide"
-                    disabled={!selectedStudyType || !files.some(f => f.type === 'diagnostic') || !files.some(f => f.type === 'therapeutic') || !clinicalData}
-                    size="lg"
-                  >
-                    <Brain className="h-5 w-5 mr-3 protocol-icon" />
-                    Process Studies
-                  </Button>
+                <Button 
+                  onClick={processFiles} 
+                  disabled={!selectedStudyType || !files.some(f => f.type === 'diagnostic') || !files.some(f => f.type === 'therapeutic') || !clinicalData}
+                  size="lg"
+                  className="w-full flex items-center justify-center gap-3"
+                >
+                  <Brain className="h-5 w-5" />
+                  Process Studies
+                </Button>
                 
                 <div className="text-center text-sm text-muted-foreground font-inter">
                   Supported formats: PDF, DOC, DOCX, RTF (Max 50MB each)
@@ -474,9 +474,9 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                     variant="secondary" 
                     size="lg"
                     onClick={() => handleFileButtonClick()}
-                    className="luxury-button haptic-feedback font-inter tracking-wide"
+                    className="flex items-center justify-center gap-3"
                   >
-                    <FileText className="h-5 w-5 mr-3" />
+                    <FileText className="h-5 w-5" />
                     Select File
                   </Button>
                 </div>
