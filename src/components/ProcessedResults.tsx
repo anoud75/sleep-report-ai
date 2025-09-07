@@ -128,7 +128,12 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       ['Light On', data.studyInfo?.lightsOn],
       ['Time in Bed (min)', data.studyInfo?.timeInBed],
       ['Total Sleep Time (min)', data.studyInfo?.totalSleepTime],
-      ['CPAP/BPAP/O2', data.titrationData?.pressureType]
+      ['CPAP/BPAP Pressure', data.titrationData?.pressureType === 'CPAP' && data.titrationData?.effectivePressure 
+        ? `CPAP ${data.titrationData.effectivePressure} cmH2O`
+        : data.titrationData?.pressureType === 'BPAP' && data.titrationData?.effectivePressure
+        ? `BPAP ${data.titrationData.effectivePressure} cmH2O`
+        : data.titrationData?.pressureType || '---'],
+      ['O2 Support', data.titrationData?.oxygenSupport ? 'Yes' : 'No']
     ];
     
     const sleepQualityFields = [
@@ -317,9 +322,23 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
               <span className="font-medium text-foreground font-inter">{data.studyInfo?.totalSleepTime || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground font-inter">CPAP/BPAP/O2</span>
-              <span className="font-medium text-foreground font-inter">{data.titrationData?.pressureType || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">CPAP/BPAP Pressure</span>
+              <span className="font-medium text-foreground font-inter">
+                {data.titrationData?.pressureType === 'CPAP' && data.titrationData?.effectivePressure 
+                  ? `CPAP ${data.titrationData.effectivePressure} cmH2O`
+                  : data.titrationData?.pressureType === 'BPAP' && data.titrationData?.effectivePressure
+                  ? `BPAP ${data.titrationData.effectivePressure} cmH2O`
+                  : data.titrationData?.pressureType || '---'}
+              </span>
             </div>
+            {data.titrationData?.pressureType && (
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground font-inter">O2 Support</span>
+                <span className="font-medium text-foreground font-inter">
+                  {data.titrationData?.oxygenSupport ? 'Yes' : 'No'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -450,11 +469,19 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 90%</span>
-              <span className="font-medium text-foreground font-inter">{data.oxygenation?.timeBelow90Percent ?? '---'}</span>
+              <span className="font-medium text-foreground font-inter">
+                {data.oxygenation?.timeBelow90Percent !== null && data.oxygenation?.timeBelow90Percent !== undefined 
+                  ? `${data.oxygenation.timeBelow90Percent}%` 
+                  : '---'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 95%</span>
-              <span className="font-medium text-foreground font-inter">{data.oxygenation?.timeBelow95Percent ?? '---'}</span>
+              <span className="font-medium text-foreground font-inter">
+                {data.oxygenation?.timeBelow95Percent !== null && data.oxygenation?.timeBelow95Percent !== undefined 
+                  ? `${data.oxygenation.timeBelow95Percent}%` 
+                  : '---'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground font-inter">Lowest O2 / Average O2</span>

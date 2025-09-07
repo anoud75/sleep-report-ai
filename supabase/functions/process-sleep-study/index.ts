@@ -17,53 +17,53 @@ const formatOxygenPercentage = (percentage) => {
   return `${percentage.toFixed(1)}%`;
 };
 
-// Complete replacement for your extractOxygenSaturationData function
+// Enhanced oxygen saturation extraction with better pattern matching
 const extractOxygenSaturationData = async (truncatedContent, openAIApiKey, tst) => {
   const oxygenPrompt = `You are a medical data extraction specialist. Extract oxygen saturation data from this sleep study report.
 
-TASK: Find the Oximetry Distribution table and extract specific values.
+CRITICAL TASK: Find oximetry distribution data and extract REM/Non-REM values for <90% and <95% SpO2 thresholds.
 
-STEP 1: Locate the oximetry section
-- Look for "Oximetry Distribution" or "OXIMETRY SUMMARY"
-- Find the table with SpO2 percentage thresholds
+SEARCH PATTERNS:
+1. Look for "Oximetry Distribution", "OXIMETRY SUMMARY", or similar table
+2. Find rows with these patterns:
+   - "<90", "&lt;90", "< 90", or "below 90"
+   - "<95", "&lt;95", "< 95", or "below 95"
 
-STEP 2: Extract values from these exact rows:
-- Find row "<90" (or "&lt;90"): Extract REM and Non-REM values (in minutes)
-- Find row "<95" (or "&lt;95"): Extract REM and Non-REM values (in minutes)
+TABLE STRUCTURES TO HANDLE:
+Format 1: Standard table
+SpO2%      Wake   REM   Non-REM   Total
+<90        X.X    X.X    X.X      X.X
+<95        X.X    X.X    X.X      X.X
 
-EXPECTED TABLE FORMAT:
-SpO2 %     Wake   REM   Non-REM   Total
-<85        X.X    X.X   X.X       X.X
-<90        X.X    X.X   X.X       X.X  ← Extract REM and Non-REM
-<95        X.X    X.X   X.X       X.X  ← Extract REM and Non-REM
+Format 2: Compact format
+<90    Wake: X.X   REM: X.X   Non-REM: X.X   Total: X.X
+<95    Wake: X.X   REM: X.X   Non-REM: X.X   Total: X.X
 
-IMPORTANT NOTES:
-- Values are in MINUTES, not percentages
-- Extract ONLY REM and Non-REM columns (ignore Wake and Total)
-- If HTML format, look for <td> tags containing the values
-- Return 0.0 if values are missing or cannot be found
+Format 3: Simple row format
+<90        X.X    X.X    X.X    X.X
+<95        X.X    X.X    X.X    X.X
 
-EXTRACTION EXAMPLES:
-Example 1: "<90    0.6    0.0    0.0    0.6" → REM=0.0, Non-REM=0.0
-Example 2: "<95    2.1    0.7    0.4    3.2" → REM=0.7, Non-REM=0.4
+EXTRACTION RULES:
+- Extract ONLY REM and Non-REM values (in minutes)
+- If values are "0", "0.0", "---", or blank: use 0.0
+- Skip Wake and Total columns
+- Focus on exact numeric extraction
 
-Return this exact JSON format:
+CRITICAL EXAMPLES:
+Input: "<90    0.6   0.0   0.0   0.6" → REM=0.0, Non-REM=0.0
+Input: "<95    2.1   0.7   0.4   3.2" → REM=0.7, Non-REM=0.4
+Input: "< 90%  1.2   2.0   1.5   4.7" → REM=2.0, Non-REM=1.5
+
+Return EXACT JSON:
 {
   "success": true,
   "under90": {"rem": 0.0, "nonRem": 0.0},
   "under95": {"rem": 0.7, "nonRem": 0.4},
   "debug": {
-    "under90Row": "exact text of <90 row found",
-    "under95Row": "exact text of <95 row found"
+    "under90Row": "exact text found",
+    "under95Row": "exact text found",
+    "extractionNotes": "any parsing details"
   }
-}
-
-If extraction fails, return:
-{
-  "success": false,
-  "error": "reason for failure",
-  "under90": {"rem": 0.0, "nonRem": 0.0},
-  "under95": {"rem": 0.0, "nonRem": 0.0}
 }
 
 DOCUMENT CONTENT:
@@ -80,16 +80,15 @@ ${truncatedContent}`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-5-2025-08-07',
         messages: [
           { 
             role: 'system', 
-            content: 'You are a medical data extraction specialist. Extract exact numerical values from oximetry tables. Focus on accuracy and return only valid JSON with debug information.'
+            content: 'You are a medical data extraction specialist. Extract exact REM and Non-REM values (in minutes) from oximetry distribution tables for <90% and <95% SpO2 thresholds. Return only valid JSON with precise numeric extraction.'
           },
           { role: 'user', content: oxygenPrompt }
         ],
-        temperature: 0,
-        max_tokens: 500,
+        max_completion_tokens: 500,
       }),
     });
 
@@ -212,7 +211,7 @@ DOCUMENT: ${truncatedContent}`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-5-2025-08-07',
         messages: [
           { 
             role: 'system', 
@@ -220,8 +219,7 @@ DOCUMENT: ${truncatedContent}`;
           },
           { role: 'user', content: desatPrompt }
         ],
-        temperature: 0,
-        max_tokens: 200,
+        max_completion_tokens: 200,
       }),
     });
 
