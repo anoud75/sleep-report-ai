@@ -62,10 +62,8 @@ export const StudyTypeSelector = ({ selectedType, onTypeSelect }: StudyTypeSelec
               }`}
               onClick={() => onTypeSelect(type.id)}
             >
-              {/* Selection Glow Effect */}
-              {isSelected && (
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent opacity-70 animate-shimmer bg-[length:200%_100%]"></div>
-              )}
+              {/* Remove the Selection Glow Effect */}
+              <div className="absolute inset-0 opacity-0"></div>
               
               <div className="relative flex items-start gap-6">
                 {/* Icon Container */}

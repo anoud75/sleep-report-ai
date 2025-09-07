@@ -440,45 +440,42 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
             ) : (
               // Single File Upload
                 <div
-                  className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-700 overflow-hidden group ${
+                  className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 cursor-pointer ${
                     dragActive 
-                      ? 'border-primary bg-primary/10 scale-105 shadow-[var(--shadow-glow)] animate-pulse-glow backdrop-blur-xl' 
-                      : 'border-border bg-background hover:border-primary/50 hover:bg-primary/5 backdrop-blur-sm'
+                      ? 'border-primary bg-primary/10' 
+                      : 'border-border bg-background hover:border-primary/50 hover:bg-primary/5'
                   }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer bg-[length:200%_100%]"></div>
-                
-                <div className="relative z-10 animate-fade-in-up">
-                  <div className="relative mb-6">
-                    <Upload className={`mx-auto h-16 w-16 mb-4 transition-all duration-500 protocol-icon ${
-                      dragActive ? 'text-primary scale-110 animate-float' : 'text-muted-foreground group-hover:text-primary group-hover:scale-110'
+                <div className="animate-fade-in-up">
+                  <div className="mb-6">
+                    <Upload className={`mx-auto h-16 w-16 mb-4 transition-all duration-300 ${
+                      dragActive ? 'text-primary' : 'text-muted-foreground'
                     }`} />
-                    {dragActive && (
-                      <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
-                    )}
                   </div>
                   
                   <h3 className={`text-xl font-bold mb-3 font-jakarta transition-colors duration-300 ${
-                    dragActive ? 'text-primary glow-text' : 'text-foreground'
+                    dragActive ? 'text-primary' : 'text-foreground'
                   }`}>
                     Drop your sleep study file here
                   </h3>
                   <p className="text-muted-foreground mb-6 font-inter">
                     Supported formats: PDF, DOC, DOCX, RTF
                   </p>
-                  <Button 
-                    variant="secondary" 
-                    size="lg"
-                    onClick={() => handleFileButtonClick()}
-                    className="flex items-center justify-center gap-3"
-                  >
-                    <FileText className="h-5 w-5" />
-                    Select File
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button 
+                      variant="secondary" 
+                      size="lg"
+                      onClick={() => handleFileButtonClick()}
+                      className="flex items-center justify-center gap-3"
+                    >
+                      <FileText className="h-5 w-5" />
+                      Select File
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}

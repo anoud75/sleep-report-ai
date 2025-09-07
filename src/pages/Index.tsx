@@ -59,7 +59,7 @@ const Index = () => {
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
           {/* Main Heading */}
-          <div className="space-y-6 mb-16">
+          <div className="space-y-6 mb-12">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-brockmann animate-fade-in-up" style={{animationDelay: '0.4s'}}>
               <span className="block mb-4 hover:text-pulse-600 transition-colors duration-500">
                 Transform Sleep Studies
@@ -68,10 +68,6 @@ const Index = () => {
                 Into Professional Reports
               </span>
             </h1>
-            
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold animate-fade-in-up mt-8" style={{animationDelay: '0.8s'}}>
-              Begin Your <span className="text-primary">Analysis</span>
-            </h2>
           </div>
 
           {/* CTA Button */}
