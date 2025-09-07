@@ -17,63 +17,77 @@ const formatOxygenPercentage = (percentage) => {
   return `${percentage.toFixed(1)}%`;
 };
 
-// Enhanced oxygen saturation extraction with better pattern matching
+// Enhanced oxygen saturation extraction with progressive strategy and robust pattern matching
 const extractOxygenSaturationData = async (truncatedContent, openAIApiKey, tst) => {
-  const oxygenPrompt = `You are a medical data extraction specialist. Extract oxygen saturation data from this sleep study report.
+  console.log('=== OXYGEN EXTRACTION DEBUG START ===');
+  console.log('TST for calculation:', tst);
+  console.log('Content length:', truncatedContent?.length || 0);
 
-CRITICAL TASK: Find oximetry distribution data and extract REM/Non-REM values for <90% and <95% SpO2 thresholds.
+  // Helper function to decode HTML entities
+  const decodeHtmlEntities = (text) => {
+    return text
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&#39;/g, "'")
+      .replace(/&quot;/g, '"');
+  };
 
-SEARCH PATTERNS:
-1. Look for "Oximetry Distribution", "OXIMETRY SUMMARY", or similar table
-2. Find rows with these patterns:
-   - "<90", "&lt;90", "< 90", or "below 90"
-   - "<95", "&lt;95", "< 95", or "below 95"
+  // Helper function to extract numbers with multiple format support
+  const extractNumber = (str) => {
+    if (!str) return 0.0;
+    const cleaned = str.toString().trim().replace(/[^\d.-]/g, '');
+    if (cleaned === '' || cleaned === '-' || cleaned === '---') return 0.0;
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0.0 : Math.max(0, num); // Ensure non-negative
+  };
 
-TABLE STRUCTURES TO HANDLE:
-Format 1: Standard table
-SpO2%      Wake   REM   Non-REM   Total
-<90        X.X    X.X    X.X      X.X
-<95        X.X    X.X    X.X      X.X
+  // Strategy 1: Focused table extraction
+  const primaryExtractionPrompt = `MEDICAL DATA EXTRACTION TASK
 
-Format 2: Compact format
-<90    Wake: X.X   REM: X.X   Non-REM: X.X   Total: X.X
-<95    Wake: X.X   REM: X.X   Non-REM: X.X   Total: X.X
+STEP 1: FIND THE OXIMETRY TABLE
+Search for tables with headers containing these patterns (case-insensitive):
+- "Oximetry Distribution" OR "OXIMETRY SUMMARY" OR "SpO2 Distribution"
+- Look for column headers: Wake, REM, Non-REM, NREM, Total
 
-Format 3: Simple row format
-<90        X.X    X.X    X.X    X.X
-<95        X.X    X.X    X.X    X.X
+STEP 2: LOCATE THE CRITICAL ROWS  
+Find exactly these two rows (handle variations):
+- Row for "<90" (may appear as: "&lt;90", "< 90", "below 90", "less than 90")
+- Row for "<95" (may appear as: "&lt;95", "< 95", "below 95", "less than 90")
 
-EXTRACTION RULES:
-- Extract ONLY REM and Non-REM values (in minutes)
-- If values are "0", "0.0", "---", or blank: use 0.0
+STEP 3: EXTRACT VALUES
+From each row, extract the REM and Non-REM values (typically columns 2 and 3):
+- Values may be in minutes (decimal format: 1.2, 0.0, 2.5)
+- Handle: "0", "0.0", "---", blank/empty as 0.0
 - Skip Wake and Total columns
-- Focus on exact numeric extraction
 
-CRITICAL EXAMPLES:
-Input: "<90    0.6   0.0   0.0   0.6" → REM=0.0, Non-REM=0.0
-Input: "<95    2.1   0.7   0.4   3.2" → REM=0.7, Non-REM=0.4
-Input: "< 90%  1.2   2.0   1.5   4.7" → REM=2.0, Non-REM=1.5
+CRITICAL PATTERNS TO HANDLE:
+Pattern A: "<90    0.6   0.0   0.0   0.6"
+Pattern B: "&lt;90%  1.2   2.0   1.5   4.7" 
+Pattern C: "< 90     ---   1.5   0.8   2.3"
 
-Return EXACT JSON:
+EXPECTED RESPONSE FORMAT:
 {
   "success": true,
+  "tableFound": true,
   "under90": {"rem": 0.0, "nonRem": 0.0},
-  "under95": {"rem": 0.7, "nonRem": 0.4},
+  "under95": {"rem": 2.0, "nonRem": 1.5},
   "debug": {
-    "under90Row": "exact text found",
-    "under95Row": "exact text found",
-    "extractionNotes": "any parsing details"
+    "tableHeader": "exact header text found",
+    "under90Row": "exact <90 row text",
+    "under95Row": "exact <95 row text",
+    "extractionMethod": "primary_table_extraction"
   }
 }
 
 DOCUMENT CONTENT:
-${truncatedContent}`;
+${decodeHtmlEntities(truncatedContent)}`;
 
   try {
-    console.log('=== OXYGEN EXTRACTION DEBUG START ===');
-    console.log('TST for calculation:', tst);
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Primary extraction attempt
+    console.log('Attempting primary extraction...');
+    const primaryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
@@ -84,72 +98,163 @@ ${truncatedContent}`;
         messages: [
           { 
             role: 'system', 
-            content: 'You are a medical data extraction specialist. Extract exact REM and Non-REM values (in minutes) from oximetry distribution tables for <90% and <95% SpO2 thresholds. Return only valid JSON with precise numeric extraction.'
+            content: 'You are a medical data extraction specialist. Extract REM and Non-REM oxygen saturation values from sleep study reports. Focus on accuracy and return only valid JSON.'
           },
-          { role: 'user', content: oxygenPrompt }
+          { role: 'user', content: primaryExtractionPrompt }
         ],
-        max_completion_tokens: 500,
+        max_completion_tokens: 800,
       }),
     });
 
-    if (!response.ok) {
-      console.error('Oxygen API request failed:', response.status);
+    let extractionResult = null;
+    let extractionMethod = 'primary';
+
+    if (primaryResponse.ok) {
+      const primaryData = await primaryResponse.json();
+      let result = primaryData.choices[0].message.content.trim();
+      console.log('Raw primary extraction response:', result);
+      
+      // Clean JSON response
+      result = result.replace(/```json\s*/g, '').replace(/```\s*$/g, '').replace(/```/g, '');
+      
+      try {
+        extractionResult = JSON.parse(result);
+        console.log('Primary extraction successful:', extractionResult);
+      } catch (parseError) {
+        console.log('Primary extraction JSON parse failed:', parseError.message);
+        extractionResult = null;
+      }
+    }
+
+    // Fallback Strategy 2: Pattern-based search if primary fails
+    if (!extractionResult || !extractionResult.success || !extractionResult.tableFound) {
+      console.log('Attempting fallback pattern-based extraction...');
+      
+      const fallbackPrompt = `FALLBACK OXYGEN EXTRACTION
+
+The document may not have a clear oximetry table. Search through ALL content for these patterns:
+
+SEARCH FOR SCATTERED DATA:
+1. Any line containing "<90" or "&lt;90" followed by numbers
+2. Any line containing "<95" or "&lt;95" followed by numbers
+
+EXAMPLE PATTERNS:
+- "SpO2 <90%: Wake 0.6, REM 0.0, Non-REM 0.0"
+- "Time below 90%: REM=1.2min, NREM=0.8min"
+- "< 90    0.5    0.0    0.2    0.7"
+- "&lt;95%   2.1   0.7   0.4   3.2"
+
+EXTRACT ANY NUMBERS that could represent REM and Non-REM minutes for <90% and <95%.
+
+RESPONSE FORMAT:
+{
+  "success": true,
+  "tableFound": false,
+  "under90": {"rem": 0.0, "nonRem": 0.0},
+  "under95": {"rem": 0.7, "nonRem": 0.4},
+  "debug": {
+    "under90Pattern": "text pattern found for <90",
+    "under95Pattern": "text pattern found for <95",
+    "extractionMethod": "pattern_based_fallback"
+  }
+}
+
+DOCUMENT CONTENT:
+${decodeHtmlEntities(truncatedContent)}`;
+
+      const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1-2025-04-14', // Try different model for fallback
+          messages: [
+            { 
+              role: 'system', 
+              content: 'You are a medical data extraction specialist. Find oxygen saturation patterns even in unstructured text. Return only valid JSON.'
+            },
+            { role: 'user', content: fallbackPrompt }
+          ],
+          max_tokens: 600,
+          temperature: 0.1
+        }),
+      });
+
+      if (fallbackResponse.ok) {
+        const fallbackData = await fallbackResponse.json();
+        let fallbackResult = fallbackData.choices[0].message.content.trim();
+        console.log('Raw fallback extraction response:', fallbackResult);
+        
+        fallbackResult = fallbackResult.replace(/```json\s*/g, '').replace(/```\s*$/g, '').replace(/```/g, '');
+        
+        try {
+          extractionResult = JSON.parse(fallbackResult);
+          extractionMethod = 'fallback';
+          console.log('Fallback extraction successful:', extractionResult);
+        } catch (parseError) {
+          console.log('Fallback extraction JSON parse failed:', parseError.message);
+        }
+      }
+    }
+
+    // Final validation and calculation
+    if (!extractionResult || !extractionResult.success) {
+      console.log('All extraction methods failed, returning null');
+      console.log('=== OXYGEN EXTRACTION FAILED ===');
       return null;
     }
 
-    const data = await response.json();
-    let result = data.choices[0].message.content.trim();
-    
-    console.log('Raw oxygen extraction response:', result);
-    
-    // Clean JSON response
-    if (result.includes('```json')) {
-      result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
-    }
-    if (result.includes('```')) {
-      result = result.replace(/```\s*/, '').replace(/```\s*$/, '');
-    }
-    
-    const oxygenData = JSON.parse(result);
-    console.log('Parsed oxygen data:', oxygenData);
-    
-    // Validate the structure and provide fallbacks
+    // Robust data validation with enhanced fallbacks
+    const validateAndClean = (data, label) => {
+      const rem = extractNumber(data?.rem);
+      const nonRem = extractNumber(data?.nonRem);
+      
+      console.log(`${label} validation: rem=${data?.rem} -> ${rem}, nonRem=${data?.nonRem} -> ${nonRem}`);
+      
+      return { rem, nonRem };
+    };
+
     const validatedData = {
-      under90: {
-        rem: oxygenData.under90?.rem || 0.0,
-        nonRem: oxygenData.under90?.nonRem || 0.0
-      },
-      under95: {
-        rem: oxygenData.under95?.rem || 0.0,
-        nonRem: oxygenData.under95?.nonRem || 0.0
-      }
+      under90: validateAndClean(extractionResult.under90, 'Under90'),
+      under95: validateAndClean(extractionResult.under95, 'Under95')
     };
     
     console.log('Validated oxygen data:', validatedData);
     
-    // Calculate percentages with detailed logging
+    // Enhanced calculation with bounds checking
     const under90Total = validatedData.under90.rem + validatedData.under90.nonRem;
     const under95Total = validatedData.under95.rem + validatedData.under95.nonRem;
     
-    const result90 = ((under90Total / tst) * 100);
-    const result95 = ((under95Total / tst) * 100);
+    // Bounds checking: percentages should not exceed 100%
+    const result90 = Math.min(100, Math.max(0, (under90Total / tst) * 100));
+    const result95 = Math.min(100, Math.max(0, (under95Total / tst) * 100));
     
-    console.log(`Detailed calculations:
-      <90%: (${validatedData.under90.rem} + ${validatedData.under90.nonRem}) / ${tst} * 100 = ${result90.toFixed(3)}%
-      <95%: (${validatedData.under95.rem} + ${validatedData.under95.nonRem}) / ${tst} * 100 = ${result95.toFixed(3)}%`);
+    console.log(`Enhanced calculations (${extractionMethod} method):
+      TST: ${tst} minutes
+      <90%: (${validatedData.under90.rem} + ${validatedData.under90.nonRem}) = ${under90Total} min
+      <95%: (${validatedData.under95.rem} + ${validatedData.under95.nonRem}) = ${under95Total} min
+      Percentages: <90%=${result90.toFixed(3)}%, <95%=${result95.toFixed(3)}%`);
     
-    // Debug information from extraction
-    if (oxygenData.debug) {
-      console.log('Extraction debug info:');
-      console.log('Under 90 row found:', oxygenData.debug.under90Row);
-      console.log('Under 95 row found:', oxygenData.debug.under95Row);
+    // Enhanced debug information
+    if (extractionResult.debug) {
+      console.log('=== EXTRACTION DEBUG INFO ===');
+      console.log('Method used:', extractionResult.debug.extractionMethod || extractionMethod);
+      console.log('Table found:', extractionResult.tableFound);
+      if (extractionResult.debug.tableHeader) {
+        console.log('Table header:', extractionResult.debug.tableHeader);
+      }
+      console.log('Under 90 source:', extractionResult.debug.under90Row || extractionResult.debug.under90Pattern);
+      console.log('Under 95 source:', extractionResult.debug.under95Row || extractionResult.debug.under95Pattern);
     }
     
     const finalResult = {
       timeBelow90Percent: result90.toFixed(1),
       timeBelow95Percent: result95.toFixed(1),
       rawData: validatedData,
-      success: oxygenData.success !== false
+      extractionMethod: extractionMethod,
+      success: true
     };
     
     console.log('Final oxygen calculation result:', finalResult);
@@ -158,7 +263,8 @@ ${truncatedContent}`;
     return finalResult;
     
   } catch (error) {
-    console.error('Oxygen extraction error:', error);
+    console.error('Critical oxygen extraction error:', error);
+    console.log('Error details:', error.message);
     console.log('=== OXYGEN EXTRACTION FAILED ===');
     return null;
   }
