@@ -40,29 +40,14 @@ export function InteractiveGridPattern({
   return (
     <svg
       className={cn(
-        "absolute inset-0 h-full w-full pointer-events-auto",
+        "absolute inset-0 h-full w-full",
         className,
       )}
       viewBox={`0 0 ${width * horizontal} ${height * vertical}`}
       preserveAspectRatio="none"
+      style={{ pointerEvents: 'auto' }}
       {...props}
     >
-      <defs>
-        <pattern
-          id="grid"
-          width={width}
-          height={height}
-          patternUnits="userSpaceOnUse"
-        >
-          <path
-            d={`M ${width} 0 L 0 0 0 ${height}`}
-            fill="none"
-            stroke="hsl(var(--muted-foreground) / 0.2)"
-            strokeWidth="1"
-          />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#grid)" />
       {Array.from({ length: horizontal * vertical }).map((_, index) => {
         const x = (index % horizontal) * width;
         const y = Math.floor(index / horizontal) * height;
@@ -73,8 +58,13 @@ export function InteractiveGridPattern({
             y={y}
             width={width}
             height={height}
-            fill={hoveredSquare === index ? "hsl(var(--primary) / 0.1)" : "transparent"}
-            className="transition-all duration-200 ease-in-out cursor-pointer"
+            fill={hoveredSquare === index ? "hsl(var(--primary) / 0.3)" : "transparent"}
+            stroke="hsl(var(--muted-foreground) / 0.2)"
+            strokeWidth="0.5"
+            style={{ 
+              cursor: 'pointer',
+              transition: 'fill 0.2s ease-in-out'
+            }}
             onMouseEnter={() => setHoveredSquare(index)}
             onMouseLeave={() => setHoveredSquare(null)}
           />
