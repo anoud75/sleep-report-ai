@@ -95,7 +95,7 @@ ${decodeHtmlEntities(truncatedContent)}`;
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 800,
         messages: [
           { 
@@ -317,7 +317,7 @@ DOCUMENT: ${truncatedContent}`;
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 200,
         messages: [
           { 
@@ -867,7 +867,7 @@ DOCUMENT: ${truncatedContent}`;
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
           max_tokens: 200,
           messages: [
             { 
@@ -926,7 +926,7 @@ DOCUMENT: ${truncatedContent}`;
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 3000,
         messages: [
           { 
