@@ -170,7 +170,7 @@ ${decodeHtmlEntities(truncatedContent)}`;
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-3-opus-20240229', // Try different model for fallback
+          model: 'claude-opus-4-20250514', // Try Claude 4 Opus for complex fallback
           max_tokens: 600,
           messages: [
             { 
@@ -940,7 +940,8 @@ DOCUMENT: ${truncatedContent}`;
     if (!response.ok) {
       const errorData = await response.text();
       console.error('Claude API error:', errorData);
-      throw new Error(`Claude API error: ${response.status}`);
+      console.error('Model being used:', 'claude-sonnet-4-20250514');
+      throw new Error(`Claude API error: ${response.status} - Model: claude-sonnet-4-20250514`);
     }
 
     const data = await response.json();
