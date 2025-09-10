@@ -114,8 +114,14 @@ ${decodeHtmlEntities(truncatedContent)}`;
       let result = primaryData.content[0].text.trim();
       console.log('Raw primary extraction response:', result);
       
-      // Clean JSON response
+      // Clean JSON response - handle Claude's descriptive responses
       result = result.replace(/```json\s*/g, '').replace(/```\s*$/g, '').replace(/```/g, '');
+      
+      // Extract JSON from Claude's response - look for actual JSON content
+      const jsonMatch = result.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        result = jsonMatch[0];
+      }
       
       try {
         extractionResult = JSON.parse(result);
@@ -888,12 +894,18 @@ DOCUMENT: ${truncatedContent}`;
       
       console.log('Raw desaturation response:', result);
       
-      // Clean JSON response
+      // Clean JSON response - handle Claude's descriptive responses
       if (result.includes('```json')) {
         result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
       }
       if (result.includes('```')) {
         result = result.replace(/```\s*/, '').replace(/```\s*$/, '');
+      }
+      
+      // Extract JSON from Claude's response - look for actual JSON content
+      const jsonMatch = result.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        result = jsonMatch[0];
       }
       
       const desatData = JSON.parse(result);
