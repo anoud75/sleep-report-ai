@@ -471,7 +471,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
               <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 90%</span>
               <span className="font-medium text-foreground font-inter">
                 {data.oxygenation?.timeBelow90Percent !== null && data.oxygenation?.timeBelow90Percent !== undefined 
-                  ? `${data.oxygenation.timeBelow90Percent}%` 
+                  ? data.oxygenation.timeBelow90Percent 
                   : '---'}
               </span>
             </div>
@@ -479,7 +479,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
               <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 95%</span>
               <span className="font-medium text-foreground font-inter">
                 {data.oxygenation?.timeBelow95Percent !== null && data.oxygenation?.timeBelow95Percent !== undefined 
-                  ? `${data.oxygenation.timeBelow95Percent}%` 
+                  ? data.oxygenation.timeBelow95Percent 
                   : '---'}
               </span>
             </div>
