@@ -22,6 +22,14 @@ const extractOxygenSaturationData = async (truncatedContent, claudeApiKey, tst) 
   console.log('=== OXYGEN EXTRACTION DEBUG START ===');
   console.log('TST for calculation:', tst);
   console.log('Content length:', truncatedContent?.length || 0);
+  
+  // Log content preview for debugging
+  console.log('Content preview (first 1000 chars):', truncatedContent?.substring(0, 1000) || 'NO CONTENT');
+  console.log('Content preview (last 1000 chars):', truncatedContent?.substring(Math.max(0, (truncatedContent?.length || 0) - 1000)) || 'NO CONTENT');
+  
+  // Check for oximetry keywords
+  const hasOximetryKeywords = /oximetry|spo2|saturation|<90|<95/i.test(truncatedContent || '');
+  console.log('Content contains oximetry keywords:', hasOximetryKeywords);
 
   // Helper function to decode HTML entities
   const decodeHtmlEntities = (text) => {
@@ -131,7 +139,7 @@ ${decodeHtmlEntities(truncatedContent)}`;
     if (primaryResponse.ok) {
       const primaryData = await primaryResponse.json();
       let result = primaryData.content[0].text.trim();
-      console.log('Raw primary extraction response:', result);
+      console.log('Raw primary extraction response (full):', result);
       
       // Clean JSON response - handle Claude's descriptive responses
       result = result.replace(/```json\s*/g, '').replace(/```\s*$/g, '').replace(/```/g, '');
@@ -140,6 +148,9 @@ ${decodeHtmlEntities(truncatedContent)}`;
       const jsonMatch = result.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         result = jsonMatch[0];
+        console.log('Extracted JSON from Claude response:', result);
+      } else {
+        console.log('No JSON found in Claude response');
       }
       
       try {
@@ -147,8 +158,11 @@ ${decodeHtmlEntities(truncatedContent)}`;
         console.log('Primary extraction successful:', extractionResult);
       } catch (parseError) {
         console.log('Primary extraction JSON parse failed:', parseError.message);
+        console.log('Failed to parse result:', result.substring(0, 300));
         extractionResult = null;
       }
+    } else {
+      console.error('Primary API request failed:', primaryResponse.status, await primaryResponse.text());
     }
 
     // Fallback Strategy 2: Pattern-based search if primary fails
@@ -225,9 +239,17 @@ ${decodeHtmlEntities(truncatedContent)}`;
       if (fallbackResponse.ok) {
         const fallbackData = await fallbackResponse.json();
         let fallbackResult = fallbackData.content[0].text.trim();
-        console.log('Raw fallback extraction response:', fallbackResult);
+        console.log('Raw fallback extraction response (full):', fallbackResult);
         
         fallbackResult = fallbackResult.replace(/```json\s*/g, '').replace(/```\s*$/g, '').replace(/```/g, '');
+        
+        const fallbackJsonMatch = fallbackResult.match(/\{[\s\S]*\}/);
+        if (fallbackJsonMatch) {
+          fallbackResult = fallbackJsonMatch[0];
+          console.log('Extracted JSON from fallback response:', fallbackResult);
+        } else {
+          console.log('No JSON found in fallback response');
+        }
         
         try {
           extractionResult = JSON.parse(fallbackResult);
@@ -235,12 +257,23 @@ ${decodeHtmlEntities(truncatedContent)}`;
           console.log('Fallback extraction successful:', extractionResult);
         } catch (parseError) {
           console.log('Fallback extraction JSON parse failed:', parseError.message);
+          console.log('Failed to parse fallback result:', fallbackResult.substring(0, 300));
         }
+      } else {
+        console.error('Fallback API request failed:', fallbackResponse.status, await fallbackResponse.text());
       }
     }
 
-    // Final validation and calculation
+    // Strategy 3: JavaScript regex-based extraction as final fallback
     if (!extractionResult || !extractionResult.success) {
+      console.log('Attempting JavaScript regex extraction...');
+      const regexResult = extractOxygenWithRegex(truncatedContent, tst);
+      if (regexResult && regexResult.success) {
+        console.log('✅ Regex extraction successful:', { under90: regexResult.timeBelow90Percent + '%', under95: regexResult.timeBelow95Percent + '%' });
+        console.log('=== OXYGEN EXTRACTION DEBUG END ===');
+        return regexResult;
+      }
+      
       console.log('All extraction methods failed, returning null');
       console.log('=== OXYGEN EXTRACTION FAILED ===');
       return null;
@@ -305,7 +338,101 @@ ${decodeHtmlEntities(truncatedContent)}`;
   } catch (error) {
     console.error('Critical oxygen extraction error:', error);
     console.log('Error details:', error.message);
+    console.log('Error stack:', error.stack);
     console.log('=== OXYGEN EXTRACTION FAILED ===');
+    return null;
+  }
+};
+
+// New JavaScript regex-based extraction method
+const extractOxygenWithRegex = (content, totalSleepTimeMinutes) => {
+  try {
+    console.log('=== REGEX EXTRACTION START ===');
+    
+    // Look for table patterns with multiple approaches
+    const patterns = [
+      // Pattern 1: Standard table format <90 followed by 4 numbers
+      /<90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      // Pattern 2: Different spacing with < 90
+      /<\s*90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      // Pattern 3: With percentage symbol
+      /90\s*%[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      // Pattern 4: HTML encoded &lt;90
+      /&lt;90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+    ];
+
+    const patterns95 = [
+      /<95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      /<\s*95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      /95\s*%[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      /&lt;95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+    ];
+
+    let under90Data = null;
+    let under95Data = null;
+
+    // Try to find <90 data
+    for (const pattern of patterns) {
+      const match = content.match(pattern);
+      if (match) {
+        console.log('Found <90 pattern:', match[0]);
+        // Assuming format: Wake, REM, Non-REM, Total (or Wake, REM, Non-REM if only 3 values)
+        under90Data = {
+          rem: parseFloat(match[2]) || 0,
+          nonRem: parseFloat(match[3]) || 0
+        };
+        console.log('Extracted <90 data:', under90Data);
+        break;
+      }
+    }
+
+    // Try to find <95 data
+    for (const pattern of patterns95) {
+      const match = content.match(pattern);
+      if (match) {
+        console.log('Found <95 pattern:', match[0]);
+        under95Data = {
+          rem: parseFloat(match[2]) || 0,
+          nonRem: parseFloat(match[3]) || 0
+        };
+        console.log('Extracted <95 data:', under95Data);
+        break;
+      }
+    }
+
+    if (under90Data && under95Data) {
+      // Calculate percentages
+      const under90Total = under90Data.rem + under90Data.nonRem;
+      const under95Total = under95Data.rem + under95Data.nonRem;
+      
+      const result90 = Math.min(100, Math.max(0, (under90Total / totalSleepTimeMinutes) * 100));
+      const result95 = Math.min(100, Math.max(0, (under95Total / totalSleepTimeMinutes) * 100));
+      
+      console.log('Regex extraction calculations:');
+      console.log('      TST:', totalSleepTimeMinutes, 'minutes');
+      console.log('      <90%:', `(${under90Data.rem} + ${under90Data.nonRem}) = ${under90Total} min`);
+      console.log('      <95%:', `(${under95Data.rem} + ${under95Data.nonRem}) = ${under95Total} min`);
+      console.log('      Percentages:', `<90%=${result90.toFixed(1)}%, <95%=${result95.toFixed(1)}%`);
+      
+      console.log('Regex extraction successful');
+      console.log('=== REGEX EXTRACTION END ===');
+      
+      return {
+        timeBelow90Percent: result90.toFixed(1),
+        timeBelow95Percent: result95.toFixed(1),
+        extractionMethod: "regex",
+        success: true,
+        rawData: { under90: under90Data, under95: under95Data }
+      };
+    }
+
+    console.log('Regex extraction failed - no matching patterns found');
+    console.log('=== REGEX EXTRACTION END ===');
+    return null;
+    
+  } catch (error) {
+    console.error('Regex extraction error:', error);
+    console.log('=== REGEX EXTRACTION END ===');
     return null;
   }
 };
