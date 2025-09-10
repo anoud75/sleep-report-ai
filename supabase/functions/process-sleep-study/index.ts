@@ -458,7 +458,13 @@ serve(async (req) => {
       .replace(/<[^>]*>/g, '')
       .trim();
     
-    const claudeApiKey = Deno.env.get('OPENAI_API_KEY');
+    const claudeApiKey = Deno.env.get('ANTHROPIC_API_KEY');
+    
+    console.log('Claude API key exists:', !!claudeApiKey);
+    if (claudeApiKey) {
+      console.log('API key length:', claudeApiKey.length);
+      console.log('Starts with sk-ant:', claudeApiKey.startsWith('sk-ant'));
+    }
     
     if (!claudeApiKey) {
       throw new Error('Claude API key not configured');
