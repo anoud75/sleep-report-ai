@@ -18,7 +18,7 @@ const formatOxygenPercentage = (percentage) => {
 };
 
 // Enhanced oxygen saturation extraction with progressive strategy and robust pattern matching
-const extractOxygenSaturationData = async (truncatedContent, openAIApiKey, tst) => {
+const extractOxygenSaturationData = async (truncatedContent, claudeApiKey, tst) => {
   console.log('=== OXYGEN EXTRACTION DEBUG START ===');
   console.log('TST for calculation:', tst);
   console.log('Content length:', truncatedContent?.length || 0);
@@ -90,7 +90,7 @@ ${decodeHtmlEntities(truncatedContent)}`;
     const primaryResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': openAIApiKey,
+        'x-api-key': claudeApiKey,
         'Content-Type': 'application/json',
         'anthropic-version': '2023-06-01',
       },
@@ -165,7 +165,7 @@ ${decodeHtmlEntities(truncatedContent)}`;
       const fallbackResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
-          'x-api-key': openAIApiKey,
+          'x-api-key': claudeApiKey,
           'Content-Type': 'application/json',
           'anthropic-version': '2023-06-01',
         },
@@ -270,7 +270,7 @@ ${decodeHtmlEntities(truncatedContent)}`;
 };
 
 // Also update your desaturation index function with better debugging
-const extractDesaturationIndex = async (truncatedContent, openAIApiKey) => {
+const extractDesaturationIndex = async (truncatedContent, claudeApiKey) => {
   const desatPrompt = `Extract the Total Desaturation Index from this sleep study report.
 
 LOCATION: Look in the oximetry table section
@@ -312,7 +312,7 @@ DOCUMENT: ${truncatedContent}`;
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': openAIApiKey,
+        'x-api-key': claudeApiKey,
         'Content-Type': 'application/json',
         'anthropic-version': '2023-06-01',
       },
@@ -820,7 +820,7 @@ Expected JSON structure:
 }`;
 
   // Separate focused extraction for desaturation index
-  const extractDesaturationIndex = async (truncatedContent, openAIApiKey) => {
+  const extractDesaturationIndex = async (truncatedContent, claudeApiKey) => {
     const desatPrompt = `Extract the Total Desaturation Index from this sleep study report.
 
 LOCATION: Look in the oximetry table section
@@ -862,7 +862,7 @@ DOCUMENT: ${truncatedContent}`;
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
-          'x-api-key': openAIApiKey,
+          'x-api-key': claudeApiKey,
           'Content-Type': 'application/json',
           'anthropic-version': '2023-06-01',
         },
@@ -921,7 +921,7 @@ DOCUMENT: ${truncatedContent}`;
   const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': openAIApiKey,
+        'x-api-key': claudeApiKey,
         'Content-Type': 'application/json',
         'anthropic-version': '2023-06-01',
       },
