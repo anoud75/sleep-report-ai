@@ -43,41 +43,60 @@ const extractOxygenSaturationData = async (truncatedContent, claudeApiKey, tst) 
     return isNaN(num) ? 0.0 : Math.max(0, num); // Ensure non-negative
   };
 
-  // Strategy 1: Focused table extraction
-  const primaryExtractionPrompt = `MEDICAL DATA EXTRACTION TASK
+  // Strategy 1: Enhanced Oximetry Distribution table extraction
+  const primaryExtractionPrompt = `MEDICAL DATA EXTRACTION TASK - OXIMETRY DISTRIBUTION TABLE
 
-STEP 1: FIND THE OXIMETRY TABLE
-Search for tables with headers containing these patterns (case-insensitive):
-- "Oximetry Distribution" OR "OXIMETRY SUMMARY" OR "SpO2 Distribution"
-- Look for column headers: Wake, REM, Non-REM, NREM, Total
+STEP 1: FIND THE OXIMETRY DISTRIBUTION TABLE
+Search for tables with these EXACT headers (case-insensitive):
+- "Oximetry Distribution" (primary target)
+- "OXIMETRY SUMMARY" OR "SpO2 Distribution" OR "Oxygen Saturation Distribution"
+- Look for column structure: "SpO2 %" | "Wake" | "REM" | "Non-REM" | "Total"
+
+EXPECTED TABLE FORMAT:
+SpO2 %      Wake   REM   Non-REM   Total
+<90         0.6    0.0   0.0       0.6
+<95         2.1    0.7   0.4       3.2
 
 STEP 2: LOCATE THE CRITICAL ROWS  
-Find exactly these two rows (handle variations):
-- Row for "<90" (may appear as: "&lt;90", "< 90", "below 90", "less than 90")
-- Row for "<95" (may appear as: "&lt;95", "< 95", "below 95", "less than 90")
+Find exactly these two rows with precise patterns:
+- Row starting with "<90" (may appear as: "&lt;90", "< 90", "below 90", "less than 90")
+- Row starting with "<95" (may appear as: "&lt;95", "< 95", "below 95", "less than 95")
 
-STEP 3: EXTRACT VALUES
-From each row, extract the REM and Non-REM values (typically columns 2 and 3):
-- Values may be in minutes (decimal format: 1.2, 0.0, 2.5)
-- Handle: "0", "0.0", "---", blank/empty as 0.0
-- Skip Wake and Total columns
+STEP 3: EXTRACT VALUES (CRITICAL - GET EXACT POSITIONS)
+From each row, extract values in this exact order:
+Column 1: SpO2 % threshold (skip this)
+Column 2: Wake value (skip this) 
+Column 3: REM value (EXTRACT THIS - position 2)
+Column 4: Non-REM value (EXTRACT THIS - position 3)
+Column 5: Total (skip this)
 
-CRITICAL PATTERNS TO HANDLE:
-Pattern A: "<90    0.6   0.0   0.0   0.6"
-Pattern B: "&lt;90%  1.2   2.0   1.5   4.7" 
-Pattern C: "< 90     ---   1.5   0.8   2.3"
+HANDLE THESE VALUE FORMATS:
+- Numbers: "0.0", "2.1", "0.7", "0.4"
+- Missing: "---", "-", blank, empty → convert to 0.0
+- HTML entities: "&lt;" → "<"
+
+PARSING EXAMPLES:
+Example 1: "<90         0.6    0.0   0.0       0.6"
+  → Extract: REM=0.0, Non-REM=0.0
+
+Example 2: "&lt;95      2.1    0.7   0.4       3.2"  
+  → Extract: REM=0.7, Non-REM=0.4
+
+Example 3 (HTML format): 
+  "<td>&lt;90</td><td>0.6</td><td>0.0</td><td>0.0</td><td>0.6</td>"
+  → Extract: REM=0.0, Non-REM=0.0
 
 EXPECTED RESPONSE FORMAT:
 {
   "success": true,
   "tableFound": true,
   "under90": {"rem": 0.0, "nonRem": 0.0},
-  "under95": {"rem": 2.0, "nonRem": 1.5},
+  "under95": {"rem": 0.7, "nonRem": 0.4},
   "debug": {
-    "tableHeader": "exact header text found",
-    "under90Row": "exact <90 row text",
-    "under95Row": "exact <95 row text",
-    "extractionMethod": "primary_table_extraction"
+    "tableHeader": "SpO2 %      Wake   REM   Non-REM   Total",
+    "under90Row": "<90         0.6    0.0   0.0       0.6",
+    "under95Row": "<95         2.1    0.7   0.4       3.2",
+    "extractionMethod": "oximetry_distribution_table"
   }
 }
 
@@ -136,21 +155,37 @@ ${decodeHtmlEntities(truncatedContent)}`;
     if (!extractionResult || !extractionResult.success || !extractionResult.tableFound) {
       console.log('Attempting fallback pattern-based extraction...');
       
-      const fallbackPrompt = `FALLBACK OXYGEN EXTRACTION
+      const fallbackPrompt = `FALLBACK OXIMETRY EXTRACTION
 
-The document may not have a clear oximetry table. Search through ALL content for these patterns:
+Primary table extraction failed. Search through ALL content for Oximetry Distribution patterns:
 
-SEARCH FOR SCATTERED DATA:
-1. Any line containing "<90" or "&lt;90" followed by numbers
-2. Any line containing "<95" or "&lt;95" followed by numbers
+SEARCH STRATEGIES:
+1. Look for partial table fragments with "<90" and "<95" rows
+2. Search for scattered oxygen saturation data
+3. Find any numerical data associated with oxygen thresholds
 
-EXAMPLE PATTERNS:
-- "SpO2 <90%: Wake 0.6, REM 0.0, Non-REM 0.0"
-- "Time below 90%: REM=1.2min, NREM=0.8min"
-- "< 90    0.5    0.0    0.2    0.7"
-- "&lt;95%   2.1   0.7   0.4   3.2"
+PATTERNS TO FIND:
+Pattern A (Table rows): 
+- "<90    0.6   0.0   0.0   0.6" → REM=0.0, Non-REM=0.0
+- "<95    2.1   0.7   0.4   3.2" → REM=0.7, Non-REM=0.4
 
-EXTRACT ANY NUMBERS that could represent REM and Non-REM minutes for <90% and <95%.
+Pattern B (HTML table):
+- "<td>&lt;90</td><td>0.6</td><td>0.0</td><td>0.0</td><td>0.6</td>"
+- "<td>&lt;95</td><td>2.1</td><td>0.7</td><td>0.4</td><td>3.2</td>"
+
+Pattern C (Descriptive text):
+- "SpO2 <90%: Wake 0.6min, REM 0.0min, Non-REM 0.0min"
+- "Time below 95%: REM=0.7min, NREM=0.4min, Total=3.2min"
+
+Pattern D (Separated values):
+- "Below 90%: 0.0 (REM), 0.0 (NREM)"
+- "Below 95%: 0.7 (REM), 0.4 (NREM)"
+
+EXTRACTION PRIORITY:
+1. Look for 4-5 column numerical rows with <90 and <95 patterns
+2. Extract 3rd and 4th numbers as REM and Non-REM values
+3. Handle HTML entities (&lt; = <)
+4. Convert missing/empty values to 0.0
 
 RESPONSE FORMAT:
 {
@@ -159,9 +194,9 @@ RESPONSE FORMAT:
   "under90": {"rem": 0.0, "nonRem": 0.0},
   "under95": {"rem": 0.7, "nonRem": 0.4},
   "debug": {
-    "under90Pattern": "text pattern found for <90",
-    "under95Pattern": "text pattern found for <95",
-    "extractionMethod": "pattern_based_fallback"
+    "under90Pattern": "exact text found for <90",
+    "under95Pattern": "exact text found for <95",
+    "extractionMethod": "oximetry_fallback_pattern"
   }
 }
 
