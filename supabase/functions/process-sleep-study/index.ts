@@ -87,22 +87,22 @@ ${decodeHtmlEntities(truncatedContent)}`;
   try {
     // Primary extraction attempt
     console.log('Attempting primary extraction...');
-    const primaryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const primaryResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'x-api-key': openAIApiKey,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 800,
         messages: [
           { 
-            role: 'system', 
-            content: 'You are a medical data extraction specialist. Extract REM and Non-REM oxygen saturation values from sleep study reports. Focus on accuracy and return only valid JSON.'
-          },
-          { role: 'user', content: primaryExtractionPrompt }
+            role: 'user', 
+            content: `You are a medical data extraction specialist. Extract REM and Non-REM oxygen saturation values from sleep study reports. Focus on accuracy and return only valid JSON.\n\n${primaryExtractionPrompt}`
+          }
         ],
-        max_completion_tokens: 800,
       }),
     });
 
@@ -111,7 +111,7 @@ ${decodeHtmlEntities(truncatedContent)}`;
 
     if (primaryResponse.ok) {
       const primaryData = await primaryResponse.json();
-      let result = primaryData.choices[0].message.content.trim();
+      let result = primaryData.content[0].text.trim();
       console.log('Raw primary extraction response:', result);
       
       // Clean JSON response
@@ -162,29 +162,28 @@ RESPONSE FORMAT:
 DOCUMENT CONTENT:
 ${decodeHtmlEntities(truncatedContent)}`;
 
-      const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      const fallbackResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
+          'x-api-key': openAIApiKey,
           'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'gpt-4.1-2025-04-14', // Try different model for fallback
+          model: 'claude-3-opus-20240229', // Try different model for fallback
+          max_tokens: 600,
           messages: [
             { 
-              role: 'system', 
-              content: 'You are a medical data extraction specialist. Find oxygen saturation patterns even in unstructured text. Return only valid JSON.'
-            },
-            { role: 'user', content: fallbackPrompt }
-          ],
-          max_tokens: 600,
-          temperature: 0.1
+              role: 'user', 
+              content: `You are a medical data extraction specialist. Find oxygen saturation patterns even in unstructured text. Return only valid JSON.\n\n${fallbackPrompt}`
+            }
+          ]
         }),
       });
 
       if (fallbackResponse.ok) {
         const fallbackData = await fallbackResponse.json();
-        let fallbackResult = fallbackData.choices[0].message.content.trim();
+        let fallbackResult = fallbackData.content[0].text.trim();
         console.log('Raw fallback extraction response:', fallbackResult);
         
         fallbackResult = fallbackResult.replace(/```json\s*/g, '').replace(/```\s*$/g, '').replace(/```/g, '');
@@ -310,22 +309,22 @@ DOCUMENT: ${truncatedContent}`;
   try {
     console.log('=== DESATURATION INDEX EXTRACTION START ===');
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'x-api-key': openAIApiKey,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 200,
         messages: [
           { 
-            role: 'system', 
-            content: 'Extract the exact TOTAL value from the "Desat Index (#/hour)" row. Be precise and include debug information.'
-          },
-          { role: 'user', content: desatPrompt }
+            role: 'user', 
+            content: `Extract the exact TOTAL value from the "Desat Index (#/hour)" row. Be precise and include debug information.\n\n${desatPrompt}`
+          }
         ],
-        max_completion_tokens: 200,
       }),
     });
 
@@ -335,7 +334,7 @@ DOCUMENT: ${truncatedContent}`;
     }
 
     const data = await response.json();
-    let result = data.choices[0].message.content.trim();
+    let result = data.content[0].text.trim();
     
     console.log('Raw desaturation response:', result);
     
@@ -453,10 +452,10 @@ serve(async (req) => {
       .replace(/<[^>]*>/g, '')
       .trim();
     
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    const claudeApiKey = Deno.env.get('OPENAI_API_KEY');
     
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!claudeApiKey) {
+      throw new Error('Claude API key not configured');
     }
 
     // Truncate file content if too long to avoid token limits
@@ -860,23 +859,22 @@ DOCUMENT: ${truncatedContent}`;
     try {
       console.log('=== DESATURATION INDEX EXTRACTION START ===');
       
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
+          'x-api-key': openAIApiKey,
           'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'gpt-4.1-2025-04-14',
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 200,
           messages: [
             { 
-              role: 'system', 
-              content: 'Extract the exact TOTAL value from the "Desat Index (#/hour)" row. Be precise and include debug information.'
-            },
-            { role: 'user', content: desatPrompt }
+              role: 'user', 
+              content: `Extract the exact TOTAL value from the "Desat Index (#/hour)" row. Be precise and include debug information.\n\n${desatPrompt}`
+            }
           ],
-          temperature: 0,
-          max_tokens: 200,
         }),
       });
 
@@ -886,7 +884,7 @@ DOCUMENT: ${truncatedContent}`;
       }
 
       const data = await response.json();
-      let result = data.choices[0].message.content.trim();
+      let result = data.content[0].text.trim();
       
       console.log('Raw desaturation response:', result);
       
@@ -918,36 +916,35 @@ DOCUMENT: ${truncatedContent}`;
     }
   };
 
-  console.log('Sending request to OpenAI...');
+  console.log('Sending request to Claude...');
   
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'x-api-key': openAIApiKey,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 3000,
         messages: [
           { 
-            role: 'system', 
-            content: 'You are a medical AI expert specializing in sleep study analysis. Your task is to extract exact numerical values from sleep study reports. Search thoroughly through the entire document for each requested metric. Extract ONLY the exact values as they appear in the document - do not estimate or interpolate. Return only valid JSON with actual extracted values.' 
-          },
-          { role: 'user', content: MEDICAL_GRADE_PROMPT }
+            role: 'user', 
+            content: `You are a medical AI expert specializing in sleep study analysis. Your task is to extract exact numerical values from sleep study reports. Search thoroughly through the entire document for each requested metric. Extract ONLY the exact values as they appear in the document - do not estimate or interpolate. Return only valid JSON with actual extracted values.\n\n${MEDICAL_GRADE_PROMPT}`
+          }
         ],
-        temperature: 0,
-        max_tokens: 3000,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('Claude API error:', errorData);
+      throw new Error(`Claude API error: ${response.status}`);
     }
 
     const data = await response.json();
-    let analysisResult = data.choices[0].message.content;
+    let analysisResult = data.content[0].text;
     
     // Clean up the response - remove markdown code blocks if present
     if (analysisResult.includes('```json')) {
@@ -972,7 +969,7 @@ DOCUMENT: ${truncatedContent}`;
           console.log('=== OXYGEN EXTRACTION START ===');
           console.log('Using TST for calculations:', tst, 'minutes');
           
-          const oxygenData = await extractOxygenSaturationData(truncatedContent, openAIApiKey, tst);
+          const oxygenData = await extractOxygenSaturationData(truncatedContent, claudeApiKey, tst);
           
           if (oxygenData) {
             extractedData.oxygenation.timeBelow90Percent = `${oxygenData.timeBelow90Percent}%`;
@@ -1119,7 +1116,7 @@ DOCUMENT: ${truncatedContent}`;
 
     // Call the separate desaturation index extraction  
     console.log('=== DESATURATION INDEX EXTRACTION START ===');
-    const desatIndex = await extractDesaturationIndex(truncatedContent, openAIApiKey);
+    const desatIndex = await extractDesaturationIndex(truncatedContent, claudeApiKey);
     if (desatIndex !== null) {
       processedData.oxygenation.desaturationIndex = desatIndex;
       console.log('✅ Desaturation index extracted:', desatIndex);
