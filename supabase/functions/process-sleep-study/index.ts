@@ -603,11 +603,36 @@ serve(async (req) => {
       throw new Error('Claude API key not configured');
     }
 
-    // Truncate file content if too long to avoid token limits
-    const maxContentLength = 35000; // Significantly increased to capture oximetry data
-    const truncatedContent = sanitizedContent.length > maxContentLength 
-      ? sanitizedContent.substring(0, maxContentLength) + "\n\n[Content truncated...]"
-      : sanitizedContent;
+    // Truncate file content if too long to avoid token limits, but ALWAYS include the Oximetry section
+    const maxContentLength = 50000;
+    let truncatedContent = sanitizedContent;
+
+    if (sanitizedContent.length > maxContentLength) {
+      // Try to extract the Oximetry section to ensure it's included
+      const oximetryRegexes = [
+        /Oximetry\s*Distribution[\s\S]*?(?=(BODY\s*POSITION|Leg\s*Movements|Snoring|$))/i,
+        /OXIMETRY\s*SUMMARY[\s\S]*?(?=(BODY\s*POSITION|Leg\s*Movements|Snoring|$))/i,
+        /Oximetry[\s\S]*?(?=(BODY\s*POSITION|PAGE\s*7|$))/i
+      ];
+
+      let oximetrySection: string | null = null;
+      for (const rx of oximetryRegexes) {
+        const m = sanitizedContent.match(rx);
+        if (m) { oximetrySection = m[0]; break; }
+      }
+
+      // Leave some buffer and include oximetry section if found
+      const buffer = 200; // safety buffer for prompt
+      const baseLength = oximetrySection ? Math.max(0, maxContentLength - oximetrySection.length - buffer) : maxContentLength;
+      const base = sanitizedContent.substring(0, baseLength);
+
+      if (oximetrySection && !base.includes(oximetrySection)) {
+        truncatedContent = `${base}\n\n[Included Oximetry Section]\n${oximetrySection}`;
+        console.log('Included Oximetry section in truncated content.', { sectionLength: oximetrySection.length, baseLength, finalLength: truncatedContent.length });
+      } else {
+        truncatedContent = base + (sanitizedContent.length > baseLength ? "\n\n[Content truncated...]" : "");
+      }
+    }
 
     console.log('Processing file content length:', sanitizedContent.length);
     console.log('Truncated content preview (last 1000 chars):', truncatedContent.slice(-1000));
