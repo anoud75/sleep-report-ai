@@ -17,7 +17,173 @@ const formatOxygenPercentage = (percentage) => {
   return `${percentage.toFixed(1)}%`;
 };
 
-// Comprehensive sleep metrics extraction using Anthropic API
+// Deterministic hypopnea mean duration extraction using regex
+function parseHypopneaMeanDuration(content: string): number | null {
+  console.log('=== HYPOPNEA MEAN DURATION EXTRACTION START ===');
+  
+  try {
+    // Pattern 1: REM Events table with Mean (seconds) row
+    const patterns = [
+      // Standard table format
+      /Mean\s*\(seconds\)[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      // Simplified version - just look for Mean and extract Hyp column (5th number)
+      /Mean.*?seconds.*?(?:\d+\.?\d*\s+){4}(\d+\.?\d*)/i,
+      // Alternative format
+      /Hyp.*?Mean.*?(\d+\.?\d*)/i,
+      // Look for hypopnea duration in seconds anywhere
+      /hypopnea.*?duration.*?(\d+\.?\d*)\s*sec/i,
+      /hypopnea.*?mean.*?(\d+\.?\d*)/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = content.match(pattern);
+      if (match) {
+        const duration = parseFloat(match[match.length - 1]); // Get last captured group
+        if (duration > 0 && duration < 300) { // Sanity check (0-300 seconds)
+          console.log(`✅ Found hypopnea duration: ${duration} seconds using pattern`);
+          console.log('Matching text:', match[0]);
+          console.log('=== HYPOPNEA MEAN DURATION EXTRACTION END ===');
+          return duration;
+        }
+      }
+    }
+
+    console.log('❌ No hypopnea mean duration found');
+    console.log('=== HYPOPNEA MEAN DURATION EXTRACTION END ===');
+    return null;
+
+  } catch (error) {
+    console.error('Error parsing hypopnea duration:', error);
+    console.log('=== HYPOPNEA MEAN DURATION EXTRACTION END ===');
+    return null;
+  }
+}
+
+// Deterministic desaturation index extraction using regex
+function parseDesaturationIndex(content: string): number | null {
+  console.log('=== DESATURATION INDEX EXTRACTION START ===');
+  
+  try {
+    // Pattern variations for desaturation index
+    const patterns = [
+      // Standard format: "Desat Index (#/hour)" followed by 4 numbers, take the last one (TOTAL)
+      /Desat\s+Index\s*\(#\/hour\)[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      // Alternative spacing
+      /Desat.*?Index.*?#\/hour[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      // HTML format
+      /Desat\s+Index.*?hour.*?<td[^>]*>(\d+\.?\d*)<\/td>\s*<td[^>]*>(\d+\.?\d*)<\/td>\s*<td[^>]*>(\d+\.?\d*)<\/td>\s*<td[^>]*>(\d+\.?\d*)<\/td>/i,
+      // Simple number after desaturation index
+      /desaturation\s*index.*?(\d+\.?\d*)/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = content.match(pattern);
+      if (match) {
+        // For patterns with multiple groups, take the last number (TOTAL column)
+        const index = parseFloat(match[match.length - 1]);
+        if (index >= 0 && index < 1000) { // Sanity check
+          console.log(`✅ Found desaturation index: ${index} using pattern`);
+          console.log('Matching text:', match[0]);
+          console.log('=== DESATURATION INDEX EXTRACTION END ===');
+          return index;
+        }
+      }
+    }
+
+    console.log('❌ No desaturation index found');
+    console.log('=== DESATURATION INDEX EXTRACTION END ===');
+    return null;
+
+  } catch (error) {
+    console.error('Error parsing desaturation index:', error);
+    console.log('=== DESATURATION INDEX EXTRACTION END ===');
+    return null;
+  }
+}
+
+// Enhanced oxygen extraction with better validation
+function extractOxygenPercentagesWithValidation(content: string, totalSleepTime: number): { under90: string; under95: string } | null {
+  console.log('=== OXYGEN PERCENTAGE EXTRACTION START ===');
+  console.log('TST for calculations:', totalSleepTime);
+  
+  try {
+    if (!totalSleepTime || totalSleepTime <= 0) {
+      console.log('❌ Invalid TST for oxygen calculations');
+      console.log('=== OXYGEN PERCENTAGE EXTRACTION END ===');
+      return null;
+    }
+
+    // Enhanced patterns for oxygen saturation data
+    const patterns90 = [
+      /<90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      /&lt;90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      /<\s*90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+    ];
+
+    const patterns95 = [
+      /<95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      /&lt;95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+      /<\s*95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
+    ];
+
+    let under90Data = null;
+    let under95Data = null;
+
+    // Extract <90 data
+    for (const pattern of patterns90) {
+      const match = content.match(pattern);
+      if (match) {
+        // Assuming format: Wake, REM, Non-REM, Total (take REM and Non-REM)
+        under90Data = {
+          rem: parseFloat(match[2]) || 0,
+          nonRem: parseFloat(match[3]) || 0
+        };
+        console.log('Found <90 data:', under90Data);
+        break;
+      }
+    }
+
+    // Extract <95 data
+    for (const pattern of patterns95) {
+      const match = content.match(pattern);
+      if (match) {
+        under95Data = {
+          rem: parseFloat(match[2]) || 0,
+          nonRem: parseFloat(match[3]) || 0
+        };
+        console.log('Found <95 data:', under95Data);
+        break;
+      }
+    }
+
+    if (under90Data && under95Data) {
+      const under90Total = under90Data.rem + under90Data.nonRem;
+      const under95Total = under95Data.rem + under95Data.nonRem;
+      
+      const percent90 = Math.min(100, Math.max(0, (under90Total / totalSleepTime) * 100));
+      const percent95 = Math.min(100, Math.max(0, (under95Total / totalSleepTime) * 100));
+      
+      console.log(`✅ Calculated oxygen percentages: <90%=${percent90.toFixed(1)}%, <95%=${percent95.toFixed(1)}%`);
+      console.log('=== OXYGEN PERCENTAGE EXTRACTION END ===');
+      
+      return {
+        under90: percent90.toFixed(1),
+        under95: percent95.toFixed(1)
+      };
+    }
+
+    console.log('❌ Oxygen saturation data not found');
+    console.log('=== OXYGEN PERCENTAGE EXTRACTION END ===');
+    return null;
+
+  } catch (error) {
+    console.error('Error extracting oxygen percentages:', error);
+    console.log('=== OXYGEN PERCENTAGE EXTRACTION END ===');
+    return null;
+  }
+}
+
+// Comprehensive sleep metrics extraction using Anthropic API with robust fallbacks
 async function extractSleepMetrics(content: string, apiKey: string): Promise<{
   oxygenUnder90Percent: string;
   oxygenUnder95Percent: string;
@@ -27,58 +193,42 @@ async function extractSleepMetrics(content: string, apiKey: string): Promise<{
 }> {
   console.log("=== COMPREHENSIVE SLEEP METRICS EXTRACTION START ===");
   console.log("Content length:", content.length);
+
+  // Extract TST for oxygen calculations
+  let totalSleepTime = null;
+  const tstMatch = content.match(/TST\s*:?\s*(\d+\.?\d*)/i);
+  if (tstMatch) {
+    totalSleepTime = parseFloat(tstMatch[1]);
+    console.log("Found TST:", totalSleepTime, "minutes");
+  }
   
-  const prompt = `Extract these 4 specific sleep study metrics from the document:
+  const prompt = `Extract ONLY these 4 sleep study metrics. Return ONLY valid JSON, no explanations:
 
-1. OXYGEN SATURATION PERCENTAGES:
-   - Find "Oximetry Distribution" table
-   - Locate <90 and <95 rows  
-   - Extract REM and Non-REM values (in minutes)
-   - Find TST value from "TST : XXX.X min"
-   - Calculate: ((REM + Non-REM) / TST) × 100
-
-2. HYPOPNEA MEAN DURATION:
-   - Find "REM Events" table 
-   - Locate "Mean (seconds)" row
-   - Extract value from "Hyp" column
-
-3. DESATURATION INDEX:
-   - Find "Desat Index (#/hour)" row in oximetry table
-   - Extract TOTAL column value (rightmost number)
-   - NOT "Desat Index (dur/hour)"
-
-EXPECTED TABLE FORMATS:
-
-Oximetry Table:
-<td>&lt;90</td><td colspan="2">0.0</td><td colspan="2">0.0</td><td colspan="2">0.0</td>
-<td>&lt;95</td><td colspan="2">0.0</td><td colspan="2">0.7</td><td colspan="2">0.4</td>
-
-REM Events Table:
-                    CA    OA    MA    Sum Ap    Hyp    Events
-Mean (seconds)      0.0   15.5  0.0   15.5      18.3   17.8
-
-Desat Index Row:
-<td>Desat Index (#/hour)</td><td>1.4</td><td>8.8</td><td>1.9</td><td>2.8</td>
-
-Return this exact JSON format:
 {
-  "oxygenUnder90Percent": "0.0",
-  "oxygenUnder95Percent": "0.4", 
-  "hypopneaMeanDuration": 18.3,
-  "desaturationIndex": 2.8,
+  "oxygenUnder90Percent": "X.X",
+  "oxygenUnder95Percent": "X.X", 
+  "hypopneaMeanDuration": X.X,
+  "desaturationIndex": X.X,
   "calculations": {
-    "tst": 301.0,
-    "under90REM": 0.0,
-    "under90NREM": 0.0,
-    "under95REM": 0.7,
-    "under95NREM": 0.4
+    "tst": ${totalSleepTime || 'null'},
+    "under90REM": X.X,
+    "under90NREM": X.X,
+    "under95REM": X.X,
+    "under95NREM": X.X
   }
 }
 
-If any value cannot be found, use null for that field.`;
+Find:
+1. Oximetry table <90 and <95 rows (REM, Non-REM minutes)
+2. REM Events table "Mean (seconds)" row, Hyp column  
+3. "Desat Index (#/hour)" TOTAL column (rightmost number)
+
+Document: ${content}`;
+
+  let aiResult = null;
 
   try {
-    console.log("Sending comprehensive extraction request to Claude...");
+    console.log("Sending extraction request to Claude...");
     
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -89,60 +239,80 @@ If any value cannot be found, use null for that field.`;
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 800,
+        max_tokens: 600,
         messages: [{ 
           role: 'user', 
-          content: prompt + '\n\nDocument: ' + content 
+          content: prompt
         }]
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    let result = data.content[0].text.trim();
-    
-    console.log("Raw Claude response:", result);
-    
-    // Clean JSON response
-    if (result.includes('```json')) {
+    if (response.ok) {
+      const data = await response.json();
+      let result = data.content[0].text.trim();
+      
+      console.log("Raw Claude response:", result);
+      
+      // Extract JSON from response
+      let jsonMatch = result.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        result = jsonMatch[0];
+      }
+      
+      // Clean common issues
       result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
+      result = result.replace(/```\s*/, '');
+      
+      try {
+        aiResult = JSON.parse(result);
+        console.log("✅ AI extraction successful:", aiResult);
+      } catch (parseError) {
+        console.error("Failed to parse AI JSON:", parseError);
+        console.log("Cleaned result was:", result);
+      }
+    } else {
+      console.error("API request failed:", response.status);
     }
-    if (result.includes('```')) {
-      result = result.replace(/```\s*/, '').replace(/```\s*$/, '');
-    }
-    
-    const extractedMetrics = JSON.parse(result);
-    console.log('Extracted sleep metrics:', extractedMetrics);
-    
-    const finalMetrics = {
-      oxygenUnder90Percent: extractedMetrics.oxygenUnder90Percent || "0.0",
-      oxygenUnder95Percent: extractedMetrics.oxygenUnder95Percent || "0.0",
-      hypopneaMeanDuration: extractedMetrics.hypopneaMeanDuration || null,
-      desaturationIndex: extractedMetrics.desaturationIndex || null,
-      calculations: extractedMetrics.calculations || null
-    };
-    
-    console.log("✅ Comprehensive extraction successful:", finalMetrics);
-    console.log("=== COMPREHENSIVE SLEEP METRICS EXTRACTION END ===");
-    return finalMetrics;
-    
   } catch (error) {
-    console.error('Sleep metrics extraction error:', error);
-    console.log("❌ Comprehensive extraction failed");
-    console.log("=== COMPREHENSIVE SLEEP METRICS EXTRACTION END ===");
-    
-    // Return fallback structure
-    return {
-      oxygenUnder90Percent: "0.0",
-      oxygenUnder95Percent: "0.0", 
-      hypopneaMeanDuration: null,
-      desaturationIndex: null,
-      calculations: null
-    };
+    console.error('AI extraction error:', error);
   }
+
+  // Use deterministic fallbacks for missing data
+  let hypopneaMean = aiResult?.hypopneaMeanDuration || null;
+  let desatIndex = aiResult?.desaturationIndex || null;
+  let oxygenData = null;
+
+  // Fallback 1: Hypopnea mean duration
+  if (!hypopneaMean) {
+    console.log("🔄 Using deterministic hypopnea extraction...");
+    hypopneaMean = parseHypopneaMeanDuration(content);
+  }
+
+  // Fallback 2: Desaturation index
+  if (!desatIndex) {
+    console.log("🔄 Using deterministic desaturation extraction...");
+    desatIndex = parseDesaturationIndex(content);
+  }
+
+  // Fallback 3: Oxygen percentages
+  if (!aiResult?.oxygenUnder90Percent || !aiResult?.oxygenUnder95Percent) {
+    console.log("🔄 Using deterministic oxygen extraction...");
+    if (totalSleepTime) {
+      oxygenData = extractOxygenPercentagesWithValidation(content, totalSleepTime);
+    }
+  }
+
+  const finalMetrics = {
+    oxygenUnder90Percent: aiResult?.oxygenUnder90Percent || oxygenData?.under90 || "0.0",
+    oxygenUnder95Percent: aiResult?.oxygenUnder95Percent || oxygenData?.under95 || "0.0",
+    hypopneaMeanDuration: hypopneaMean,
+    desaturationIndex: desatIndex,
+    calculations: aiResult?.calculations || null
+  };
+  
+  console.log("✅ Final comprehensive metrics:", finalMetrics);
+  console.log("=== COMPREHENSIVE SLEEP METRICS EXTRACTION END ===");
+  return finalMetrics;
 }
 
 // New JavaScript regex-based extraction method
