@@ -612,6 +612,13 @@ serve(async (req) => {
     console.log('Processing file content length:', sanitizedContent.length);
     console.log('Truncated content preview (last 1000 chars):', truncatedContent.slice(-1000));
     
+    // === CONTENT DEBUG - USER REQUESTED ===
+    console.log('=== CONTENT DEBUG ===');
+    console.log('Content length:', truncatedContent.length);
+    console.log('Has TST:', truncatedContent.includes('TST'));
+    console.log('Has oximetry:', truncatedContent.toLowerCase().includes('oximetry'));
+    console.log('Has Desat Index:', truncatedContent.includes('Desat Index'));
+    
     // Also check if content contains oximetry keywords
     const hasOximetryKeywords = sanitizedContent.toLowerCase().includes('oximetry') || 
                                 sanitizedContent.toLowerCase().includes('spo2') || 
@@ -1098,6 +1105,10 @@ DOCUMENT: ${truncatedContent}`;
     const data = await response.json();
     let analysisResult = data.content[0].text;
     
+    // === AI RESPONSE DEBUG - USER REQUESTED ===
+    console.log('=== AI RESPONSE DEBUG ===');
+    console.log('Raw response:', data.content[0]?.text || 'No response content');
+    
     // Clean up the response - remove markdown code blocks if present
     if (analysisResult.includes('```json')) {
       analysisResult = analysisResult.replace(/```json\s*/, '').replace(/```\s*$/, '');
@@ -1264,6 +1275,15 @@ DOCUMENT: ${truncatedContent}`;
     if (patientComments.length > 0) {
       processedData.patientComments = patientComments;
     }
+
+    // === FINAL VALUES DEBUG - USER REQUESTED ===
+    console.log('=== FINAL VALUES DEBUG ===');
+    console.log({
+      oxygen90: processedData.oxygenation?.timeBelow90Percent,
+      oxygen95: processedData.oxygenation?.timeBelow95Percent,
+      hypopnea: processedData.respiratoryEvents?.meanHypopneaDuration,
+      desatIndex: processedData.oxygenation?.desaturationIndex
+    });
 
     console.log('Final processed data:', JSON.stringify(processedData, null, 2));
 
