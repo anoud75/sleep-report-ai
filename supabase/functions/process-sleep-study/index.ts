@@ -802,7 +802,7 @@ serve(async (req) => {
     }
     
     if (!claudeApiKey) {
-      throw new Error('Claude API key not configured');
+      console.warn('Claude API key not configured; proceeding with deterministic extraction only.');
     }
 
     // Truncate file content if too long to avoid token limits, but ALWAYS include the Oximetry section
@@ -1353,27 +1353,25 @@ DOCUMENT: ${truncatedContent}`;
       
       // Post-process to add custom calculations
       if (extractedData) {
-        // Use the comprehensive sleep metrics extraction
-        if (extractedData.studyInfo?.totalSleepTime) {
-          console.log('=== COMPREHENSIVE SLEEP METRICS EXTRACTION START ===');
-          
-          const sleepMetrics = await extractSleepMetrics(truncatedContent, claudeApiKey);
-          
-          // Assign to your data structure
-          extractedData.oxygenation.timeBelow90Percent = sleepMetrics.oxygenUnder90Percent + "%";
-          extractedData.oxygenation.timeBelow95Percent = sleepMetrics.oxygenUnder95Percent + "%";
-          extractedData.respiratoryEvents.meanHypopneaDuration = sleepMetrics.hypopneaMeanDuration;
-          extractedData.oxygenation.desaturationIndex = sleepMetrics.desaturationIndex;
+        // Use the comprehensive sleep metrics extraction (always run; function has its own fallbacks)
+        console.log('=== COMPREHENSIVE SLEEP METRICS EXTRACTION START ===');
+        
+        const sleepMetrics = await extractSleepMetrics(truncatedContent, claudeApiKey);
+        
+        // Assign to your data structure
+        extractedData.oxygenation.timeBelow90Percent = sleepMetrics.oxygenUnder90Percent + "%";
+        extractedData.oxygenation.timeBelow95Percent = sleepMetrics.oxygenUnder95Percent + "%";
+        extractedData.respiratoryEvents.meanHypopneaDuration = sleepMetrics.hypopneaMeanDuration;
+        extractedData.oxygenation.desaturationIndex = sleepMetrics.desaturationIndex;
 
-          console.log('Final assigned values:', {
-            under90: extractedData.oxygenation.timeBelow90Percent,
-            under95: extractedData.oxygenation.timeBelow95Percent,
-            hypopneaDuration: extractedData.respiratoryEvents.meanHypopneaDuration,
-            desatIndex: extractedData.oxygenation.desaturationIndex
-          });
-          
-          console.log('=== COMPREHENSIVE SLEEP METRICS EXTRACTION END ===');
-        }
+        console.log('Final assigned values:', {
+          under90: extractedData.oxygenation.timeBelow90Percent,
+          under95: extractedData.oxygenation.timeBelow95Percent,
+          hypopneaDuration: extractedData.respiratoryEvents.meanHypopneaDuration,
+          desatIndex: extractedData.oxygenation.desaturationIndex
+        });
+        
+        console.log('=== COMPREHENSIVE SLEEP METRICS EXTRACTION END ===');
         
         // Calculate AHI Lateral if we have left and right values
         if (extractedData.respiratoryEvents?.ahiLeft && extractedData.respiratoryEvents?.ahiRight) {
