@@ -1358,7 +1358,7 @@ DOCUMENT: ${truncatedContent}`;
     
     // === AI RESPONSE DEBUG - USER REQUESTED ===
     console.log('=== AI RESPONSE DEBUG ===');
-    console.log('Raw response:', data.content[0]?.text || 'No response content');
+    console.log('Raw response:', data.choices?.[0]?.message?.content || 'No response content');
     
     // Clean up the response - remove markdown code blocks if present
     if (analysisResult.includes('```json')) {
