@@ -1396,9 +1396,12 @@ DOCUMENT: ${truncatedContent}`;
         
         const sleepMetrics = await extractSleepMetrics(truncatedContent, lovableApiKey);
         
-        // Assign to your data structure
-        extractedData.oxygenation.timeBelow90Percent = sleepMetrics.oxygenUnder90Percent + "%";
-        extractedData.oxygenation.timeBelow95Percent = sleepMetrics.oxygenUnder95Percent + "%";
+        // Assign to your data structure (ensure nested objects exist)
+        extractedData.oxygenation = extractedData.oxygenation || {};
+        extractedData.respiratoryEvents = extractedData.respiratoryEvents || {};
+
+        extractedData.oxygenation.timeBelow90Percent = `${sleepMetrics.oxygenUnder90Percent}%`;
+        extractedData.oxygenation.timeBelow95Percent = `${sleepMetrics.oxygenUnder95Percent}%`;
         extractedData.respiratoryEvents.meanHypopneaDuration = sleepMetrics.hypopneaMeanDuration;
         extractedData.oxygenation.desaturationIndex = sleepMetrics.desaturationIndex;
 
