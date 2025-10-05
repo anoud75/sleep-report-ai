@@ -1397,64 +1397,107 @@ DOCUMENT: ${truncatedContent}`;
         // === DETERMINISTIC EXTRACTION FIRST ===
         let oxygen90 = null;
         let oxygen95 = null;
-        let desatIndex = null;
-        let avgSpO2 = null;
-        let hypopneaMean = null;
+        let desatIndex: string | null = null;
+        let avgSpO2: number | null = null;
+        let lowestSpO2: number | null = null;
+        let hypopneaMean: number | null = null;
 
         // 1. Extract TST (Total Sleep Time in minutes)
         const tstMatch = truncatedContent.match(/TST[:\s]+(\d+\.?\d*)\s*min/i);
         const tst = tstMatch ? parseFloat(tstMatch[1]) : null;
         console.log(`Extracted TST: ${tst} minutes`);
 
-        // 2. Extract from Oximetry Distribution table
-        // Looking for lines like: | <90 | 0.0 | 0.0 | 0.0 | 0.0 |
-        // The last column is "Total" in minutes
+        // 2. Prefer summary metrics (top-of-report table) if present
+        const summaryHypopneaMatch = truncatedContent.match(/Hypopnea\s*Mean\s*Duration\s*\(sec\)\s*[:\s]*([\d.]+)/i);
+        if (summaryHypopneaMatch) {
+          hypopneaMean = parseFloat(summaryHypopneaMatch[1]);
+          console.log(`Summary Hypopnea Mean Duration: ${hypopneaMean} sec`);
+        }
+
+        const summaryDesatMatch = truncatedContent.match(/Desaturation\s*Index\s*\(\/hr\)\s*[:\s]*([\d.]+)/i);
+        if (summaryDesatMatch) {
+          desatIndex = parseFloat(summaryDesatMatch[1]).toString();
+          console.log(`Summary Desaturation Index: ${desatIndex} /hr`);
+        }
+
+        const o2Under90SummaryMatch = truncatedContent.match(/%\s*Time\s*with\s*O2\s*<\s*90%[^\d]*([\d.]+)/i);
+        if (o2Under90SummaryMatch) {
+          const v = parseFloat(o2Under90SummaryMatch[1]);
+          if (!isNaN(v)) {
+            oxygen90 = v.toFixed(1);
+            console.log(`Summary % Time with O2 < 90%: ${oxygen90}%`);
+          }
+        }
+
+        const o2Under95SummaryMatch = truncatedContent.match(/%\s*Time\s*with\s*O2\s*<\s*95%[^\d]*([\d.]+)/i);
+        if (o2Under95SummaryMatch) {
+          const v = parseFloat(o2Under95SummaryMatch[1]);
+          if (!isNaN(v)) {
+            oxygen95 = v.toFixed(2);
+            console.log(`Summary % Time with O2 < 95%: ${oxygen95}%`);
+          }
+        }
+
+        const lowAvgMatch = truncatedContent.match(/Lowest\s*O2\s*\/\s*Average\s*O2\s*[:\s]*([\d.]+)%\s*\/\s*([\d.]+)%/i);
+        if (lowAvgMatch) {
+          lowestSpO2 = parseInt(lowAvgMatch[1]);
+          avgSpO2 = parseInt(lowAvgMatch[2]);
+          console.log(`Summary Lowest/Avg SpO2: ${lowestSpO2}% / ${avgSpO2}%`);
+        }
+
+        // 3. Extract from Oximetry Distribution table (fallback)
+        // Looking for lines like: | <90 | ... | ... | ... | Total |
         const under90Match = truncatedContent.match(/<\s*90[^\n]*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
         const under95Match = truncatedContent.match(/<\s*95[^\n]*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
         
-        if (under90Match && tst) {
+        if ((!oxygen90 || !oxygen95) && under90Match && tst) {
           const minutesUnder90 = parseFloat(under90Match[4]); // Last column = Total
-          oxygen90 = ((minutesUnder90 / tst) * 100).toFixed(1);
+          const pct = (minutesUnder90 / tst) * 100;
+          oxygen90 = oxygen90 ?? pct.toFixed(1);
           console.log(`Calculated % Time < 90%: ${minutesUnder90} min / ${tst} min = ${oxygen90}%`);
         }
         
-        if (under95Match && tst) {
+        if ((!oxygen95) && under95Match && tst) {
           const minutesUnder95 = parseFloat(under95Match[4]); // Last column = Total
-          oxygen95 = ((minutesUnder95 / tst) * 100).toFixed(2);
+          const pct = (minutesUnder95 / tst) * 100;
+          oxygen95 = oxygen95 ?? pct.toFixed(2);
           console.log(`Calculated % Time < 95%: ${minutesUnder95} min / ${tst} min = ${oxygen95}%`);
         }
 
-        // 3. Extract Average SpO2 from "Average (%): XX"
-        const avgSpO2Match = truncatedContent.match(/Average\s*\(%\)[:\s]*(\d+)/i);
-        if (avgSpO2Match) {
-          avgSpO2 = parseInt(avgSpO2Match[1]);
-          console.log(`Extracted Average SpO2: ${avgSpO2}%`);
+        // 4. Extract Average SpO2 from "Average (%): XX" (fallback)
+        if (avgSpO2 === null) {
+          const avgSpO2Match = truncatedContent.match(/Average\s*\(%\)[:\s]*([\d]+)/i);
+          if (avgSpO2Match) {
+            avgSpO2 = parseInt(avgSpO2Match[1]);
+            console.log(`Extracted Average SpO2: ${avgSpO2}%`);
+          }
         }
 
-        // 4. Extract Desaturation Index from Body Position Summary
-        // Sum all "Desat (#)" values from the body position table
-        const bodyPosSection = truncatedContent.match(/BODY POSITION SUMMARY[\s\S]*?(?=\n\n[A-Z]|\n\d+\s*\|\s*P\s*a\s*g\s*e|$)/i);
-        if (bodyPosSection && tst) {
-          const desatMatches = bodyPosSection[0].matchAll(/\|\s*(\d+)\s*$/gm);
-          let totalDesat = 0;
-          for (const match of desatMatches) {
-            const val = parseInt(match[1]);
-            if (!isNaN(val) && val > 0) {
-              totalDesat += val;
+        // 5. Extract Desaturation Index from Body Position Summary (fallback when summary missing)
+        if (!desatIndex) {
+          const bodyPosSection = truncatedContent.match(/BODY POSITION SUMMARY[\s\S]*?(?=\n\n[A-Z]|\n\d+\s*\|\s*P\s*a\s*g\s*e|$)/i);
+          if (bodyPosSection && tst) {
+            const desatMatches = bodyPosSection[0].matchAll(/\|\s*(\d+)\s*$/gm);
+            let totalDesat = 0;
+            for (const match of desatMatches) {
+              const val = parseInt(match[1]);
+              if (!isNaN(val) && val > 0) totalDesat += val;
+            }
+            if (totalDesat > 0) {
+              const tstHours = tst / 60;
+              desatIndex = (totalDesat / tstHours).toFixed(1);
+              console.log(`Calculated Desat Index: ${totalDesat} events / ${tstHours.toFixed(2)} hours = ${desatIndex}/hr`);
             }
           }
-          if (totalDesat > 0) {
-            const tstHours = tst / 60;
-            desatIndex = (totalDesat / tstHours).toFixed(1);
-            console.log(`Calculated Desat Index: ${totalDesat} events / ${tstHours.toFixed(2)} hours = ${desatIndex}/hr`);
-          }
         }
 
-        // 5. Extract Mean Hypopnea Duration from "Respiratory Events Summary (Total sleep time)"
-        const tstSummaryMatch = truncatedContent.match(/Respiratory Events Summary \(Total sleep time\)[\s\S]*?Mean \(seconds\)[^\n]*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*([\d.]+)/i);
-        if (tstSummaryMatch) {
-          hypopneaMean = parseFloat(tstSummaryMatch[1]);
-          console.log(`Extracted Hypopnea Mean Duration: ${hypopneaMean} seconds`);
+        // 6. Extract Mean Hypopnea Duration from detailed table (fallback)
+        if (hypopneaMean === null) {
+          const tstSummaryMatch = truncatedContent.match(/Respiratory Events Summary \(Total sleep time\)[\s\S]*?Mean \(seconds\)[^\n]*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*([\d.]+)/i);
+          if (tstSummaryMatch) {
+            hypopneaMean = parseFloat(tstSummaryMatch[1]);
+            console.log(`Extracted Hypopnea Mean Duration: ${hypopneaMean} seconds`);
+          }
         }
 
         // === AI FALLBACK (only if deterministic fails) ===
@@ -1486,9 +1529,12 @@ DOCUMENT: ${truncatedContent}`;
         extractedData.respiratoryEvents.meanHypopneaDuration = hypopneaMean || 
           (aiResult?.hypopneaMeanDuration || null);
 
-        // Update average SpO2 if we extracted it
-        if (avgSpO2) {
+        // Update SpO2 values if we extracted them
+        if (avgSpO2 !== null) {
           extractedData.oxygenation.averageSpO2 = avgSpO2;
+        }
+        if (lowestSpO2 !== null) {
+          extractedData.oxygenation.lowestSpO2 = lowestSpO2;
         }
 
         console.log("✅ Final oxygen & respiratory values:", {
