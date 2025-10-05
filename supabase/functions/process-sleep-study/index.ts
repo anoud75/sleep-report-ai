@@ -1394,16 +1394,110 @@ DOCUMENT: ${truncatedContent}`;
         // Use the comprehensive sleep metrics extraction (always run; function has its own fallbacks)
         console.log('=== COMPREHENSIVE SLEEP METRICS EXTRACTION START ===');
         
-        const sleepMetrics = await extractSleepMetrics(truncatedContent, lovableApiKey);
+        // === DETERMINISTIC EXTRACTION FIRST ===
+        let oxygen90 = null;
+        let oxygen95 = null;
+        let desatIndex = null;
+        let avgSpO2 = null;
+        let hypopneaMean = null;
+
+        // 1. Extract TST (Total Sleep Time in minutes)
+        const tstMatch = truncatedContent.match(/TST[:\s]+(\d+\.?\d*)\s*min/i);
+        const tst = tstMatch ? parseFloat(tstMatch[1]) : null;
+        console.log(`Extracted TST: ${tst} minutes`);
+
+        // 2. Extract from Oximetry Distribution table
+        // Looking for lines like: | <90 | 0.0 | 0.0 | 0.0 | 0.0 |
+        // The last column is "Total" in minutes
+        const under90Match = truncatedContent.match(/<\s*90[^\n]*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
+        const under95Match = truncatedContent.match(/<\s*95[^\n]*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
         
-        // Assign to your data structure (ensure nested objects exist)
+        if (under90Match && tst) {
+          const minutesUnder90 = parseFloat(under90Match[4]); // Last column = Total
+          oxygen90 = ((minutesUnder90 / tst) * 100).toFixed(1);
+          console.log(`Calculated % Time < 90%: ${minutesUnder90} min / ${tst} min = ${oxygen90}%`);
+        }
+        
+        if (under95Match && tst) {
+          const minutesUnder95 = parseFloat(under95Match[4]); // Last column = Total
+          oxygen95 = ((minutesUnder95 / tst) * 100).toFixed(2);
+          console.log(`Calculated % Time < 95%: ${minutesUnder95} min / ${tst} min = ${oxygen95}%`);
+        }
+
+        // 3. Extract Average SpO2 from "Average (%): XX"
+        const avgSpO2Match = truncatedContent.match(/Average\s*\(%\)[:\s]*(\d+)/i);
+        if (avgSpO2Match) {
+          avgSpO2 = parseInt(avgSpO2Match[1]);
+          console.log(`Extracted Average SpO2: ${avgSpO2}%`);
+        }
+
+        // 4. Extract Desaturation Index from Body Position Summary
+        // Sum all "Desat (#)" values from the body position table
+        const bodyPosSection = truncatedContent.match(/BODY POSITION SUMMARY[\s\S]*?(?=\n\n[A-Z]|\n\d+\s*\|\s*P\s*a\s*g\s*e|$)/i);
+        if (bodyPosSection && tst) {
+          const desatMatches = bodyPosSection[0].matchAll(/\|\s*(\d+)\s*$/gm);
+          let totalDesat = 0;
+          for (const match of desatMatches) {
+            const val = parseInt(match[1]);
+            if (!isNaN(val) && val > 0) {
+              totalDesat += val;
+            }
+          }
+          if (totalDesat > 0) {
+            const tstHours = tst / 60;
+            desatIndex = (totalDesat / tstHours).toFixed(1);
+            console.log(`Calculated Desat Index: ${totalDesat} events / ${tstHours.toFixed(2)} hours = ${desatIndex}/hr`);
+          }
+        }
+
+        // 5. Extract Mean Hypopnea Duration from "Respiratory Events Summary (Total sleep time)"
+        const tstSummaryMatch = truncatedContent.match(/Respiratory Events Summary \(Total sleep time\)[\s\S]*?Mean \(seconds\)[^\n]*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*([\d.]+)/i);
+        if (tstSummaryMatch) {
+          hypopneaMean = parseFloat(tstSummaryMatch[1]);
+          console.log(`Extracted Hypopnea Mean Duration: ${hypopneaMean} seconds`);
+        }
+
+        // === AI FALLBACK (only if deterministic fails) ===
+        let aiResult = null;
+        if (!oxygen90 || !oxygen95 || !desatIndex || !hypopneaMean) {
+          console.log("⚠️ Some values missing from deterministic extraction, using AI fallback...");
+          try {
+            aiResult = await extractSleepMetrics(truncatedContent, lovableApiKey);
+            console.log("AI fallback result:", aiResult);
+          } catch (error) {
+            console.error("AI fallback failed:", error);
+          }
+        }
+
+        // === ASSIGN FINAL VALUES ===
         extractedData.oxygenation = extractedData.oxygenation || {};
         extractedData.respiratoryEvents = extractedData.respiratoryEvents || {};
 
-        extractedData.oxygenation.timeBelow90Percent = `${sleepMetrics.oxygenUnder90Percent}%`;
-        extractedData.oxygenation.timeBelow95Percent = `${sleepMetrics.oxygenUnder95Percent}%`;
-        extractedData.respiratoryEvents.meanHypopneaDuration = sleepMetrics.hypopneaMeanDuration;
-        extractedData.oxygenation.desaturationIndex = sleepMetrics.desaturationIndex;
+        // Use deterministic first, fallback to AI, then to defaults
+        extractedData.oxygenation.timeBelow90Percent = oxygen90 ? `${oxygen90}%` : 
+          (aiResult?.oxygenUnder90Percent ? `${aiResult.oxygenUnder90Percent}%` : "0.0%");
+        
+        extractedData.oxygenation.timeBelow95Percent = oxygen95 ? `${oxygen95}%` : 
+          (aiResult?.oxygenUnder95Percent ? `${aiResult.oxygenUnder95Percent}%` : "0.0%");
+        
+        extractedData.oxygenation.desaturationIndex = desatIndex ? parseFloat(desatIndex) : 
+          (aiResult?.desaturationIndex || null);
+        
+        extractedData.respiratoryEvents.meanHypopneaDuration = hypopneaMean || 
+          (aiResult?.hypopneaMeanDuration || null);
+
+        // Update average SpO2 if we extracted it
+        if (avgSpO2) {
+          extractedData.oxygenation.averageSpO2 = avgSpO2;
+        }
+
+        console.log("✅ Final oxygen & respiratory values:", {
+          timeBelow90: extractedData.oxygenation.timeBelow90Percent,
+          timeBelow95: extractedData.oxygenation.timeBelow95Percent,
+          desatIndex: extractedData.oxygenation.desaturationIndex,
+          hypopneaMean: extractedData.respiratoryEvents.meanHypopneaDuration,
+          avgSpO2: extractedData.oxygenation.averageSpO2
+        });
 
         console.log('Final assigned values:', {
           under90: extractedData.oxygenation.timeBelow90Percent,
