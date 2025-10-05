@@ -450,26 +450,34 @@ Document: ${content}`;
 
     if (response.ok) {
       const data = await response.json();
-      let result = data.choices[0].message.content.trim();
+      console.log("AI response data structure:", JSON.stringify(data, null, 2));
       
-      console.log("Raw Claude response:", result);
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error("Unexpected AI response structure:", data);
+        aiResult = null;
+      } else {
+        let result = data.choices[0].message.content.trim();
+        
+        console.log("Raw AI response:", result);
       
-      // Extract JSON from response
-      let jsonMatch = result.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        result = jsonMatch[0];
-      }
-      
-      // Clean common issues
-      result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
-      result = result.replace(/```\s*/, '');
-      
-      try {
-        aiResult = JSON.parse(result);
-        console.log("✅ AI extraction successful:", aiResult);
-      } catch (parseError) {
-        console.error("Failed to parse AI JSON:", parseError);
-        console.log("Cleaned result was:", result);
+        // Extract JSON from response
+        let jsonMatch = result.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          result = jsonMatch[0];
+        }
+        
+        // Clean common issues
+        result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
+        result = result.replace(/```\s*/, '');
+        
+        try {
+          aiResult = JSON.parse(result);
+          console.log("✅ AI extraction successful:", aiResult);
+        } catch (parseError) {
+          console.error("Failed to parse AI JSON:", parseError);
+          console.log("Cleaned result was:", result);
+          aiResult = null;
+        }
       }
     } else {
       console.error("API request failed:", response.status);
@@ -667,13 +675,20 @@ DOCUMENT: ${truncatedContent}`;
       }),
     });
 
-    if (!response.ok) {
-      console.error('Desaturation API request failed:', response.status);
-      return null;
-    }
+      if (!response.ok) {
+        console.error('Desaturation API request failed:', response.status);
+        return null;
+      }
 
-    const data = await response.json();
-    let result = data.choices[0].message.content.trim();
+      const data = await response.json();
+      console.log('Desaturation AI response structure:', JSON.stringify(data, null, 2));
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error("Unexpected desaturation AI response:", data);
+        return null;
+      }
+      
+      let result = data.choices[0].message.content.trim();
     
     console.log('Raw desaturation response:', result);
     
@@ -1259,6 +1274,13 @@ DOCUMENT: ${truncatedContent}`;
       }
 
       const data = await response.json();
+      console.log('Nested desaturation AI response structure:', JSON.stringify(data, null, 2));
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error("Unexpected nested desaturation AI response:", data);
+        return null;
+      }
+      
       let result = data.choices[0].message.content.trim();
       
       console.log('Raw desaturation response:', result);
@@ -1325,6 +1347,13 @@ DOCUMENT: ${truncatedContent}`;
     }
 
     const data = await response.json();
+    console.log('Main extraction AI response structure:', JSON.stringify(data, null, 2));
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error("Unexpected main extraction AI response:", data);
+      throw new Error('Invalid AI response structure');
+    }
+    
     let analysisResult = data.choices[0].message.content;
     
     // === AI RESPONSE DEBUG - USER REQUESTED ===
