@@ -385,7 +385,7 @@ function extractOxygenPercentagesWithValidation(content: string, totalSleepTime:
   }
 }
 
-// Comprehensive sleep metrics extraction using Anthropic API with robust fallbacks
+// Comprehensive sleep metrics extraction using Lovable AI Gateway (Gemini) with robust fallbacks
 async function extractSleepMetrics(content: string, apiKey: string): Promise<{
   oxygenUnder90Percent: string;
   oxygenUnder95Percent: string;
@@ -430,17 +430,16 @@ Document: ${content}`;
   let aiResult = null;
 
   try {
-    console.log("Sending extraction request to Claude...");
+    console.log("Sending extraction request to Lovable AI (Gemini)...");
     
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'google/gemini-2.5-flash',
         max_tokens: 600,
         messages: [{ 
           role: 'user', 
@@ -451,7 +450,7 @@ Document: ${content}`;
 
     if (response.ok) {
       const data = await response.json();
-      let result = data.content[0].text.trim();
+      let result = data.choices[0].message.content.trim();
       
       console.log("Raw Claude response:", result);
       
@@ -611,7 +610,7 @@ const extractOxygenWithRegex = (content, totalSleepTimeMinutes) => {
 };
 
 // Also update your desaturation index function with better debugging
-const extractDesaturationIndex = async (truncatedContent, claudeApiKey) => {
+const extractDesaturationIndex = async (truncatedContent, lovableApiKey) => {
   const desatPrompt = `Extract the Total Desaturation Index from this sleep study report.
 
 LOCATION: Look in the oximetry table section
@@ -650,15 +649,14 @@ DOCUMENT: ${truncatedContent}`;
   try {
     console.log('=== DESATURATION INDEX EXTRACTION START ===');
     
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': claudeApiKey,
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'google/gemini-2.5-flash',
         max_tokens: 200,
         messages: [
           { 
@@ -675,7 +673,7 @@ DOCUMENT: ${truncatedContent}`;
     }
 
     const data = await response.json();
-    let result = data.content[0].text.trim();
+    let result = data.choices[0].message.content.trim();
     
     console.log('Raw desaturation response:', result);
     
@@ -793,16 +791,15 @@ serve(async (req) => {
       .replace(/<[^>]*>/g, '')
       .trim();
     
-    const claudeApiKey = Deno.env.get('ANTHROPIC_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
-    console.log('Claude API key exists:', !!claudeApiKey);
-    if (claudeApiKey) {
-      console.log('API key length:', claudeApiKey.length);
-      console.log('Starts with sk-ant:', claudeApiKey.startsWith('sk-ant'));
+    console.log('Lovable API key exists:', !!lovableApiKey);
+    if (lovableApiKey) {
+      console.log('API key length:', lovableApiKey.length);
     }
     
-    if (!claudeApiKey) {
-      console.warn('Claude API key not configured; proceeding with deterministic extraction only.');
+    if (!lovableApiKey) {
+      console.warn('Lovable API key not configured; proceeding with deterministic extraction only.');
     }
 
     // Truncate file content if too long to avoid token limits, but ALWAYS include the Oximetry section
@@ -1199,7 +1196,7 @@ Expected JSON structure:
 }`;
 
   // Separate focused extraction for desaturation index
-  const extractDesaturationIndex = async (truncatedContent, claudeApiKey) => {
+  const extractDesaturationIndex = async (truncatedContent, lovableApiKey) => {
     const desatPrompt = `Extract the Total Desaturation Index from this sleep study report.
 
 LOCATION: Look in the oximetry table section
@@ -1238,15 +1235,14 @@ DOCUMENT: ${truncatedContent}`;
     try {
       console.log('=== DESATURATION INDEX EXTRACTION START ===');
       
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'x-api-key': claudeApiKey,
-          'Content-Type': 'application/json',
-          'anthropic-version': '2023-06-01',
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'google/gemini-2.5-flash',
           max_tokens: 200,
           messages: [
             { 
@@ -1263,11 +1259,11 @@ DOCUMENT: ${truncatedContent}`;
       }
 
       const data = await response.json();
-      let result = data.content[0].text.trim();
+      let result = data.choices[0].message.content.trim();
       
       console.log('Raw desaturation response:', result);
       
-      // Clean JSON response - handle Claude's descriptive responses
+      // Clean JSON response - handle descriptive responses
       if (result.includes('```json')) {
         result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
       }
@@ -1275,7 +1271,7 @@ DOCUMENT: ${truncatedContent}`;
         result = result.replace(/```\s*/, '').replace(/```\s*$/, '');
       }
       
-      // Extract JSON from Claude's response - look for actual JSON content
+      // Extract JSON from response - look for actual JSON content
       const jsonMatch = result.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         result = jsonMatch[0];
@@ -1301,17 +1297,16 @@ DOCUMENT: ${truncatedContent}`;
     }
   };
 
-  console.log('Sending request to Claude...');
+  console.log('Sending request to Lovable AI (Gemini)...');
   
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': claudeApiKey,
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'google/gemini-2.5-flash',
         max_tokens: 3000,
         messages: [
           { 
@@ -1324,13 +1319,13 @@ DOCUMENT: ${truncatedContent}`;
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Claude API error:', errorData);
-      console.error('Model being used:', 'claude-sonnet-4-20250514');
-      throw new Error(`Claude API error: ${response.status} - Model: claude-sonnet-4-20250514`);
+      console.error('Lovable AI error:', errorData);
+      console.error('Model being used:', 'google/gemini-2.5-flash');
+      throw new Error(`Lovable AI error: ${response.status} - Model: google/gemini-2.5-flash`);
     }
 
     const data = await response.json();
-    let analysisResult = data.content[0].text;
+    let analysisResult = data.choices[0].message.content;
     
     // === AI RESPONSE DEBUG - USER REQUESTED ===
     console.log('=== AI RESPONSE DEBUG ===');
@@ -1356,7 +1351,7 @@ DOCUMENT: ${truncatedContent}`;
         // Use the comprehensive sleep metrics extraction (always run; function has its own fallbacks)
         console.log('=== COMPREHENSIVE SLEEP METRICS EXTRACTION START ===');
         
-        const sleepMetrics = await extractSleepMetrics(truncatedContent, claudeApiKey);
+        const sleepMetrics = await extractSleepMetrics(truncatedContent, lovableApiKey);
         
         // Assign to your data structure
         extractedData.oxygenation.timeBelow90Percent = sleepMetrics.oxygenUnder90Percent + "%";
