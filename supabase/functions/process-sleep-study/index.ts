@@ -486,9 +486,23 @@ Document: ${content}`;
     console.error('AI extraction error:', error);
   }
 
+  // Normalize AI outputs to drop placeholders like "X.X" and extract numeric values
+  const normalizeNumber = (v: any): string | null => {
+    if (v === null || v === undefined) return null;
+    let s = String(v).trim();
+    if (!s || /x/i.test(s)) return null;
+    const m = s.match(/-?\d+(?:\.\d+)?/);
+    return m ? m[0] : null;
+  };
+
+  const aiOxy90 = normalizeNumber(aiResult?.oxygenUnder90Percent);
+  const aiOxy95 = normalizeNumber(aiResult?.oxygenUnder95Percent);
+  const aiHypMean = normalizeNumber(aiResult?.hypopneaMeanDuration);
+  const aiDesat = normalizeNumber(aiResult?.desaturationIndex);
+
   // Use deterministic fallbacks for missing data
-  let hypopneaMean = aiResult?.hypopneaMeanDuration || null;
-  let desatIndex = aiResult?.desaturationIndex || null;
+  let hypopneaMean = aiHypMean ? parseFloat(aiHypMean) : null;
+  let desatIndex = aiDesat ? parseFloat(aiDesat) : null;
   let oxygenData = null;
 
   // Fallback 1: Hypopnea mean duration
@@ -504,7 +518,7 @@ Document: ${content}`;
   }
 
   // Fallback 3: Oxygen percentages
-  if (!aiResult?.oxygenUnder90Percent || !aiResult?.oxygenUnder95Percent) {
+  if (!aiOxy90 || !aiOxy95) {
     console.log("🔄 Using deterministic oxygen extraction...");
     if (totalSleepTime) {
       oxygenData = extractOxygenPercentagesWithValidation(content, totalSleepTime);
@@ -512,8 +526,8 @@ Document: ${content}`;
   }
 
   const finalMetrics = {
-    oxygenUnder90Percent: aiResult?.oxygenUnder90Percent || oxygenData?.under90 || "0.0",
-    oxygenUnder95Percent: aiResult?.oxygenUnder95Percent || oxygenData?.under95 || "0.0",
+    oxygenUnder90Percent: aiOxy90 || oxygenData?.under90 || "0.0",
+    oxygenUnder95Percent: aiOxy95 || oxygenData?.under95 || "0.0",
     hypopneaMeanDuration: hypopneaMean,
     desaturationIndex: desatIndex,
     calculations: aiResult?.calculations || null
