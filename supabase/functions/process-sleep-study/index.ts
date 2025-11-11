@@ -404,28 +404,85 @@ async function extractSleepMetrics(content: string, apiKey: string): Promise<{
     console.log("Found TST:", totalSleepTime, "minutes");
   }
   
-  const prompt = `Extract ONLY these 4 sleep study metrics. Return ONLY valid JSON, no explanations:
+  const prompt = `You are a medical data extraction specialist. Extract EXACTLY 4 metrics from this sleep study report.
 
+CRITICAL: Return ONLY valid JSON with NO markdown, NO explanations, NO additional text.
+
+REQUIRED OUTPUT FORMAT:
 {
-  "oxygenUnder90Percent": "X.X",
-  "oxygenUnder95Percent": "X.X", 
-  "hypopneaMeanDuration": X.X,
-  "desaturationIndex": X.X,
+  "oxygenUnder90Percent": "12.5",
+  "oxygenUnder95Percent": "28.3",
+  "hypopneaMeanDuration": 18.7,
+  "desaturationIndex": 5.2,
   "calculations": {
     "tst": ${totalSleepTime || 'null'},
-    "under90REM": X.X,
-    "under90NREM": X.X,
-    "under95REM": X.X,
-    "under95NREM": X.X
+    "under90REM": 8.2,
+    "under90NREM": 15.3,
+    "under95REM": 12.4,
+    "under95NREM": 22.1
   }
 }
 
-Find:
-1. Oximetry table <90 and <95 rows (REM, Non-REM minutes)
-2. REM Events table "Mean (seconds)" row, Hyp column  
-3. "Desat Index (#/hour)" TOTAL column (rightmost number)
+EXTRACTION INSTRUCTIONS:
 
-Document: ${content}`;
+━━━ METRIC 1 & 2: Oxygen Saturation Percentages ━━━
+LOCATION: "Oximetry Distribution" or "SpO2 Summary" table
+FIND: Two specific rows labeled:
+  - "<90" or "< 90%" or "Below 90%"
+  - "<95" or "< 95%" or "Below 95%"
+
+TABLE EXAMPLE:
+                    WK      REM     NREM    TOTAL
+<90                 3.2     8.2     15.3    26.7
+<95                 5.8     12.4    22.1    40.3
+
+EXTRACT: The "REM" and "NREM" column values (2nd and 3rd numbers)
+CALCULATE: For each threshold, report the values you found in REM and NREM
+
+EXAMPLES:
+- If <90 row shows: "2.1  8.2  15.3  25.6" → under90REM: 8.2, under90NREM: 15.3
+- If <95 row shows: "4.3  12.4  22.1  38.8" → under95REM: 12.4, under95NREM: 22.1
+
+━━━ METRIC 3: Hypopnea Mean Duration ━━━
+LOCATION: "Respiratory Events Summary" or "REM Events" table
+FIND: Row labeled "Mean (seconds)" or "Mean Duration"
+COLUMN: Look for "Hyp" or "Hypopnea" column
+
+TABLE EXAMPLE:
+Event Type          Obs    Hyp    Mixed   Central
+Number              45     128    12      8
+Mean (seconds)      32.5   18.7   25.3    28.1  ← EXTRACT 18.7
+
+EXTRACT: The numeric value under "Hyp" column in the "Mean (seconds)" row
+EXAMPLES:
+- "Mean (seconds)    30.2   18.7   24.5   29.3" → Extract: 18.7
+- "Mean Duration     28.9   22.1   26.8   31.2" → Extract: 22.1
+
+━━━ METRIC 4: Desaturation Index ━━━
+LOCATION: Same oximetry table section
+FIND: Row labeled EXACTLY "Desat Index (#/hour)"
+  ⚠️ IGNORE "Desat Index (dur/hour)" - this is different!
+
+TABLE EXAMPLE:
+                            WK     REM    NREM   TOTAL
+Average SpO2 (%)            95.2   94.8   95.5   95.1
+Number of desaturations     42     88     156    286
+Desat Index (#/hour)        2.1    5.8    3.2    5.2   ← EXTRACT 5.2
+Desat Index (dur/hour)      1.8    4.2    2.9    4.1   ← SKIP THIS ROW
+
+EXTRACT: ONLY the "TOTAL" column value (rightmost number) from "Desat Index (#/hour)"
+EXAMPLES:
+- "Desat Index (#/hour)    1.4   8.8   1.9   2.8" → Extract: 2.8
+- "Desat Index (#/hour)    0.6   12.3  0.2   5.2" → Extract: 5.2
+
+━━━ EDGE CASES ━━━
+- If a metric is not found, use null (not string "null")
+- All percentage values should be strings with 1 decimal place: "12.5"
+- Numeric metrics (hypopnea, desaturation) should be numbers: 18.7
+- If calculations section values are missing, set them to null
+
+━━━ DOCUMENT TO ANALYZE ━━━
+${content}`;
 
   let aiResult = null;
 
@@ -633,40 +690,90 @@ const extractOxygenWithRegex = (content, totalSleepTimeMinutes) => {
 
 // Also update your desaturation index function with better debugging
 const extractDesaturationIndex = async (truncatedContent, lovableApiKey) => {
-  const desatPrompt = `Extract the Total Desaturation Index from this sleep study report.
+  const desatPrompt = `You are extracting a single critical metric from a sleep study report: the Total Desaturation Index.
 
-LOCATION: Look in the oximetry table section
+CRITICAL: Return ONLY valid JSON. NO markdown blocks, NO explanations.
 
-FIND: The row labeled "Desat Index (#/hour)" (NOT "Desat Index (dur/hour)")
+━━━ STEP-BY-STEP EXTRACTION ━━━
 
-TABLE STRUCTURE EXAMPLE:
-                        WK    REM   NREM  TOTAL
-Average (%)             XX    XX    XX    XX
-Number of desaturations  X     X     X     X
-Desat Index (#/hour)    X.X   X.X   X.X   X.X  ← EXTRACT TOTAL
-Desat Index (dur/hour)  X.X   X.X   X.X   X.X  ← SKIP THIS
+STEP 1: LOCATE THE TABLE
+Search for section headers like:
+- "Oximetry Distribution"
+- "SpO2 Summary"  
+- "Oxygen Saturation Analysis"
 
-EXTRACT: Only the TOTAL column value (4th number) from "Desat Index (#/hour)" row
+STEP 2: IDENTIFY THE CORRECT ROW
+Look for a row labeled EXACTLY:
+- "Desat Index (#/hour)" ✓
+- "Desaturation Index (#/hr)" ✓
+- "Desat Index (events/hour)" ✓
 
-EXAMPLES:
-- "Desat Index (#/hour)    1.4   8.8   1.9   2.8" → Extract: 2.8
-- "Desat Index (#/hour)    0.6   0.0   0.2   1.3" → Extract: 1.3
+⚠️ CRITICAL: DO NOT confuse with these DIFFERENT metrics:
+- "Desat Index (dur/hour)" ✗ (this measures duration, not frequency)
+- "Oxygen Desaturation Index (duration)" ✗
+- "ODI" alone ✗ (needs the (#/hour) or events/hr specification)
 
-Return JSON:
+STEP 3: EXTRACT THE TOTAL VALUE
+The table will have multiple columns. You MUST extract the RIGHTMOST value (TOTAL column).
+
+TABLE PATTERN:
+                            WK     REM    NREM   TOTAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Average SpO2 (%)            95.2   94.8   95.5   95.1
+Minimum SpO2 (%)            82.0   85.3   83.7   82.0
+Number of desaturations     42     88     156    286
+Desat Index (#/hour)        2.1    5.8    3.2    5.2   ← EXTRACT: 5.2
+Desat Index (dur/hour)      1.8    4.2    2.9    4.1   ← IGNORE THIS
+
+COLUMN POSITIONS:
+- Column 1: WK (wake) - IGNORE
+- Column 2: REM - IGNORE
+- Column 3: NREM - IGNORE  
+- Column 4: TOTAL - ✓ THIS IS WHAT YOU EXTRACT
+
+━━━ CONCRETE EXAMPLES ━━━
+
+Example 1:
+Input: "Desat Index (#/hour)    1.4   8.8   1.9   2.8"
+Extract: 2.8 (the 4th number)
+
+Example 2:
+Input: "Desaturation Index (events/hr)    0.6   12.3   0.2   5.2"
+Extract: 5.2 (the 4th number)
+
+Example 3:
+Input: "Desat Index (#/hour)    0.0   0.0   0.8   0.8"
+Extract: 0.8 (the 4th number, even if it's low)
+
+Example 4 - Multiple spaces:
+Input: "Desat Index (#/hour)        3.2       11.5       4.8       6.7"
+Extract: 6.7 (rightmost number, regardless of spacing)
+
+━━━ OUTPUT FORMAT ━━━
+
+If FOUND:
 {
   "success": true,
-  "value": 2.8,
-  "debug": "exact text of the row found"
+  "value": 5.2,
+  "debug": "Desat Index (#/hour)    2.1    5.8    3.2    5.2"
 }
 
-If not found:
+If NOT FOUND:
 {
   "success": false,
   "value": null,
-  "error": "reason"
+  "error": "Could not locate 'Desat Index (#/hour)' row in oximetry section"
 }
 
-DOCUMENT: ${truncatedContent}`;
+━━━ COMMON MISTAKES TO AVOID ━━━
+1. ✗ Extracting from wrong row (dur/hour instead of #/hour)
+2. ✗ Extracting wrong column (REM instead of TOTAL)
+3. ✗ Including units in value (return 5.2, not "5.2/hr")
+4. ✗ Averaging multiple values (extract TOTAL, don't calculate)
+5. ✗ Returning markdown code blocks (return raw JSON only)
+
+━━━ DOCUMENT TO ANALYZE ━━━
+${truncatedContent}`;
 
   try {
     console.log('=== DESATURATION INDEX EXTRACTION START ===');
