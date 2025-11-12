@@ -17,372 +17,57 @@ const formatOxygenPercentage = (percentage) => {
   return `${percentage.toFixed(1)}%`;
 };
 
-// Enhanced hypopnea mean duration extraction with multiple fallback patterns
+// Simple hypopnea mean duration extraction
 function parseHypopneaMeanDuration(content: string): number | null {
-  console.log('=== ENHANCED HYPOPNEA MEAN DURATION EXTRACTION START ===');
-  
-  try {
-    // Section-aware extraction - look within relevant sections first
-    const eventsSections = [
-      /(?:REM\s+)?Events?\s*[\s\S]*?(?=(?:HEART\s+RATE|Oximetry|Body\s+Position|$))/i,
-      /Respiratory\s+Events[\s\S]*?(?=(?:HEART\s+RATE|Oximetry|Body\s+Position|$))/i,
-      /Hypopnea[\s\S]*?(?=(?:HEART\s+RATE|Oximetry|Body\s+Position|$))/i
-    ];
-
-    let relevantSection = content;
-    for (const sectionPattern of eventsSections) {
-      const sectionMatch = content.match(sectionPattern);
-      if (sectionMatch) {
-        relevantSection = sectionMatch[0];
-        console.log('Found relevant section for hypopnea extraction:', sectionMatch[0].substring(0, 200) + '...');
-        break;
-      }
-    }
-
-    // Enhanced pattern collection with fallbacks
-    const patterns = [
-      // Pattern 1: Standard table format - Mean (seconds) row with Hyp column
-      /Mean\s*\(seconds\)[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      
-      // Pattern 2: Table format with different column counts
-      /Mean.*?seconds.*?(?:\d+\.?\d*\s+){4}(\d+\.?\d*)/i,
-      /Mean.*?seconds.*?(?:\d+\.?\d*\s+){3}(\d+\.?\d*)/i,
-      /Mean.*?seconds.*?(?:\d+\.?\d*\s+){2}(\d+\.?\d*)/i,
-      
-      // Pattern 3: Direct hypopnea mean duration mentions
-      /Hypopnea\s+Mean\s+Duration[:\s]*(\d+\.?\d*)\s*sec/i,
-      /Mean\s+Hypopnea\s+Duration[:\s]*(\d+\.?\d*)\s*sec/i,
-      /HYP.*?Mean.*?(\d+\.?\d*)\s*sec/i,
-      
-      // Pattern 4: Various spacing and formatting
-      /hypopnea.*?duration[:\s]*(\d+\.?\d*)\s*sec/i,
-      /hypopnea.*?mean[:\s]*(\d+\.?\d*)/i,
-      /duration.*?hypopnea[:\s]*(\d+\.?\d*)/i,
-      
-      // Pattern 5: Table format looking for Hyp column specifically
-      /(?:CA|OA|MA).*?HYP[\s\S]*?Mean.*?(?:\d+\.?\d*\s+)*(\d+\.?\d*)/i,
-      
-      // Pattern 6: Loose pattern for edge cases
-      /mean[\s\S]{0,50}?(\d+\.?\d*)\s*sec[\s\S]{0,50}?hypopnea/i,
-      /hypopnea[\s\S]{0,50}?(\d+\.?\d*)\s*sec/i
-    ];
-
-    // Try patterns in order of confidence
-    for (let i = 0; i < patterns.length; i++) {
-      const pattern = patterns[i];
-      const match = relevantSection.match(pattern);
-      if (match) {
-        const duration = parseFloat(match[match.length - 1]); // Get last captured group
-        if (duration > 0 && duration < 300) { // Sanity check (0-300 seconds)
-          console.log(`✅ Found hypopnea duration: ${duration} seconds using pattern ${i + 1}`);
-          console.log('Matching text:', match[0].substring(0, 100) + '...');
-          console.log('Confidence level:', i < 3 ? 'HIGH' : i < 6 ? 'MEDIUM' : 'LOW');
-          console.log('=== ENHANCED HYPOPNEA MEAN DURATION EXTRACTION END ===');
-          return duration;
-        } else {
-          console.log(`❌ Invalid duration value: ${duration} (out of range 0-300)`);
-        }
-      }
-    }
-
-    // If no match found, log partial matches for debugging
-    console.log('🔍 Debugging: Looking for partial matches...');
-    const debugPatterns = [
-      /Mean.*?seconds/i,
-      /hypopnea.*?duration/i,
-      /HYP.*?Mean/i
-    ];
-    
-    for (const debugPattern of debugPatterns) {
-      const debugMatch = relevantSection.match(debugPattern);
-      if (debugMatch) {
-        console.log('Found partial match:', debugMatch[0]);
-        const surroundingText = relevantSection.substring(
-          Math.max(0, debugMatch.index! - 100),
-          Math.min(relevantSection.length, debugMatch.index! + debugMatch[0].length + 100)
-        );
-        console.log('Context (±100 chars):', surroundingText);
-      }
-    }
-
-    console.log('❌ No hypopnea mean duration found after enhanced extraction');
-    console.log('=== ENHANCED HYPOPNEA MEAN DURATION EXTRACTION END ===');
-    return null;
-
-  } catch (error) {
-    console.error('Error in enhanced hypopnea duration extraction:', error);
-    console.log('=== ENHANCED HYPOPNEA MEAN DURATION EXTRACTION END ===');
-    return null;
+  const match = content.match(/Mean\s*\(seconds\)[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i);
+  if (match) {
+    const value = parseFloat(match[2]);
+    console.log(`⚠️ Could not find Hypopnea Mean Duration in Respiratory Events Summary`);
+    return value > 0 ? value : null;
   }
+  console.log(`⚠️ Could not find Hypopnea Mean Duration in Respiratory Events Summary`);
+  return null;
 }
 
 // Enhanced desaturation index extraction with comprehensive fallback patterns
+// Simple desaturation index extraction
 function parseDesaturationIndex(content: string): number | null {
-  console.log('=== ENHANCED DESATURATION INDEX EXTRACTION START ===');
-  
-  try {
-    // Section-aware extraction - look within oximetry sections first
-    const oximetrySections = [
-      /Oximetry\s*Distribution[\s\S]*?(?=(?:BODY\s*POSITION|Leg\s*Movements|Snoring|$))/i,
-      /OXIMETRY\s*SUMMARY[\s\S]*?(?=(?:BODY\s*POSITION|Leg\s*Movements|Snoring|$))/i,
-      /Oximetry[\s\S]*?(?=(?:BODY\s*POSITION|PAGE\s*7|$))/i,
-      /Desaturation[\s\S]*?(?=(?:BODY\s*POSITION|Arousal|$))/i
-    ];
-
-    let relevantSection = content;
-    for (const sectionPattern of oximetrySections) {
-      const sectionMatch = content.match(sectionPattern);
-      if (sectionMatch) {
-        relevantSection = sectionMatch[0];
-        console.log('Found oximetry section for desaturation extraction:', sectionMatch[0].substring(0, 200) + '...');
-        break;
-      }
-    }
-
-    // Enhanced pattern collection with multiple variations
-    const patterns = [
-      // Pattern 1: Standard table format - "Desat Index (#/hour)" with TOTAL column
-      /Desat\s+Index\s*\(#\/hour\)[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /Desat\s+Index\s*\(\#\/hr\)[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      
-      // Pattern 2: Alternative spacing and formats
-      /Desat.*?Index.*?#\/hour[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /Desat.*?Index.*?\(#\/hr\)[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /Desaturation\s+Index.*?#\/hour[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      
-      // Pattern 3: Direct label formats
-      /Desaturation\s+Index[:\s]*(\d+\.?\d*)\s*\/hr/i,
-      /Desat\s+Index[:\s]*(\d+\.?\d*)\s*\/hr/i,
-      /DI\s*\(\/hr\)[:\s]*(\d+\.?\d*)/i,
-      /DI\s*\(#\/hour\)[:\s]*(\d+\.?\d*)/i,
-      
-      // Pattern 4: HTML/table formats
-      /Desat\s+Index.*?hour.*?<td[^>]*>(\d+\.?\d*)<\/td>\s*<td[^>]*>(\d+\.?\d*)<\/td>\s*<td[^>]*>(\d+\.?\d*)<\/td>\s*<td[^>]*>(\d+\.?\d*)<\/td>/i,
-      
-      // Pattern 5: Loose patterns for edge cases
-      /desaturation\s*index.*?(\d+\.?\d*)/i,
-      /desat.*?index.*?(\d+\.?\d*)/i,
-      /index.*?desaturation.*?(\d+\.?\d*)/i,
-      
-      // Pattern 6: Table format with "TOTAL" column identifier
-      /Desat\s+Index[\s\S]*?TOTAL[\s\S]*?(\d+\.?\d*)/i,
-      /desaturation[\s\S]{0,100}?Total[\s\S]{0,50}?(\d+\.?\d*)/i
-    ];
-
-    // Try patterns in order of confidence
-    for (let i = 0; i < patterns.length; i++) {
-      const pattern = patterns[i];
-      const match = relevantSection.match(pattern);
-      if (match) {
-        // For patterns with multiple groups, take the last number (TOTAL column)
-        const index = parseFloat(match[match.length - 1]);
-        if (index >= 0 && index < 1000) { // Sanity check (0-1000 events/hour)
-          console.log(`✅ Found desaturation index: ${index} using pattern ${i + 1}`);
-          console.log('Matching text:', match[0].substring(0, 100) + '...');
-          console.log('Confidence level:', i < 4 ? 'HIGH' : i < 8 ? 'MEDIUM' : 'LOW');
-          console.log('=== ENHANCED DESATURATION INDEX EXTRACTION END ===');
-          return index;
-        } else {
-          console.log(`❌ Invalid desaturation index value: ${index} (out of range 0-1000)`);
-        }
-      }
-    }
-
-    // If no match found, log partial matches for debugging
-    console.log('🔍 Debugging: Looking for desaturation-related partial matches...');
-    const debugPatterns = [
-      /Desat.*?Index/i,
-      /desaturation.*?index/i,
-      /#\/hour/i,
-      /TOTAL.*?\d+\.?\d*/i
-    ];
-    
-    for (const debugPattern of debugPatterns) {
-      const debugMatch = relevantSection.match(debugPattern);
-      if (debugMatch) {
-        console.log('Found partial match:', debugMatch[0]);
-        const surroundingText = relevantSection.substring(
-          Math.max(0, debugMatch.index! - 100),
-          Math.min(relevantSection.length, debugMatch.index! + debugMatch[0].length + 100)
-        );
-        console.log('Context (±100 chars):', surroundingText);
-      }
-    }
-
-    console.log('❌ No desaturation index found after enhanced extraction');
-    console.log('=== ENHANCED DESATURATION INDEX EXTRACTION END ===');
-    return null;
-
-  } catch (error) {
-    console.error('Error in enhanced desaturation index extraction:', error);
-    console.log('=== ENHANCED DESATURATION INDEX EXTRACTION END ===');
-    return null;
+  const match = content.match(/Desat\s+Index[\s\S]*?(\d+\.?\d*)/i);
+  if (match) {
+    const value = parseFloat(match[1]);
+    return value >= 0 ? value : null;
   }
+  console.log(`⚠️ Could not find Desaturation Index in Oximetry Summary`);
+  return null;
 }
 
-// Enhanced oxygen percentage extraction with flexible patterns and validation
-function extractOxygenPercentagesWithValidation(content: string, totalSleepTime: number): { under90: string; under95: string } | null {
-  console.log('=== ENHANCED OXYGEN PERCENTAGE EXTRACTION START ===');
-  console.log('TST for calculations:', totalSleepTime);
-  
-  try {
-    if (!totalSleepTime || totalSleepTime <= 0) {
-      console.log('❌ Invalid TST for oxygen calculations');
-      console.log('=== ENHANCED OXYGEN PERCENTAGE EXTRACTION END ===');
-      return null;
-    }
-
-    // Section-aware extraction - look within oximetry sections first
-    const oximetrySections = [
-      /Oximetry\s*Distribution[\s\S]*?(?=(?:BODY\s*POSITION|Leg\s*Movements|Snoring|Arousal|$))/i,
-      /OXIMETRY\s*SUMMARY[\s\S]*?(?=(?:BODY\s*POSITION|Leg\s*Movements|Snoring|Arousal|$))/i,
-      /Oxygen\s*Saturation[\s\S]*?(?=(?:BODY\s*POSITION|Leg\s*Movements|Snoring|Arousal|$))/i,
-      /SpO2[\s\S]*?(?=(?:BODY\s*POSITION|Leg\s*Movements|Snoring|Arousal|$))/i
-    ];
-
-    let relevantSection = content;
-    for (const sectionPattern of oximetrySections) {
-      const sectionMatch = content.match(sectionPattern);
-      if (sectionMatch) {
-        relevantSection = sectionMatch[0];
-        console.log('Found oximetry section for oxygen extraction:', sectionMatch[0].substring(0, 200) + '...');
-        break;
-      }
-    }
-
-    // Enhanced patterns for <90% oxygen saturation with multiple variations
-    const patterns90 = [
-      // Standard table formats
-      /<90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /&lt;90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /<\s*90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      
-      // Alternative formats
-      /90\s*%[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /below\s*90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /under\s*90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      
-      // Direct label formats
-      /Time\s*<\s*90%[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /%\s*Time\s*<\s*90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /<90%\s*time[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      
-      // Loose patterns for edge cases
-      /90[\s\S]{0,20}?%[\s\S]{0,50}?(\d+\.?\d*)\s+(\d+\.?\d*)/i
-    ];
-
-    // Enhanced patterns for <95% oxygen saturation
-    const patterns95 = [
-      // Standard table formats
-      /<95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /&lt;95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /<\s*95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      
-      // Alternative formats
-      /95\s*%[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /below\s*95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /under\s*95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      
-      // Direct label formats
-      /Time\s*<\s*95%[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /%\s*Time\s*<\s*95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /<95%\s*time[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      
-      // Loose patterns for edge cases
-      /95[\s\S]{0,20}?%[\s\S]{0,50}?(\d+\.?\d*)\s+(\d+\.?\d*)/i
-    ];
-
-    let under90Data = null;
-    let under95Data = null;
-
-    // Extract <90% data with confidence tracking
-    for (let i = 0; i < patterns90.length; i++) {
-      const pattern = patterns90[i];
-      const match = relevantSection.match(pattern);
-      if (match) {
-        // Assuming format: Wake, REM, Non-REM, Total (take REM and Non-REM)
-        const remValue = parseFloat(match[2]) || 0;
-        const nonRemValue = parseFloat(match[3]) || parseFloat(match[2]) || 0;
-        
-        under90Data = {
-          rem: remValue,
-          nonRem: nonRemValue
-        };
-        console.log(`✅ Found <90% data using pattern ${i + 1}:`, under90Data);
-        console.log('Matching text:', match[0].substring(0, 100) + '...');
-        break;
-      }
-    }
-
-    // Extract <95% data with confidence tracking
-    for (let i = 0; i < patterns95.length; i++) {
-      const pattern = patterns95[i];
-      const match = relevantSection.match(pattern);
-      if (match) {
-        const remValue = parseFloat(match[2]) || 0;
-        const nonRemValue = parseFloat(match[3]) || parseFloat(match[2]) || 0;
-        
-        under95Data = {
-          rem: remValue,
-          nonRem: nonRemValue
-        };
-        console.log(`✅ Found <95% data using pattern ${i + 1}:`, under95Data);
-        console.log('Matching text:', match[0].substring(0, 100) + '...');
-        break;
-      }
-    }
-
-    if (under90Data && under95Data) {
-      const under90Total = under90Data.rem + under90Data.nonRem;
-      const under95Total = under95Data.rem + under95Data.nonRem;
-      
-      const percent90 = Math.min(100, Math.max(0, (under90Total / totalSleepTime) * 100));
-      const percent95 = Math.min(100, Math.max(0, (under95Total / totalSleepTime) * 100));
-      
-      console.log('Enhanced oxygen calculations:');
-      console.log(`  TST: ${totalSleepTime} minutes`);
-      console.log(`  <90% total: ${under90Total} min (REM: ${under90Data.rem}, NREM: ${under90Data.nonRem})`);
-      console.log(`  <95% total: ${under95Total} min (REM: ${under95Data.rem}, NREM: ${under95Data.nonRem})`);
-      console.log(`  Calculated percentages: <90%=${percent90.toFixed(1)}%, <95%=${percent95.toFixed(1)}%`);
-      console.log('=== ENHANCED OXYGEN PERCENTAGE EXTRACTION END ===');
-      
-      return {
-        under90: percent90.toFixed(1),
-        under95: percent95.toFixed(1)
-      };
-    }
-
-    // If no match found, log partial matches for debugging
-    console.log('🔍 Debugging: Looking for oxygen-related partial matches...');
-    const debugPatterns = [
-      /<90/i,
-      /<95/i,
-      /oxygen/i,
-      /SpO2/i,
-      /saturation/i
-    ];
-    
-    for (const debugPattern of debugPatterns) {
-      const debugMatch = relevantSection.match(debugPattern);
-      if (debugMatch) {
-        console.log('Found partial match:', debugMatch[0]);
-        const surroundingText = relevantSection.substring(
-          Math.max(0, debugMatch.index! - 100),
-          Math.min(relevantSection.length, debugMatch.index! + debugMatch[0].length + 100)
-        );
-        console.log('Context (±100 chars):', surroundingText);
-      }
-    }
-
-    console.log('❌ Oxygen saturation data not found after enhanced extraction');
-    console.log('=== ENHANCED OXYGEN PERCENTAGE EXTRACTION END ===');
-    return null;
-
-  } catch (error) {
-    console.error('Error in enhanced oxygen percentage extraction:', error);
-    console.log('=== ENHANCED OXYGEN PERCENTAGE EXTRACTION END ===');
+// Simple oxygen percentage extraction
+function extractOxygenPercentages(content: string, totalSleepTime: number): { under90: string; under95: string } | null {
+  if (!totalSleepTime || totalSleepTime <= 0) {
+    console.log('⚠️ TST not found! Oxygen calculations will fail.');
     return null;
   }
+  
+  const match90 = content.match(/<90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i);
+  const match95 = content.match(/<95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i);
+  
+  if (match90 && match95) {
+    const rem90 = parseFloat(match90[1]) || 0;
+    const nrem90 = parseFloat(match90[2]) || 0;
+    const rem95 = parseFloat(match95[1]) || 0;
+    const nrem95 = parseFloat(match95[2]) || 0;
+    
+    const percent90 = ((rem90 + nrem90) / totalSleepTime) * 100;
+    const percent95 = ((rem95 + nrem95) / totalSleepTime) * 100;
+    
+    console.log(`📊 TST: ${totalSleepTime} minutes`);
+    return {
+      under90: percent90.toFixed(1),
+      under95: percent95.toFixed(1)
+    };
+  }
+  
+  return null;
 }
 
 // Comprehensive sleep metrics extraction using Lovable AI Gateway (Gemini) with robust fallbacks
@@ -578,7 +263,7 @@ ${content}`;
   if (!aiOxy90 || !aiOxy95) {
     console.log("🔄 Using deterministic oxygen extraction...");
     if (totalSleepTime) {
-      oxygenData = extractOxygenPercentagesWithValidation(content, totalSleepTime);
+      oxygenData = extractOxygenPercentages(content, totalSleepTime);
     }
   }
 
