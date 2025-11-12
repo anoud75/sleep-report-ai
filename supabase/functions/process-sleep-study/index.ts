@@ -1523,73 +1523,116 @@ DOCUMENT: ${truncatedContent}`;
         // We want REM_val + NREM_val for calculation
         
         if (tst) {
-          // Match <90 row: extract all numbers after <90
-          const under90Line = truncatedContent.match(/<\s*90[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
-          if (under90Line) {
+          // Match <90 row with pipes: | <90 | Wake | REM | NREM | Total |
+          const under90LineTable = truncatedContent.match(/<\s*90[^\n]*?\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
+          if (under90LineTable) {
             // Columns: [1]=Wake, [2]=REM, [3]=NREM, [4]=TOTAL
-            const remMin90 = parseFloat(under90Line[2]);
-            const nremMin90 = parseFloat(under90Line[3]);
+            const remMin90 = parseFloat(under90LineTable[2]);
+            const nremMin90 = parseFloat(under90LineTable[3]);
             const totalMin90 = remMin90 + nremMin90;
             oxygen90 = ((totalMin90 / tst) * 100).toFixed(1);
-            console.log(`✅ <90% from Oximetry Distribution: REM=${remMin90} + NREM=${nremMin90} = ${totalMin90} min → ${oxygen90}% of TST`);
+            console.log(`✅ <90% from Oximetry Distribution table: REM=${remMin90} + NREM=${nremMin90} = ${totalMin90} min → ${oxygen90}% of TST`);
+          } else {
+            // Try whitespace-separated format
+            const under90LineSpace = truncatedContent.match(/<\s*90[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
+            if (under90LineSpace) {
+              const remMin90 = parseFloat(under90LineSpace[2]);
+              const nremMin90 = parseFloat(under90LineSpace[3]);
+              const totalMin90 = remMin90 + nremMin90;
+              oxygen90 = ((totalMin90 / tst) * 100).toFixed(1);
+              console.log(`✅ <90% from Oximetry Distribution whitespace: REM=${remMin90} + NREM=${nremMin90} = ${totalMin90} min → ${oxygen90}% of TST`);
+            }
           }
 
-          // Match <95 row
-          const under95Line = truncatedContent.match(/<\s*95[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
-          if (under95Line) {
-            const remMin95 = parseFloat(under95Line[2]);
-            const nremMin95 = parseFloat(under95Line[3]);
+          // Match <95 row with pipes
+          const under95LineTable = truncatedContent.match(/<\s*95[^\n]*?\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
+          if (under95LineTable) {
+            const remMin95 = parseFloat(under95LineTable[2]);
+            const nremMin95 = parseFloat(under95LineTable[3]);
             const totalMin95 = remMin95 + nremMin95;
             oxygen95 = ((totalMin95 / tst) * 100).toFixed(1);
-            console.log(`✅ <95% from Oximetry Distribution: REM=${remMin95} + NREM=${nremMin95} = ${totalMin95} min → ${oxygen95}% of TST`);
+            console.log(`✅ <95% from Oximetry Distribution table: REM=${remMin95} + NREM=${nremMin95} = ${totalMin95} min → ${oxygen95}% of TST`);
+          } else {
+            // Try whitespace-separated format
+            const under95LineSpace = truncatedContent.match(/<\s*95[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
+            if (under95LineSpace) {
+              const remMin95 = parseFloat(under95LineSpace[2]);
+              const nremMin95 = parseFloat(under95LineSpace[3]);
+              const totalMin95 = remMin95 + nremMin95;
+              oxygen95 = ((totalMin95 / tst) * 100).toFixed(1);
+              console.log(`✅ <95% from Oximetry Distribution whitespace: REM=${remMin95} + NREM=${nremMin95} = ${totalMin95} min → ${oxygen95}% of TST`);
+            }
           }
 
-          if (!under90Line) console.warn('⚠️ Could not find <90 row in Oximetry Distribution');
-          if (!under95Line) console.warn('⚠️ Could not find <95 row in Oximetry Distribution');
+          if (!under90LineTable && !under90LineSpace) console.warn('⚠️ Could not find <90 row in Oximetry Distribution');
+          if (!under95LineTable && !under95LineSpace) console.warn('⚠️ Could not find <95 row in Oximetry Distribution');
         }
 
         // ========== STEP 3: Hypopnea Mean Duration from Respiratory Events Summary ==========
         // Look in "Respiratory Events Summary (Total sleep time)" section
         // Find "Mean (seconds)" row, extract HYP column value
         
-        // Pattern 1: Standard table with CA, OA, MA, HYP columns
-        const hypopneaTableMatch = truncatedContent.match(/Respiratory Events Summary.*?Total sleep time[\s\S]*?Mean\s*\(seconds\)[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
+        // Pattern 1: Look for the entire Mean (seconds) row with all values
+        // Format: | Mean (seconds) | 0.0 | 15.5 | 0.0 | 15.5 | 19.6 | 19.6 |
+        // Columns: CA, OA, MA, Sum Ap, HYP, Events
+        const hypopneaTableMatch = truncatedContent.match(/Mean\s*\(seconds\)[^\n]*?\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
         if (hypopneaTableMatch) {
-          // Columns: [1]=Number, [2]=CA, [3]=OA, [4]=MA, [5]=HYP
+          // Columns: [1]=CA, [2]=OA, [3]=MA, [4]=Sum Ap, [5]=HYP, [6]=Events
           hypopneaMean = parseFloat(hypopneaTableMatch[5]);
-          console.log(`✅ Hypopnea Mean Duration from table: ${hypopneaMean} seconds (HYP column)`);
+          console.log(`✅ Hypopnea Mean Duration from table: ${hypopneaMean} seconds (column 5: HYP)`);
         } else {
-          // Pattern 2: Try alternative spacing
-          const altHypMatch = truncatedContent.match(/Mean\s*\(seconds\)[\s\S]{0,50}?HYP[\s\S]{0,20}?([\d.]+)/i);
+          // Pattern 2: Without pipes, just whitespace
+          const altHypMatch = truncatedContent.match(/Mean\s*\(seconds\)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
           if (altHypMatch) {
-            hypopneaMean = parseFloat(altHypMatch[1]);
-            console.log(`✅ Hypopnea Mean Duration (alt pattern): ${hypopneaMean} seconds`);
+            hypopneaMean = parseFloat(altHypMatch[5]);
+            console.log(`✅ Hypopnea Mean Duration (whitespace pattern): ${hypopneaMean} seconds`);
           } else {
-            console.warn('⚠️ Could not find Hypopnea Mean Duration in Respiratory Events Summary');
+            // Pattern 3: Try finding HYP label followed by value
+            const hypLabelMatch = truncatedContent.match(/Mean\s*\(seconds\)[\s\S]{0,100}?([\d.]+)\s*\|\s*HYP|HYP\s*\|\s*([\d.]+)/i);
+            if (hypLabelMatch) {
+              hypopneaMean = parseFloat(hypLabelMatch[1] || hypLabelMatch[2]);
+              console.log(`✅ Hypopnea Mean Duration (label pattern): ${hypopneaMean} seconds`);
+            } else {
+              console.warn('⚠️ Could not find Hypopnea Mean Duration in Respiratory Events Summary');
+            }
           }
         }
 
         // ========== STEP 4: Desaturation Index from Oximetry Summary ==========
-        // Look for "Desat Index (#/hour)" row in Oximetry Summary table
-        // Extract TOTAL column (rightmost number)
+        // Look for "Desat Index (#/hour)" in multiple formats
         
-        const desatIndexMatch = truncatedContent.match(/Desat\s+Index\s*\(#\/hour\)[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
-        if (desatIndexMatch) {
+        // Pattern 1: Table format with pipes: | Desat Index (#/hour) | WK | REM | NREM | TOTAL |
+        const desatTableMatch = truncatedContent.match(/Desat\s+Index\s*\(#\s*\/\s*hour\)[^\n]*?\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
+        if (desatTableMatch) {
           // Columns: [1]=WK, [2]=REM, [3]=NREM, [4]=TOTAL
-          desatIndex = parseFloat(desatIndexMatch[4]);
-          console.log(`✅ Desaturation Index from Oximetry Summary TOTAL column: ${desatIndex} /hr`);
+          desatIndex = parseFloat(desatTableMatch[4]);
+          console.log(`✅ Desaturation Index from table TOTAL column: ${desatIndex} /hr`);
         } else {
-          console.warn('⚠️ Could not find Desaturation Index in Oximetry Summary table');
-          
-          // Fallback: Calculate from Body Position Summary
-          if (tst) {
-            const bodyPosMatch = truncatedContent.match(/BODY POSITION SUMMARY[\s\S]*?(?=\n\n[A-Z]|$)/i);
-            if (bodyPosMatch) {
-              const desatMatches = [...bodyPosMatch[0].matchAll(/Desat[^\n]*?(\d+)/gi)];
-              if (desatMatches.length > 0) {
-                const totalDesats = desatMatches.reduce((sum, m) => sum + parseInt(m[1]), 0);
-                desatIndex = parseFloat((totalDesats / (tst / 60)).toFixed(1));
-                console.log(`✅ Calculated Desat Index from Body Position: ${totalDesats} events / ${(tst / 60).toFixed(2)} hrs = ${desatIndex} /hr`);
+          // Pattern 2: Colon format: Desat Index (#/hour): 1.4 (WK: 8.8, NREM: 1.9, TOTAL: 2.8)
+          const desatColonMatch = truncatedContent.match(/Desat\s+Index\s*\(#\s*\/\s*hour\)[:\s]+([\d.]+)\s*\([^)]*TOTAL[:\s]+([\d.]+)\)/i);
+          if (desatColonMatch) {
+            desatIndex = parseFloat(desatColonMatch[2]);
+            console.log(`✅ Desaturation Index from colon format TOTAL: ${desatIndex} /hr`);
+          } else {
+            // Pattern 3: Simple whitespace format: Desat Index (#/hour) WK REM NREM TOTAL
+            const desatSpaceMatch = truncatedContent.match(/Desat\s+Index\s*\(#\s*\/\s*hour\)[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
+            if (desatSpaceMatch) {
+              desatIndex = parseFloat(desatSpaceMatch[4]);
+              console.log(`✅ Desaturation Index from whitespace format TOTAL: ${desatIndex} /hr`);
+            } else {
+              console.warn('⚠️ Could not find Desaturation Index in Oximetry Summary');
+              
+              // Fallback: Calculate from Body Position Summary
+              if (tst) {
+                const bodyPosMatch = truncatedContent.match(/BODY POSITION SUMMARY[\s\S]*?(?=\n\n[A-Z]|$)/i);
+                if (bodyPosMatch) {
+                  const desatMatches = [...bodyPosMatch[0].matchAll(/Desat[^\n]*?(\d+)/gi)];
+                  if (desatMatches.length > 0) {
+                    const totalDesats = desatMatches.reduce((sum, m) => sum + parseInt(m[1]), 0);
+                    desatIndex = parseFloat((totalDesats / (tst / 60)).toFixed(1));
+                    console.log(`✅ Calculated Desat Index from Body Position: ${totalDesats} events / ${(tst / 60).toFixed(2)} hrs = ${desatIndex} /hr`);
+                  }
+                }
               }
             }
           }
