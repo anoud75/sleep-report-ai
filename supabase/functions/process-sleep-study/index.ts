@@ -945,9 +945,7 @@ serve(async (req) => {
     if (sanitizedContent.length > maxContentLength) {
       // Try to extract the Oximetry section to ensure it's included
       const oximetryRegexes = [
-        /Oximetry\s*Distribution[\s\S]*?(?=(BODY\s*POSITION|Leg\s*Movements|Snoring|$))/i,
-        /OXIMETRY\s*SUMMARY[\s\S]*?(?=(BODY\s*POSITION|Leg\s*Movements|Snoring|$))/i,
-        /Oximetry[\s\S]*?(?=(BODY\s*POSITION|PAGE\s*7|$))/i
+        /(Oximetry|Oxygen|SpO2|Desaturation|O2\s*Saturation)[\s\S]*?(?=(BODY\s*POSITION|Leg\s*Movements|Snoring|Summary|$))/i
       ];
 
       let oximetrySection: string | null = null;
