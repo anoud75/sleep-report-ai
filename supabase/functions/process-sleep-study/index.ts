@@ -6,32 +6,63 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Universal Text Extractor Pipeline - Simplified AI-based extraction
-async function extractSleepMetrics(tables: string[][][], rawText: string, apiKey: string) {
+// Universal Text Extractor Pipeline - Raw text processing with regex fallback
+async function extractSleepMetrics(rawText: string, apiKey: string) {
   console.log("=== UNIVERSAL EXTRACTION PIPELINE START ===");
-  console.log("Number of tables received:", tables.length);
+  console.log("Raw text length:", rawText.length);
   
-  // Format tables as clean markdown for AI
-  const formattedTables = tables.map((table, idx) => {
-    if (table.length === 0) return '';
-    
-    const header = table[0].join(' | ');
-    const separator = table[0].map(() => '---').join(' | ');
-    const rows = table.slice(1).map(row => row.join(' | ')).join('\n');
-    
-    return `\n### Table ${idx + 1}\n${header}\n${separator}\n${rows}\n`;
-  }).join('\n');
-
-  // Extract TST from raw text for calculations
-  let totalSleepTime = null;
-  const tstMatch = rawText.match(/Total Sleep Time.*?(\d+\.?\d*)/i) || 
-                    rawText.match(/TST.*?(\d+\.?\d*)/i);
+  // Extract TST first - needed for calculations
+  let totalSleepTime: number | null = null;
+  const tstMatch = rawText.match(/Total Sleep Time[:\s]+(\d+\.?\d*)\s*min/i) || 
+                    rawText.match(/TST[:\s]+(\d+\.?\d*)\s*min/i) ||
+                    rawText.match(/TST[:\s]+(\d+\.?\d*)/i);
   if (tstMatch) {
     totalSleepTime = parseFloat(tstMatch[1]);
     console.log("Found TST:", totalSleepTime, "minutes");
   }
 
-  const prompt = `Extract sleep study metrics from structured tables below. Return ONLY valid JSON.
+  // Try regex extraction first as fallback
+  let regexResults = {
+    desatIndex: null as number | null,
+    hypopneaMean: null as number | null,
+    under90REM: null as number | null,
+    under90NREM: null as number | null,
+    under95REM: null as number | null,
+    under95NREM: null as number | null
+  };
+
+  // Extract Desaturation Index
+  const desatMatch = rawText.match(/Desat(?:uration)?\s+Index\s*\(#\/hour\)[:\s]+(\d+\.?\d*)/i);
+  if (desatMatch) {
+    regexResults.desatIndex = parseFloat(desatMatch[1]);
+    console.log("Regex found Desat Index:", regexResults.desatIndex);
+  }
+
+  // Extract Hypopnea Mean Duration
+  const hypopneaMatch = rawText.match(/Mean\s*\(seconds\)[^\n]*HYP[^\n]*?(\d+\.?\d*)/i) ||
+                         rawText.match(/Hypopnea[^\n]*Mean[^\n]*?(\d+\.?\d*)\s*sec/i);
+  if (hypopneaMatch) {
+    regexResults.hypopneaMean = parseFloat(hypopneaMatch[1]);
+    console.log("Regex found Hypopnea Mean:", regexResults.hypopneaMean);
+  }
+
+  // Extract Oxygen saturation values from Oximetry table
+  // Looking for pattern like: <90 | value | REM | NREM | TOTAL
+  const oxy90Match = rawText.match(/<\s*90[^\n]*\|\s*[\d.]+\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
+  if (oxy90Match) {
+    regexResults.under90REM = parseFloat(oxy90Match[1]);
+    regexResults.under90NREM = parseFloat(oxy90Match[2]);
+    console.log("Regex found <90%:", regexResults.under90REM, regexResults.under90NREM);
+  }
+
+  const oxy95Match = rawText.match(/<\s*95[^\n]*\|\s*[\d.]+\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
+  if (oxy95Match) {
+    regexResults.under95REM = parseFloat(oxy95Match[1]);
+    regexResults.under95NREM = parseFloat(oxy95Match[2]);
+    console.log("Regex found <95%:", regexResults.under95REM, regexResults.under95NREM);
+  }
+
+  const prompt = `Extract sleep study metrics from the raw text below. Return ONLY valid JSON.
 
 REQUIRED OUTPUT:
 {
@@ -51,33 +82,29 @@ REQUIRED OUTPUT:
 EXTRACTION RULES:
 
 1. % Time with O2 < 90%:
-   - Find "Oximetry Distribution" table
-   - Locate row: "<90" or "< 90%"
-   - Extract REM and NREM columns (2nd and 3rd values)
+   - Find "Oximetry Distribution" section or table
+   - Locate row with "<90" or "< 90%"
+   - Extract REM and NREM values (minutes)
    - Formula: ((REM + NREM) / TST) * 100
    - TST = ${totalSleepTime || 'find in document'} minutes
 
 2. % Time with O2 < 95%:
-   - Same table, row: "<95" or "< 95%"
-   - Extract REM and NREM values
+   - Same section, find row with "<95" or "< 95%"
+   - Extract REM and NREM values (minutes)
    - Formula: ((REM + NREM) / TST) * 100
 
-3. Hypopnea Mean Duration:
-   - Find "Respiratory Events Summary" table
-   - Locate row: "Mean (seconds)" or "Mean Duration"
-   - Find column: "Hyp" or "Hypopnea"
+3. Hypopnea Mean Duration (seconds):
+   - Find "Respiratory Events Summary" section
+   - Look for "Mean (seconds)" row
+   - Find "HYP" or "Hypopnea" column
    - Extract the numeric value
 
-4. Desaturation Index:
-   - Same oximetry table
-   - Find row: "Desat Index (#/hour)" (NOT dur/hour)
-   - Extract TOTAL column (rightmost value)
+4. Desaturation Index (#/hour):
+   - Find "Desat Index (#/hour)" or "Desaturation Index"
+   - Extract the TOTAL value (not dur/hour)
 
-TABLES:
-${formattedTables}
-
-RAW TEXT CONTEXT:
-${rawText.substring(0, 3000)}`;
+RAW TEXT:
+${rawText.substring(0, 5000)}`;
 
   try {
     console.log("Sending to Lovable AI (Gemini)...");
@@ -122,22 +149,49 @@ ${rawText.substring(0, 3000)}`;
     result = result.replace(/```json\s*/g, '').replace(/```\s*/g, '');
     
     const parsed = JSON.parse(result);
-    console.log("✅ Extraction successful:", parsed);
+    
+    // Merge AI results with regex fallback
+    const merged = {
+      oxygenUnder90Percent: parsed.oxygenUnder90Percent || "0.0",
+      oxygenUnder95Percent: parsed.oxygenUnder95Percent || "0.0",
+      hypopneaMeanDuration: parsed.hypopneaMeanDuration || regexResults.hypopneaMean,
+      desaturationIndex: parsed.desaturationIndex || regexResults.desatIndex,
+      calculations: {
+        tst: totalSleepTime,
+        under90REM: parsed.calculations?.under90REM || regexResults.under90REM,
+        under90NREM: parsed.calculations?.under90NREM || regexResults.under90NREM,
+        under95REM: parsed.calculations?.under95REM || regexResults.under95REM,
+        under95NREM: parsed.calculations?.under95NREM || regexResults.under95NREM
+      }
+    };
+    
+    console.log("✅ Extraction successful (AI + Regex fallback):", merged);
     console.log("=== UNIVERSAL EXTRACTION PIPELINE END ===");
     
-    return parsed;
+    return merged;
     
   } catch (error) {
-    console.error("Extraction error:", error);
+    console.error("AI Extraction error:", error);
+    console.log("Falling back to regex-only extraction");
     console.log("=== UNIVERSAL EXTRACTION PIPELINE END ===");
     
-    // Return safe defaults on error
+    // Return regex results on AI error
     return {
-      oxygenUnder90Percent: "0.0",
-      oxygenUnder95Percent: "0.0",
-      hypopneaMeanDuration: null,
-      desaturationIndex: null,
-      calculations: null
+      oxygenUnder90Percent: totalSleepTime && regexResults.under90REM !== null && regexResults.under90NREM !== null
+        ? (((regexResults.under90REM + regexResults.under90NREM) / totalSleepTime) * 100).toFixed(2)
+        : "0.0",
+      oxygenUnder95Percent: totalSleepTime && regexResults.under95REM !== null && regexResults.under95NREM !== null
+        ? (((regexResults.under95REM + regexResults.under95NREM) / totalSleepTime) * 100).toFixed(2)
+        : "0.0",
+      hypopneaMeanDuration: regexResults.hypopneaMean,
+      desaturationIndex: regexResults.desatIndex,
+      calculations: {
+        tst: totalSleepTime,
+        under90REM: regexResults.under90REM,
+        under90NREM: regexResults.under90NREM,
+        under95REM: regexResults.under95REM,
+        under95NREM: regexResults.under95NREM
+      }
     };
   }
 }
@@ -148,11 +202,10 @@ serve(async (req) => {
   }
 
   try {
-    const { htmlContent, rawText, tables, studyType } = await req.json();
+    const { rawText, studyType } = await req.json();
     
     console.log("=== REQUEST RECEIVED ===");
     console.log("Study Type:", studyType);
-    console.log("Tables count:", tables?.length || 0);
     console.log("Raw text length:", rawText?.length || 0);
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
@@ -160,8 +213,8 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Extract metrics using universal pipeline
-    const metrics = await extractSleepMetrics(tables || [], rawText || '', lovableApiKey);
+    // Extract metrics using universal pipeline with regex fallback
+    const metrics = await extractSleepMetrics(rawText || '', lovableApiKey);
 
     // Format final response
     const response = {
