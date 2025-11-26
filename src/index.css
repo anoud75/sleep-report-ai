@@ -64,6 +64,12 @@
     --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-colors: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
     
+    /* Severity Color System - AASM Based */
+    --severity-normal: 142 76% 36%;      /* Green - HSL */
+    --severity-mild: 45 93% 47%;         /* Amber */
+    --severity-moderate: 25 95% 53%;     /* Orange */
+    --severity-severe: 0 84% 60%;        /* Red */
+    
     /* Typography Scale */
     --text-xs: clamp(0.75rem, 0.17vw + 0.71rem, 0.8rem);
     --text-sm: clamp(0.88rem, 0.17vw + 0.84rem, 0.94rem);
