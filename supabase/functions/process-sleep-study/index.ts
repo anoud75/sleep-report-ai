@@ -6,6 +6,89 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Generate Clinical Summary based on templates
+function generateClinicalSummary(data: any, studyType: string): string {
+  const ahi = data.respiratoryEvents?.ahiOverall || 0;
+  const tst = data.studyInfo?.totalSleepTime || 0;
+  const hours = Math.floor(tst / 60);
+  const minutes = Math.round(tst % 60);
+  const age = data.patientInfo?.age || '---';
+  const gender = data.patientInfo?.gender === 'F' ? 'female' : 'male';
+  const lowestO2 = data.oxygenation?.lowestSpO2;
+  
+  // Determine severity
+  let severity = '';
+  if (ahi >= 30) severity = 'Severe';
+  else if (ahi >= 15) severity = 'Moderate';
+  else if (ahi >= 5) severity = 'Mild';
+  else severity = 'Normal';
+  
+  // Determine desaturation level
+  const timeBelow90 = parseFloat(data.oxygenation?.timeBelow90Percent) || 0;
+  const desatLevel = timeBelow90 > 5 ? 'significant' : 'minimal';
+  
+  // Check sleep stage progression
+  const hasAllStages = (data.sleepArchitecture?.remPercent || 0) > 0 && 
+                       (data.sleepArchitecture?.slowWaveSleepPercent || 0) > 0;
+  
+  if (severity === 'Normal') {
+    return `In summary based on the performed study, there was no evidence of sleep disordered breathing or any other significant respiratory disturbances during sleep.${hasAllStages ? ' The patient progressed into all sleep stages.' : ''}`;
+  }
+  
+  // For Split-Night study
+  if (studyType === 'Split-Night') {
+    return `This split night sleep study shows evidence of "${severity} Obstructive Sleep Apnea". In the pre-PAP period, the patient had a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} desaturation${lowestO2 ? ` (Lowest SpO2: ${lowestO2}%)` : ''} and repetitive sleep interruption.${hasAllStages ? ' The patient progressed into all sleep stages.' : ' The patient did not progress into slow wave sleep during the entire study.'}`;
+  }
+  
+  // For Diagnostic study
+  return `This overnight sleep study shows evidence of "${severity} Obstructive Sleep Apnea". The patient had a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} desaturation${lowestO2 ? ` (Lowest SpO2: ${lowestO2}%)` : ''} and repetitive sleep interruption.${hasAllStages ? ' The patient progressed into all sleep stages.' : ' The patient did not progress into slow wave sleep.'}`;
+}
+
+// Generate Recommendations based on AHI and other factors
+function generateRecommendations(data: any, studyType: string, clinicalData: any): string[] {
+  const recommendations: string[] = [];
+  const ahi = data.respiratoryEvents?.ahiOverall || 0;
+  const ahiSupine = data.respiratoryEvents?.ahiSupine || 0;
+  const ahiLateral = data.respiratoryEvents?.ahiLateral || 0;
+  const timeBelow90 = parseFloat(data.oxygenation?.timeBelow90Percent) || 0;
+  
+  // Main treatment recommendation based on AHI
+  if (ahi >= 30) {
+    recommendations.push("CPAP therapy is strongly recommended for treatment of severe OSA.");
+  } else if (ahi >= 15) {
+    recommendations.push("CPAP therapy is recommended for treatment of moderate OSA.");
+  } else if (ahi >= 5) {
+    recommendations.push("Consider positional therapy, weight management, and lifestyle modifications for mild OSA.");
+  }
+  
+  // Positional therapy recommendation
+  if (ahiSupine && ahiLateral && ahiSupine > ahiLateral * 2) {
+    recommendations.push("Positional therapy may be beneficial given significant positional component.");
+  }
+  
+  // Oxygen supplementation
+  if (timeBelow90 > 5) {
+    recommendations.push("Supplemental oxygen may be considered given significant desaturation during sleep.");
+  }
+  
+  // For titration studies
+  if (studyType === 'Titration' || studyType === 'Split-Night') {
+    if (clinicalData?.cpapPressure) {
+      recommendations.push(`Continue CPAP therapy at ${clinicalData.cpapPressure} cmH2O as prescribed.`);
+    }
+    if (clinicalData?.bpapUsed) {
+      recommendations.push(`Continue BPAP therapy at IPAP ${clinicalData.ipapPressure} / EPAP ${clinicalData.epapPressure} cmH2O.`);
+    }
+  }
+  
+  // Follow-up
+  if (ahi >= 5) {
+    recommendations.push("Follow-up sleep study recommended after therapy initiation to assess efficacy.");
+  }
+  
+  return recommendations;
+}
+
 // Universal extraction for ALL sleep study metrics
 async function extractSleepMetrics(rawText: string, apiKey: string, studyType: string) {
   console.log("=== COMPREHENSIVE EXTRACTION PIPELINE START ===");
@@ -327,11 +410,12 @@ serve(async (req) => {
   }
 
   try {
-    const { rawText, studyType } = await req.json();
+    const { rawText, studyType, clinicalData } = await req.json();
     
     console.log("=== REQUEST RECEIVED ===");
     console.log("Study Type:", studyType);
     console.log("Raw text length:", rawText?.length || 0);
+    console.log("Clinical Data received:", !!clinicalData);
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
@@ -340,6 +424,10 @@ serve(async (req) => {
 
     // Extract ALL metrics using comprehensive pipeline
     const extractedData = await extractSleepMetrics(rawText || '', lovableApiKey, studyType);
+
+    // Generate Clinical Summary and Recommendations
+    const clinicalSummary = generateClinicalSummary(extractedData, studyType);
+    const recommendations = generateRecommendations(extractedData, studyType, clinicalData);
 
     // Format comprehensive response with ALL extracted data
     const response = {
@@ -410,6 +498,9 @@ serve(async (req) => {
         supinePositionIndex: null,
         ahiLateral: null
       },
+      clinicalSummary,
+      recommendations,
+      patientComments: clinicalData?.selectedComments || [],
       extractionMethod: "comprehensive-medical-grade",
       timestamp: new Date().toISOString()
     };
