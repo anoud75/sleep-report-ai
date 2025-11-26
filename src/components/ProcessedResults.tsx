@@ -2,7 +2,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain, AlertTriangle } from "lucide-react";
+import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain, AlertTriangle, Pencil, Check, Plus, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import { FeedbackDialog } from "@/components/FeedbackDialog";
@@ -120,12 +122,106 @@ const SeverityDot = ({ level }: { level: SeverityLevel }) => {
   return <span className={`w-2 h-2 rounded-full ${colors[level]} inline-block ml-2`} />;
 };
 
+// Editable Field Component
+interface EditableFieldProps {
+  value: string | number;
+  field: string;
+  isEditMode: boolean;
+  onChange: (field: string, value: string) => void;
+  type?: 'text' | 'number';
+  className?: string;
+}
+
+const EditableField = ({ value, field, isEditMode, onChange, type = 'text', className = '' }: EditableFieldProps) => {
+  if (!isEditMode) {
+    return <span className={className}>{value || '---'}</span>;
+  }
+  
+  return (
+    <Input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(field, e.target.value)}
+      className={`w-20 h-7 text-right ${className}`}
+    />
+  );
+};
+
 export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) => {
   const { toast } = useToast();
   const [showFeedback, setShowFeedback] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // Editable data state - initialized from data
+  const [editableData, setEditableData] = useState({
+    // Respiratory Events
+    ahiOverall: data.respiratoryEvents?.ahiOverall || '',
+    ahiSupine: data.respiratoryEvents?.ahiSupine || '',
+    ahiLateral: data.respiratoryEvents?.ahiLateral || '',
+    ahiNrem: data.respiratoryEvents?.ahiNrem || '',
+    ahiRem: data.respiratoryEvents?.ahiRem || '',
+    centralApneaIndex: data.respiratoryEvents?.centralApneaIndex || '',
+    obstructiveApneaIndex: data.respiratoryEvents?.obstructiveApneaIndex || '',
+    mixedApneaIndex: data.respiratoryEvents?.mixedApneaIndex || '',
+    hypopneaIndex: data.respiratoryEvents?.hypopneaIndex || '',
+    meanHypopneaDuration: data.respiratoryEvents?.meanHypopneaDuration || '',
+    // Sleep Architecture
+    sleepEfficiency: data.sleepArchitecture?.sleepEfficiency || '',
+    stage1Percent: data.sleepArchitecture?.stage1Percent || '',
+    stage2Percent: data.sleepArchitecture?.stage2Percent || '',
+    slowWaveSleepPercent: data.sleepArchitecture?.slowWaveSleepPercent || data.sleepArchitecture?.stage3Percent || '',
+    remPercent: data.sleepArchitecture?.remPercent || '',
+    // Additional Metrics
+    snoringPercent: data.additionalMetrics?.snoringPercent || '',
+    legMovementIndex: data.additionalMetrics?.legMovementIndex || '',
+    arousalIndex: data.additionalMetrics?.arousalIndex || '',
+    // Oxygenation
+    desaturationIndex: data.oxygenation?.desaturationIndex || '',
+    timeBelow90: data.oxygenation?.timeBelow90Percent ?? '',
+    timeBelow95: data.oxygenation?.timeBelow95Percent ?? '',
+    lowestSpO2: data.oxygenation?.lowestSpO2 || '',
+    averageSpO2: data.oxygenation?.averageSpO2 || '',
+    // Cardiac
+    meanHeartRateNrem: data.cardiacData?.meanHeartRateNrem || '',
+    meanHeartRateRem: data.cardiacData?.meanHeartRateRem || '',
+    // Sleep Info
+    sleepLatency: data.studyInfo?.sleepLatency || '',
+    remLatency: data.studyInfo?.remLatency || '',
+    // Clinical Summary & Recommendations
+    clinicalSummary: data.clinicalSummary || '',
+    recommendations: data.recommendations || [],
+  });
+
+  // Handle field change
+  const handleFieldChange = (field: string, value: string) => {
+    setEditableData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Handle recommendation change
+  const handleRecommendationChange = (index: number, value: string) => {
+    const newRecs = [...editableData.recommendations];
+    newRecs[index] = value;
+    setEditableData(prev => ({ ...prev, recommendations: newRecs }));
+  };
+
+  // Add new recommendation
+  const handleAddRecommendation = () => {
+    setEditableData(prev => ({
+      ...prev,
+      recommendations: [...prev.recommendations, '']
+    }));
+  };
+
+  // Remove recommendation
+  const handleRemoveRecommendation = (index: number) => {
+    setEditableData(prev => ({
+      ...prev,
+      recommendations: prev.recommendations.filter((_, i) => i !== index)
+    }));
+  };
   
-  // Calculate overall AHI severity
-  const overallAhi = data.respiratoryEvents?.ahiOverall;
+  // Calculate overall AHI severity using editable data
+  const overallAhi = editableData.ahiOverall;
   const overallSeverity = getSeverityLevel(overallAhi, 'ahi');
 
   const handleDownloadPDF = () => {
@@ -248,40 +344,40 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     ];
     
     const sleepQualityFields = [
-      ['Sleep Latency (min)', data.studyInfo?.sleepLatency],
-      ['REM Latency (min)', data.studyInfo?.remLatency],
-      ['Sleep Efficiency (%)', data.sleepArchitecture?.sleepEfficiency]
+      ['Sleep Latency (min)', editableData.sleepLatency || data.studyInfo?.sleepLatency],
+      ['REM Latency (min)', editableData.remLatency || data.studyInfo?.remLatency],
+      ['Sleep Efficiency (%)', editableData.sleepEfficiency || '---']
     ];
     
     const sleepStagesFields = [
-      ['Sleep Stage 1 (%)', data.sleepArchitecture?.stage1Percent],
-      ['Sleep Stage 2 (%)', data.sleepArchitecture?.stage2Percent],
-      ['Slow Wave Sleep (%)', data.sleepArchitecture?.slowWaveSleepPercent || data.sleepArchitecture?.stage3Percent],
-      ['REM Sleep (%)', data.sleepArchitecture?.remPercent]
+      ['Sleep Stage 1 (%)', editableData.stage1Percent || '---'],
+      ['Sleep Stage 2 (%)', editableData.stage2Percent || '---'],
+      ['Slow Wave Sleep (%)', editableData.slowWaveSleepPercent || '---'],
+      ['REM Sleep (%)', editableData.remPercent || '---']
     ];
     
     const respiratoryFields = [
-      ['AHI (NREM/REM)', `${data.respiratoryEvents?.ahiNrem || '---'} / ${data.respiratoryEvents?.ahiRem || '---'}`],
-      ['AHI (Supine/Lateral)', `${data.respiratoryEvents?.ahiSupine || data.additionalMetrics?.supinePositionIndex || '---'} / ${data.respiratoryEvents?.ahiLateral || data.additionalMetrics?.ahiLateral || '---'}`],
-      ['Central Apnea Index', data.respiratoryEvents?.centralApneaIndex],
-      ['Obstructive Apnea Index (/hr)', data.respiratoryEvents?.obstructiveApneaIndex],
-      ['Mixed Apnea Index', data.respiratoryEvents?.mixedApneaIndex],
-      ['Hypopnea Index (/hr)', data.respiratoryEvents?.hypopneaIndex],
-      ['Hypopnea Mean Duration (sec)', data.respiratoryEvents?.meanHypopneaDuration]
+      ['AHI (NREM/REM)', `${editableData.ahiNrem || '---'} / ${editableData.ahiRem || '---'}`],
+      ['AHI (Supine/Lateral)', `${editableData.ahiSupine || '---'} / ${editableData.ahiLateral || '---'}`],
+      ['Central Apnea Index', editableData.centralApneaIndex || '---'],
+      ['Obstructive Apnea Index (/hr)', editableData.obstructiveApneaIndex || '---'],
+      ['Mixed Apnea Index', editableData.mixedApneaIndex || '---'],
+      ['Hypopnea Index (/hr)', editableData.hypopneaIndex || '---'],
+      ['Hypopnea Mean Duration (sec)', editableData.meanHypopneaDuration || '---']
     ];
     
     const vitalSignsFields = [
-      ['Heart Rate (NREM/REM)', `${data.cardiacData?.meanHeartRateNrem || '---'} / ${data.cardiacData?.meanHeartRateRem || '---'}`],
-      ['Desaturation Index (/hr)', data.oxygenation?.desaturationIndex],
-      ['% Time with O2 < 90%', data.oxygenation?.timeBelow90Percent],
-      ['% Time with O2 < 95%', data.oxygenation?.timeBelow95Percent],
-      ['Lowest O2 / Average O2', `${data.oxygenation?.lowestSpO2 || '---'} / ${data.oxygenation?.averageSpO2 || '---'}`]
+      ['Heart Rate (NREM/REM)', `${editableData.meanHeartRateNrem || '---'} / ${editableData.meanHeartRateRem || '---'}`],
+      ['Desaturation Index (/hr)', editableData.desaturationIndex || '---'],
+      ['% Time with O2 < 90%', editableData.timeBelow90 ?? '---'],
+      ['% Time with O2 < 95%', editableData.timeBelow95 ?? '---'],
+      ['Lowest O2 / Average O2', `${editableData.lowestSpO2 || '---'} / ${editableData.averageSpO2 || '---'}`]
     ];
     
     const additionalFields = [
-      ['Arousal Index (/hr)', data.additionalMetrics?.arousalIndex],
-      ['Snoring (%)', data.additionalMetrics?.snoringPercent],
-      ['Leg Movement Index (/hr)', data.additionalMetrics?.legMovementIndex]
+      ['Arousal Index (/hr)', editableData.arousalIndex || '---'],
+      ['Snoring (%)', editableData.snoringPercent || '---'],
+      ['Leg Movement Index (/hr)', editableData.legMovementIndex || '---']
     ];
     
     // Create sections
@@ -293,7 +389,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     yPos = createSection('Additional Metrics', additionalFields, yPos);
     
     // Clinical Summary Section
-    if (data.clinicalSummary) {
+    if (editableData.clinicalSummary) {
       if (yPos > pageHeight - 80) {
         doc.addPage();
         yPos = 40;
@@ -307,7 +403,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       
       // Summary box
       yPos += 10;
-      const summaryLines = doc.splitTextToSize(data.clinicalSummary, contentWidth - 10);
+      const summaryLines = doc.splitTextToSize(editableData.clinicalSummary, contentWidth - 10);
       const summaryHeight = summaryLines.length * 6 + 10;
       
       doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
@@ -346,13 +442,13 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(severityColor[0], severityColor[1], severityColor[2]);
     doc.text(`Overall AHI: ${overallAhi || 'N/A'} - ${overallSeverity?.toUpperCase() || 'N/A'}`, margin + 5, yPos + 8);
-    doc.text(`AHI Supine: ${data.respiratoryEvents?.ahiSupine || 'N/A'}`, margin + 5, yPos + 15);
-    doc.text(`AHI Lateral: ${data.respiratoryEvents?.ahiLateral || 'N/A'}`, pageWidth/2, yPos + 15);
+    doc.text(`AHI Supine: ${editableData.ahiSupine || 'N/A'}`, margin + 5, yPos + 15);
+    doc.text(`AHI Lateral: ${editableData.ahiLateral || 'N/A'}`, pageWidth/2, yPos + 15);
     
     yPos += 25;
     
-    // AI Recommendations Section
-    if (data.recommendations && data.recommendations.length > 0) {
+    // Recommendations Section - Clean for patients (NO AI branding)
+    if (editableData.recommendations && editableData.recommendations.length > 0) {
       if (yPos > pageHeight - 80) {
         doc.addPage();
         yPos = 40;
@@ -362,21 +458,16 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.text('AI RECOMMENDATIONS', margin, yPos);
+      doc.text('RECOMMENDATIONS', margin, yPos);
       
-      // Add guidelines note
-      yPos += 6;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
-      doc.text('Based on AASM Clinical Practice Guidelines and Evidence-Based Resources', margin, yPos);
+      // NO AI branding or Evidence-Based note in PDF
       
       yPos += 10;
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(textColor[0], textColor[1], textColor[2]);
       
-      data.recommendations.forEach((rec: string, index: number) => {
+      editableData.recommendations.forEach((rec: string, index: number) => {
         if (yPos > pageHeight - 20) {
           doc.addPage();
           yPos = 40;
@@ -448,8 +539,27 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         <div className="p-8">
           <div className="flex space-x-3">
             <Button
+              onClick={() => setIsEditMode(!isEditMode)}
+              variant={isEditMode ? "default" : "outline"}
+              size="lg"
+              className="flex items-center gap-2"
+            >
+              {isEditMode ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  Save Changes
+                </>
+              ) : (
+                <>
+                  <Pencil className="w-4 h-4" />
+                  Edit Results
+                </>
+              )}
+            </Button>
+            <Button
               onClick={handleDownloadPDF}
               size="lg"
+              disabled={isEditMode}
               className="flex-1 flex items-center justify-center gap-2"
             >
               <Download className="w-5 h-5" />
@@ -491,50 +601,78 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           }`}>
             <p className="text-sm text-muted-foreground font-inter">Overall AHI</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-bold text-foreground">{overallAhi || '---'}</span>
+              <EditableField
+                value={editableData.ahiOverall}
+                field="ahiOverall"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="text-2xl font-bold text-foreground"
+              />
               <SeverityBadge level={overallSeverity} />
             </div>
           </div>
           
           {/* AHI Supine */}
           <div className={`rounded-xl p-4 ${
-            getSeverityLevel(data.respiratoryEvents?.ahiSupine, 'ahiSupine') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
-            getSeverityLevel(data.respiratoryEvents?.ahiSupine, 'ahiSupine') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
-            getSeverityLevel(data.respiratoryEvents?.ahiSupine, 'ahiSupine') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+            getSeverityLevel(editableData.ahiSupine, 'ahiSupine') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+            getSeverityLevel(editableData.ahiSupine, 'ahiSupine') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+            getSeverityLevel(editableData.ahiSupine, 'ahiSupine') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
             'bg-emerald-50 dark:bg-emerald-950/20'
           }`}>
             <p className="text-sm text-muted-foreground font-inter">AHI Supine</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-bold text-foreground">{data.respiratoryEvents?.ahiSupine || '---'}</span>
-              <SeverityBadge level={getSeverityLevel(data.respiratoryEvents?.ahiSupine, 'ahiSupine')} />
+              <EditableField
+                value={editableData.ahiSupine}
+                field="ahiSupine"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="text-2xl font-bold text-foreground"
+              />
+              <SeverityBadge level={getSeverityLevel(editableData.ahiSupine, 'ahiSupine')} />
             </div>
           </div>
           
           {/* AHI Lateral */}
           <div className={`rounded-xl p-4 ${
-            getSeverityLevel(data.respiratoryEvents?.ahiLateral, 'ahiLateral') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
-            getSeverityLevel(data.respiratoryEvents?.ahiLateral, 'ahiLateral') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
-            getSeverityLevel(data.respiratoryEvents?.ahiLateral, 'ahiLateral') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+            getSeverityLevel(editableData.ahiLateral, 'ahiLateral') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+            getSeverityLevel(editableData.ahiLateral, 'ahiLateral') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+            getSeverityLevel(editableData.ahiLateral, 'ahiLateral') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
             'bg-emerald-50 dark:bg-emerald-950/20'
           }`}>
             <p className="text-sm text-muted-foreground font-inter">AHI Lateral</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-bold text-foreground">{data.respiratoryEvents?.ahiLateral || '---'}</span>
-              <SeverityBadge level={getSeverityLevel(data.respiratoryEvents?.ahiLateral, 'ahiLateral')} />
+              <EditableField
+                value={editableData.ahiLateral}
+                field="ahiLateral"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="text-2xl font-bold text-foreground"
+              />
+              <SeverityBadge level={getSeverityLevel(editableData.ahiLateral, 'ahiLateral')} />
             </div>
           </div>
           
           {/* Desaturation Index */}
           <div className={`rounded-xl p-4 ${
-            getSeverityLevel(data.oxygenation?.desaturationIndex, 'desaturationIndex') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
-            getSeverityLevel(data.oxygenation?.desaturationIndex, 'desaturationIndex') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
-            getSeverityLevel(data.oxygenation?.desaturationIndex, 'desaturationIndex') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+            getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+            getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+            getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
             'bg-emerald-50 dark:bg-emerald-950/20'
           }`}>
             <p className="text-sm text-muted-foreground font-inter">Desaturation Index</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-bold text-foreground">{data.oxygenation?.desaturationIndex || '---'}</span>
-              <SeverityBadge level={getSeverityLevel(data.oxygenation?.desaturationIndex, 'desaturationIndex')} />
+              <EditableField
+                value={editableData.desaturationIndex}
+                field="desaturationIndex"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="text-2xl font-bold text-foreground"
+              />
+              <SeverityBadge level={getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex')} />
             </div>
           </div>
         </div>
@@ -594,26 +732,54 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             Sleep Quality
           </h3>
           <div className="space-y-3">
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Sleep Latency (min)</span>
-              <span className="font-medium text-foreground font-inter">{data.studyInfo?.sleepLatency || '---'}</span>
+              <EditableField
+                value={editableData.sleepLatency || data.studyInfo?.sleepLatency || ''}
+                field="sleepLatency"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">REM Latency (min)</span>
-              <span className="font-medium text-foreground font-inter">{data.studyInfo?.remLatency || '---'}</span>
+              <EditableField
+                value={editableData.remLatency || data.studyInfo?.remLatency || ''}
+                field="remLatency"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Sleep Efficiency (%)</span>
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.sleepEfficiency || '---'}</span>
-                <SeverityBadge level={getSeverityLevel(data.sleepArchitecture?.sleepEfficiency, 'sleepEfficiency')} />
+                <EditableField
+                  value={editableData.sleepEfficiency}
+                  field="sleepEfficiency"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter"
+                />
+                <SeverityBadge level={getSeverityLevel(editableData.sleepEfficiency, 'sleepEfficiency')} />
               </div>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Arousal Index (/hr)</span>
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.arousalIndex || '---'}</span>
-                <SeverityBadge level={getSeverityLevel(data.additionalMetrics?.arousalIndex, 'arousalIndex')} />
+                <EditableField
+                  value={editableData.arousalIndex}
+                  field="arousalIndex"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter"
+                />
+                <SeverityBadge level={getSeverityLevel(editableData.arousalIndex, 'arousalIndex')} />
               </div>
             </div>
           </div>
@@ -626,21 +792,49 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             Sleep Architecture
           </h3>
           <div className="space-y-3">
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Sleep Stage 1 (%)</span>
-              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.stage1Percent || '---'}</span>
+              <EditableField
+                value={editableData.stage1Percent}
+                field="stage1Percent"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Sleep Stage 2 (%)</span>
-              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.stage2Percent || '---'}</span>
+              <EditableField
+                value={editableData.stage2Percent}
+                field="stage2Percent"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Slow Wave Sleep (%)</span>
-              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.slowWaveSleepPercent || data.sleepArchitecture?.stage3Percent || '---'}</span>
+              <EditableField
+                value={editableData.slowWaveSleepPercent}
+                field="slowWaveSleepPercent"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">REM Sleep (%)</span>
-              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.remPercent || '---'}</span>
+              <EditableField
+                value={editableData.remPercent}
+                field="remPercent"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
           </div>
         </div>
@@ -652,34 +846,92 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             Respiratory Events
           </h3>
           <div className="space-y-3">
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">AHI (NREM/REM)</span>
-              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.ahiNrem || '---'} / {data.respiratoryEvents?.ahiRem || '---'}</span>
+              <span className="font-medium text-foreground font-inter">
+                <EditableField
+                  value={editableData.ahiNrem}
+                  field="ahiNrem"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter inline-block w-16"
+                /> / <EditableField
+                  value={editableData.ahiRem}
+                  field="ahiRem"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter inline-block w-16"
+                />
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">AHI (Supine/Lateral) (/hr)</span>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground font-inter">
-                  {data.respiratoryEvents?.ahiSupine || data.additionalMetrics?.supinePositionIndex || '---'} / {data.respiratoryEvents?.ahiLateral || data.additionalMetrics?.ahiLateral || '---'}
+                  <EditableField
+                    value={editableData.ahiSupine}
+                    field="ahiSupine"
+                    isEditMode={isEditMode}
+                    onChange={handleFieldChange}
+                    type="number"
+                    className="font-medium text-foreground font-inter inline-block w-16"
+                  /> / <EditableField
+                    value={editableData.ahiLateral}
+                    field="ahiLateral"
+                    isEditMode={isEditMode}
+                    onChange={handleFieldChange}
+                    type="number"
+                    className="font-medium text-foreground font-inter inline-block w-16"
+                  />
                 </span>
-                <SeverityDot level={getSeverityLevel(data.respiratoryEvents?.ahiSupine, 'ahiSupine')} />
+                <SeverityDot level={getSeverityLevel(editableData.ahiSupine, 'ahiSupine')} />
               </div>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Central Apnea Index</span>
-              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.centralApneaIndex || '---'}</span>
+              <EditableField
+                value={editableData.centralApneaIndex}
+                field="centralApneaIndex"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Obstructive Apnea Index (/hr)</span>
-              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.obstructiveApneaIndex || '---'}</span>
+              <EditableField
+                value={editableData.obstructiveApneaIndex}
+                field="obstructiveApneaIndex"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Mixed Apnea Index</span>
-              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.mixedApneaIndex || '---'}</span>
+              <EditableField
+                value={editableData.mixedApneaIndex}
+                field="mixedApneaIndex"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Hypopnea Index (/hr)</span>
-              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.hypopneaIndex || '---'}</span>
+              <EditableField
+                value={editableData.hypopneaIndex}
+                field="hypopneaIndex"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
           </div>
         </div>
@@ -691,35 +943,77 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             Additional Metrics
           </h3>
           <div className="space-y-3">
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Hypopnea Mean Duration (sec)</span>
-              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.meanHypopneaDuration || '---'}</span>
+              <EditableField
+                value={editableData.meanHypopneaDuration}
+                field="meanHypopneaDuration"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Heart Rate (NREM/REM)</span>
               <span className="font-medium text-foreground font-inter">
-                {data.cardiacData?.meanHeartRateNrem || '---'} / {data.cardiacData?.meanHeartRateRem || '---'}
+                <EditableField
+                  value={editableData.meanHeartRateNrem}
+                  field="meanHeartRateNrem"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter inline-block w-16"
+                /> / <EditableField
+                  value={editableData.meanHeartRateRem}
+                  field="meanHeartRateRem"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter inline-block w-16"
+                />
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Desaturation Index (/hr)</span>
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground font-inter">{data.oxygenation?.desaturationIndex || '---'}</span>
-                <SeverityBadge level={getSeverityLevel(data.oxygenation?.desaturationIndex, 'desaturationIndex')} />
+                <EditableField
+                  value={editableData.desaturationIndex}
+                  field="desaturationIndex"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter"
+                />
+                <SeverityBadge level={getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex')} />
               </div>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Snoring (%)</span>
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.snoringPercent || '---'}</span>
-                <SeverityBadge level={getSeverityLevel(data.additionalMetrics?.snoringPercent, 'snoring')} />
+                <EditableField
+                  value={editableData.snoringPercent}
+                  field="snoringPercent"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter"
+                />
+                <SeverityBadge level={getSeverityLevel(editableData.snoringPercent, 'snoring')} />
               </div>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Leg Movement Index (/hr)</span>
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.legMovementIndex || '---'}</span>
-                <SeverityBadge level={getSeverityLevel(data.additionalMetrics?.legMovementIndex, 'legMovementIndex')} />
+                <EditableField
+                  value={editableData.legMovementIndex}
+                  field="legMovementIndex"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter"
+                />
+                <SeverityBadge level={getSeverityLevel(editableData.legMovementIndex, 'legMovementIndex')} />
               </div>
             </div>
           </div>
@@ -735,67 +1029,131 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 90%</span>
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground font-inter">
-                  {data.oxygenation?.timeBelow90Percent !== null && data.oxygenation?.timeBelow90Percent !== undefined 
-                    ? data.oxygenation.timeBelow90Percent 
-                    : '---'}
-                </span>
-                <SeverityBadge level={getSeverityLevel(data.oxygenation?.timeBelow90Percent, 'o2Below90')} />
+                <EditableField
+                  value={editableData.timeBelow90}
+                  field="timeBelow90"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter"
+                />
+                <SeverityBadge level={getSeverityLevel(editableData.timeBelow90, 'o2Below90')} />
               </div>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 95%</span>
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground font-inter">
-                  {data.oxygenation?.timeBelow95Percent !== null && data.oxygenation?.timeBelow95Percent !== undefined 
-                    ? data.oxygenation.timeBelow95Percent 
-                    : '---'}
-                </span>
+                <EditableField
+                  value={editableData.timeBelow95}
+                  field="timeBelow95"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter"
+                />
               </div>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Lowest O2 / Average O2</span>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground font-inter">
-                  {data.oxygenation?.lowestSpO2 || '---'} / {data.oxygenation?.averageSpO2 || '---'}
+                  <EditableField
+                    value={editableData.lowestSpO2}
+                    field="lowestSpO2"
+                    isEditMode={isEditMode}
+                    onChange={handleFieldChange}
+                    type="number"
+                    className="font-medium text-foreground font-inter inline-block w-16"
+                  /> / <EditableField
+                    value={editableData.averageSpO2}
+                    field="averageSpO2"
+                    isEditMode={isEditMode}
+                    onChange={handleFieldChange}
+                    type="number"
+                    className="font-medium text-foreground font-inter inline-block w-16"
+                  />
                 </span>
-                <SeverityBadge level={getSeverityLevel(data.oxygenation?.lowestSpO2, 'lowestO2')} />
+                <SeverityBadge level={getSeverityLevel(editableData.lowestSpO2, 'lowestO2')} />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* AI Generated Summary */}
-      {data.clinicalSummary && (
+      {/* Clinical Summary - Editable */}
+      {editableData.clinicalSummary && (
         <div className="bg-primary/5 rounded-xl border border-primary/20 p-6">
-          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4">Clinical Summary</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed font-inter">
-            {data.clinicalSummary}
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold font-jakarta text-foreground">Clinical Summary</h3>
+            {isEditMode && (
+              <Badge variant="outline" className="text-xs">Editing</Badge>
+            )}
+          </div>
+          {isEditMode ? (
+            <Textarea
+              value={editableData.clinicalSummary}
+              onChange={(e) => handleFieldChange('clinicalSummary', e.target.value)}
+              className="min-h-[100px] text-sm font-inter"
+              placeholder="Enter clinical summary..."
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground leading-relaxed font-inter">
+              {editableData.clinicalSummary}
+            </p>
+          )}
         </div>
       )}
 
-      {/* AI Recommendations Box */}
-      {data.recommendations && data.recommendations.length > 0 && (
+      {/* Recommendations - Editable (AI label ONLY on website) */}
+      {editableData.recommendations && editableData.recommendations.length > 0 && (
         <div className="bg-success/5 rounded-xl border border-success/20 p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-lg font-semibold font-jakarta text-foreground flex items-center gap-2">
               <Brain className="h-4 w-4 text-success" />
               AI Recommendations
             </h3>
-            <Badge className="bg-success/20 text-success text-xs border-success/30">
-              Evidence-Based
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge className="bg-success/20 text-success text-xs border-success/30">
+                Evidence-Based
+              </Badge>
+              {isEditMode && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={handleAddRecommendation}
+                  className="h-7"
+                >
+                  <Plus className="h-3 w-3 mr-1" /> Add
+                </Button>
+              )}
+            </div>
           </div>
           <p className="text-xs text-muted-foreground mb-4 italic font-inter">
             Based on AASM Clinical Practice Guidelines and Evidence-Based Resources
           </p>
           <ul className="space-y-2">
-            {data.recommendations.map((rec: string, index: number) => (
+            {editableData.recommendations.map((rec: string, index: number) => (
               <li key={index} className="flex items-start text-sm">
                 <span className="mr-2 text-success font-bold">{index + 1}.</span>
-                <span className="text-muted-foreground font-inter">{rec}</span>
+                {isEditMode ? (
+                  <div className="flex-1 flex items-center gap-2">
+                    <Input
+                      value={rec}
+                      onChange={(e) => handleRecommendationChange(index, e.target.value)}
+                      className="flex-1 h-8 text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleRemoveRecommendation(index)}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground font-inter">{rec}</span>
+                )}
               </li>
             ))}
           </ul>
