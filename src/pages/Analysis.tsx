@@ -26,7 +26,22 @@ const Analysis = () => {
       return;
     }
 
-    // Comprehensive normalization - support both old and new formats
+    // For Split-Night studies, pass through the special structure
+    if (data.isSplitNight) {
+      const normalized = {
+        ...data,
+        studyType: data.studyType || 'Split-Night'
+      };
+      
+      console.log("=== SPLIT-NIGHT DATA FOR UI ===");
+      console.log(JSON.stringify(normalized, null, 2));
+      
+      setProcessedData(normalized);
+      setReportCount(prev => prev + 1);
+      return;
+    }
+
+    // Comprehensive normalization for regular studies - support both old and new formats
     const normalized = {
       patientInfo: data.patientInfo || {
         name: data.extractedData?.patientName || 'Patient Name',
