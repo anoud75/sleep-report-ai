@@ -274,22 +274,17 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     // Helper: Draw professional header
     const drawHeader = () => {
       doc.setFillColor(headerBg[0], headerBg[1], headerBg[2]);
-      doc.rect(0, 0, pageWidth, 35, 'F');
+      doc.rect(0, 0, pageWidth, 30, 'F');
       
       // Logo placeholder circle
       doc.setFillColor(255, 255, 255);
-      doc.circle(25, 17, 10, 'F');
+      doc.circle(25, 15, 10, 'F');
       
       // Title
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.text('Sleep Study Report Center', 45, 15);
-      
-      // Contact info
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Phone: ________  Fax: ________  Email: ________', 45, 25);
+      doc.text('Sleep Study Report Center', 45, 18);
     };
     
     // Helper: Draw footer
@@ -304,10 +299,15 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       doc.text(`Done By: ${editableData.doneBy || '___________'}`, margin, pageHeight - 8);
       doc.text(`Scored By: ${editableData.scoredBy || '___________'}`, pageWidth/2 - 20, pageHeight - 8);
       doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 8);
+      
+      // Powered by text in bottom right corner
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.text('Powered by Sleep Report AI', pageWidth - margin - 40, pageHeight - 3);
     };
     
     // Helper: Draw two-column table
-    const drawTwoColumnTable = (data: [string, string][], startY: number, withBorders = true) => {
+    const drawTwoColumnTable = (data: [string, string][], startY: number, withBorders = true, rowHeight = 8) => {
       const colWidth = contentWidth / 2;
       let yPos = startY;
       
@@ -316,21 +316,21 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         if (withBorders) {
           doc.setDrawColor(tableBorder[0], tableBorder[1], tableBorder[2]);
           doc.setLineWidth(0.3);
-          doc.rect(margin, yPos, colWidth, 7);
-          doc.rect(margin + colWidth, yPos, colWidth, 7);
+          doc.rect(margin, yPos, colWidth, rowHeight);
+          doc.rect(margin + colWidth, yPos, colWidth, rowHeight);
         }
         
         // Label (left column)
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-        doc.text(label, margin + 2, yPos + 5);
+        doc.text(label, margin + 2, yPos + 5.5);
         
         // Value (right column)
         doc.setFont('helvetica', 'normal');
-        doc.text(value || '---', margin + colWidth + 2, yPos + 5);
+        doc.text(value || '---', margin + colWidth + 2, yPos + 5.5);
         
-        yPos += 7;
+        yPos += rowHeight;
       });
       
       return yPos;
@@ -349,7 +349,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     doc.text('Interpretation of Overnight Sleep Study', pageWidth / 2, yPos + 7, { align: 'center' });
     
     // Patient Information Table
-    yPos = 58;
+    yPos = 40;
     const patientData: [string, string][] = [
       ['ID', generateStudyId()],
       ['Patient Name', editableData.patientName || '---'],
@@ -363,19 +363,13 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       ['Referring Physician', editableData.referringPhysician || '---'],
       ['Clinical Diagnosis', editableData.clinicalDiagnosis || 'OSA'],
       ['PSG Diagnosis', editableData.psgDiagnosis || getPSGDiagnosis()],
+      ['Note', 'Overnight sleep study was done.'],
     ];
     
     yPos = drawTwoColumnTable(patientData, yPos);
     
-    // Note
-    yPos += 5;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-    doc.text('Note: Overnight sleep study was done.', margin, yPos);
-    
     // Events Table Header
-    yPos += 10;
+    yPos += 5;
     doc.setFillColor(tableHeaderBg[0], tableHeaderBg[1], tableHeaderBg[2]);
     doc.rect(margin, yPos, contentWidth / 2, 8, 'F');
     doc.rect(margin + contentWidth / 2, yPos, contentWidth / 2, 8, 'F');
@@ -430,7 +424,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     doc.addPage();
     drawHeader();
     
-    yPos = 45;
+    yPos = 40;
     
     // Clinical Summary Section
     if (editableData.clinicalSummary) {
@@ -480,7 +474,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         if (yPos > pageHeight - 30) {
           doc.addPage();
           drawHeader();
-          yPos = 45;
+          yPos = 40;
         }
         
         const recLines = doc.splitTextToSize(`${index + 1}. ${rec}`, contentWidth - 4);
