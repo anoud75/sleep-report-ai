@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain } from "lucide-react";
+import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import { FeedbackDialog } from "@/components/FeedbackDialog";
@@ -13,9 +13,120 @@ interface ProcessedResultsProps {
   onNewReport: () => void;
 }
 
+type SeverityLevel = 'normal' | 'mild' | 'moderate' | 'severe' | null;
+
+// Severity classification based on AASM guidelines
+const getSeverityLevel = (value: number | string | null | undefined, type: string): SeverityLevel => {
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  if (numValue === null || numValue === undefined || isNaN(numValue)) return null;
+  
+  switch (type) {
+    case 'ahi':
+    case 'ahiSupine':
+    case 'ahiLateral':
+    case 'desaturationIndex':
+      if (numValue < 5) return 'normal';
+      if (numValue < 15) return 'mild';
+      if (numValue < 30) return 'moderate';
+      return 'severe';
+      
+    case 'sleepEfficiency':
+      if (numValue > 85) return 'normal';
+      if (numValue > 75) return 'mild';
+      if (numValue > 65) return 'moderate';
+      return 'severe';
+      
+    case 'o2Below90':
+      if (numValue < 1) return 'normal';
+      if (numValue < 5) return 'mild';
+      if (numValue < 10) return 'moderate';
+      return 'severe';
+      
+    case 'lowestO2':
+      if (numValue > 90) return 'normal';
+      if (numValue > 85) return 'mild';
+      if (numValue > 80) return 'moderate';
+      return 'severe';
+      
+    case 'arousalIndex':
+    case 'legMovementIndex':
+      if (numValue < 5) return 'normal';
+      if (numValue < 25) return 'mild';
+      if (numValue < 50) return 'moderate';
+      return 'severe';
+      
+    case 'snoring':
+      if (numValue < 10) return 'normal';
+      if (numValue < 25) return 'mild';
+      if (numValue < 50) return 'moderate';
+      return 'severe';
+      
+    default:
+      return null;
+  }
+};
+
+// Severity Badge Component
+const SeverityBadge = ({ level }: { level: SeverityLevel }) => {
+  if (!level) return null;
+  
+  const config = {
+    normal: { 
+      label: 'Normal', 
+      bg: 'bg-emerald-100 dark:bg-emerald-900/30', 
+      text: 'text-emerald-700 dark:text-emerald-400', 
+      border: 'border-emerald-200 dark:border-emerald-800' 
+    },
+    mild: { 
+      label: 'Mild', 
+      bg: 'bg-amber-100 dark:bg-amber-900/30', 
+      text: 'text-amber-700 dark:text-amber-400', 
+      border: 'border-amber-200 dark:border-amber-800' 
+    },
+    moderate: { 
+      label: 'Moderate', 
+      bg: 'bg-orange-100 dark:bg-orange-900/30', 
+      text: 'text-orange-700 dark:text-orange-400', 
+      border: 'border-orange-200 dark:border-orange-800' 
+    },
+    severe: { 
+      label: 'Severe', 
+      bg: 'bg-red-100 dark:bg-red-900/30', 
+      text: 'text-red-700 dark:text-red-400', 
+      border: 'border-red-200 dark:border-red-800' 
+    }
+  };
+  
+  const { label, bg, text, border } = config[level];
+  
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${bg} ${text} ${border} border`}>
+      {label}
+    </span>
+  );
+};
+
+// Severity Dot Component
+const SeverityDot = ({ level }: { level: SeverityLevel }) => {
+  if (!level) return null;
+  
+  const colors = {
+    normal: 'bg-emerald-500',
+    mild: 'bg-amber-500',
+    moderate: 'bg-orange-500',
+    severe: 'bg-red-500'
+  };
+  
+  return <span className={`w-2 h-2 rounded-full ${colors[level]} inline-block ml-2`} />;
+};
+
 export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) => {
   const { toast } = useToast();
   const [showFeedback, setShowFeedback] = useState(false);
+  
+  // Calculate overall AHI severity
+  const overallAhi = data.respiratoryEvents?.ahiOverall;
+  const overallSeverity = getSeverityLevel(overallAhi, 'ahi');
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF('portrait', 'mm', 'a4');
@@ -210,6 +321,36 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       yPos += summaryHeight + 5;
     }
     
+    // Severity Assessment Section
+    if (yPos > pageHeight - 80) {
+      doc.addPage();
+      yPos = 40;
+    }
+    
+    yPos += 10;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text('OSA SEVERITY ASSESSMENT', margin, yPos);
+    
+    yPos += 10;
+    const severityColor = overallSeverity === 'severe' ? [220, 38, 38] as const :
+                         overallSeverity === 'moderate' ? [234, 88, 12] as const :
+                         overallSeverity === 'mild' ? [245, 158, 11] as const :
+                         [34, 197, 94] as const;
+    
+    doc.setFillColor(severityColor[0], severityColor[1], severityColor[2], 0.1);
+    doc.roundedRect(margin, yPos, contentWidth, 20, 3, 3, 'F');
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(severityColor[0], severityColor[1], severityColor[2]);
+    doc.text(`Overall AHI: ${overallAhi || 'N/A'} - ${overallSeverity?.toUpperCase() || 'N/A'}`, margin + 5, yPos + 8);
+    doc.text(`AHI Supine: ${data.respiratoryEvents?.ahiSupine || 'N/A'}`, margin + 5, yPos + 15);
+    doc.text(`AHI Lateral: ${data.respiratoryEvents?.ahiLateral || 'N/A'}`, pageWidth/2, yPos + 15);
+    
+    yPos += 25;
+    
     // AI Recommendations Section
     if (data.recommendations && data.recommendations.length > 0) {
       if (yPos > pageHeight - 80) {
@@ -286,7 +427,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
   return (
     <div className="space-y-6">
       {/* Header with Actions */}
-        <div className="bg-background rounded-2xl border">
+      <div className="bg-background rounded-2xl border">
         <div className="text-center p-8 border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -330,6 +471,71 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             >
               New Report
             </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* OSA Severity Assessment Card */}
+      <div className="bg-background rounded-2xl border p-6">
+        <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5" />
+          OSA Severity Assessment
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Overall AHI */}
+          <div className={`rounded-xl p-4 ${
+            overallSeverity === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+            overallSeverity === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+            overallSeverity === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+            'bg-emerald-50 dark:bg-emerald-950/20'
+          }`}>
+            <p className="text-sm text-muted-foreground font-inter">Overall AHI</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-2xl font-bold text-foreground">{overallAhi || '---'}</span>
+              <SeverityBadge level={overallSeverity} />
+            </div>
+          </div>
+          
+          {/* AHI Supine */}
+          <div className={`rounded-xl p-4 ${
+            getSeverityLevel(data.respiratoryEvents?.ahiSupine, 'ahiSupine') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+            getSeverityLevel(data.respiratoryEvents?.ahiSupine, 'ahiSupine') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+            getSeverityLevel(data.respiratoryEvents?.ahiSupine, 'ahiSupine') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+            'bg-emerald-50 dark:bg-emerald-950/20'
+          }`}>
+            <p className="text-sm text-muted-foreground font-inter">AHI Supine</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-2xl font-bold text-foreground">{data.respiratoryEvents?.ahiSupine || '---'}</span>
+              <SeverityBadge level={getSeverityLevel(data.respiratoryEvents?.ahiSupine, 'ahiSupine')} />
+            </div>
+          </div>
+          
+          {/* AHI Lateral */}
+          <div className={`rounded-xl p-4 ${
+            getSeverityLevel(data.respiratoryEvents?.ahiLateral, 'ahiLateral') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+            getSeverityLevel(data.respiratoryEvents?.ahiLateral, 'ahiLateral') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+            getSeverityLevel(data.respiratoryEvents?.ahiLateral, 'ahiLateral') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+            'bg-emerald-50 dark:bg-emerald-950/20'
+          }`}>
+            <p className="text-sm text-muted-foreground font-inter">AHI Lateral</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-2xl font-bold text-foreground">{data.respiratoryEvents?.ahiLateral || '---'}</span>
+              <SeverityBadge level={getSeverityLevel(data.respiratoryEvents?.ahiLateral, 'ahiLateral')} />
+            </div>
+          </div>
+          
+          {/* Desaturation Index */}
+          <div className={`rounded-xl p-4 ${
+            getSeverityLevel(data.oxygenation?.desaturationIndex, 'desaturationIndex') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+            getSeverityLevel(data.oxygenation?.desaturationIndex, 'desaturationIndex') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+            getSeverityLevel(data.oxygenation?.desaturationIndex, 'desaturationIndex') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+            'bg-emerald-50 dark:bg-emerald-950/20'
+          }`}>
+            <p className="text-sm text-muted-foreground font-inter">Desaturation Index</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-2xl font-bold text-foreground">{data.oxygenation?.desaturationIndex || '---'}</span>
+              <SeverityBadge level={getSeverityLevel(data.oxygenation?.desaturationIndex, 'desaturationIndex')} />
+            </div>
           </div>
         </div>
       </div>
@@ -396,13 +602,19 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
               <span className="text-sm text-muted-foreground font-inter">REM Latency (min)</span>
               <span className="font-medium text-foreground font-inter">{data.studyInfo?.remLatency || '---'}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Sleep Efficiency (%)</span>
-              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.sleepEfficiency || '---'}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.sleepEfficiency || '---'}</span>
+                <SeverityBadge level={getSeverityLevel(data.sleepArchitecture?.sleepEfficiency, 'sleepEfficiency')} />
+              </div>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Arousal Index (/hr)</span>
-              <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.arousalIndex || '---'}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.arousalIndex || '---'}</span>
+                <SeverityBadge level={getSeverityLevel(data.additionalMetrics?.arousalIndex, 'arousalIndex')} />
+              </div>
             </div>
           </div>
         </div>
@@ -444,11 +656,14 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
               <span className="text-sm text-muted-foreground font-inter">AHI (NREM/REM)</span>
               <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.ahiNrem || '---'} / {data.respiratoryEvents?.ahiRem || '---'}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">AHI (Supine/Lateral) (/hr)</span>
-              <span className="font-medium text-foreground font-inter">
-                {data.respiratoryEvents?.ahiSupine || data.additionalMetrics?.supinePositionIndex || '---'} / {data.respiratoryEvents?.ahiLateral || data.additionalMetrics?.ahiLateral || '---'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground font-inter">
+                  {data.respiratoryEvents?.ahiSupine || data.additionalMetrics?.supinePositionIndex || '---'} / {data.respiratoryEvents?.ahiLateral || data.additionalMetrics?.ahiLateral || '---'}
+                </span>
+                <SeverityDot level={getSeverityLevel(data.respiratoryEvents?.ahiSupine, 'ahiSupine')} />
+              </div>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground font-inter">Central Apnea Index</span>
@@ -486,17 +701,26 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
                 {data.cardiacData?.meanHeartRateNrem || '---'} / {data.cardiacData?.meanHeartRateRem || '---'}
               </span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Desaturation Index (/hr)</span>
-              <span className="font-medium text-foreground font-inter">{data.oxygenation?.desaturationIndex || '---'}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground font-inter">{data.oxygenation?.desaturationIndex || '---'}</span>
+                <SeverityBadge level={getSeverityLevel(data.oxygenation?.desaturationIndex, 'desaturationIndex')} />
+              </div>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Snoring (%)</span>
-              <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.snoringPercent || '---'}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.snoringPercent || '---'}</span>
+                <SeverityBadge level={getSeverityLevel(data.additionalMetrics?.snoringPercent, 'snoring')} />
+              </div>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Leg Movement Index (/hr)</span>
-              <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.legMovementIndex || '---'}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground font-inter">{data.additionalMetrics?.legMovementIndex || '---'}</span>
+                <SeverityBadge level={getSeverityLevel(data.additionalMetrics?.legMovementIndex, 'legMovementIndex')} />
+              </div>
             </div>
           </div>
         </div>
@@ -508,27 +732,35 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             Oxygen Saturation
           </h3>
           <div className="space-y-3">
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 90%</span>
-              <span className="font-medium text-foreground font-inter">
-                {data.oxygenation?.timeBelow90Percent !== null && data.oxygenation?.timeBelow90Percent !== undefined 
-                  ? data.oxygenation.timeBelow90Percent 
-                  : '---'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground font-inter">
+                  {data.oxygenation?.timeBelow90Percent !== null && data.oxygenation?.timeBelow90Percent !== undefined 
+                    ? data.oxygenation.timeBelow90Percent 
+                    : '---'}
+                </span>
+                <SeverityBadge level={getSeverityLevel(data.oxygenation?.timeBelow90Percent, 'o2Below90')} />
+              </div>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 95%</span>
-              <span className="font-medium text-foreground font-inter">
-                {data.oxygenation?.timeBelow95Percent !== null && data.oxygenation?.timeBelow95Percent !== undefined 
-                  ? data.oxygenation.timeBelow95Percent 
-                  : '---'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground font-inter">
+                  {data.oxygenation?.timeBelow95Percent !== null && data.oxygenation?.timeBelow95Percent !== undefined 
+                    ? data.oxygenation.timeBelow95Percent 
+                    : '---'}
+                </span>
+              </div>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Lowest O2 / Average O2</span>
-              <span className="font-medium text-foreground font-inter">
-                {data.oxygenation?.lowestSpO2 || '---'} / {data.oxygenation?.averageSpO2 || '---'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground font-inter">
+                  {data.oxygenation?.lowestSpO2 || '---'} / {data.oxygenation?.averageSpO2 || '---'}
+                </span>
+                <SeverityBadge level={getSeverityLevel(data.oxygenation?.lowestSpO2, 'lowestO2')} />
+              </div>
             </div>
           </div>
         </div>
