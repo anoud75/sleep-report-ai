@@ -1028,53 +1028,45 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 90%</span>
-              <div className="flex items-center gap-2">
-                <EditableField
-                  value={editableData.timeBelow90}
-                  field="timeBelow90"
-                  isEditMode={isEditMode}
-                  onChange={handleFieldChange}
-                  type="number"
-                  className="font-medium text-foreground font-inter"
-                />
-                <SeverityBadge level={getSeverityLevel(editableData.timeBelow90, 'o2Below90')} />
-              </div>
+              <EditableField
+                value={editableData.timeBelow90}
+                field="timeBelow90"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">% Time with O2 &lt; 95%</span>
-              <div className="flex items-center gap-2">
-                <EditableField
-                  value={editableData.timeBelow95}
-                  field="timeBelow95"
-                  isEditMode={isEditMode}
-                  onChange={handleFieldChange}
-                  type="number"
-                  className="font-medium text-foreground font-inter"
-                />
-              </div>
+              <EditableField
+                value={editableData.timeBelow95}
+                field="timeBelow95"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground font-inter">Lowest O2 / Average O2</span>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground font-inter">
-                  <EditableField
-                    value={editableData.lowestSpO2}
-                    field="lowestSpO2"
-                    isEditMode={isEditMode}
-                    onChange={handleFieldChange}
-                    type="number"
-                    className="font-medium text-foreground font-inter inline-block w-16"
-                  /> / <EditableField
-                    value={editableData.averageSpO2}
-                    field="averageSpO2"
-                    isEditMode={isEditMode}
-                    onChange={handleFieldChange}
-                    type="number"
-                    className="font-medium text-foreground font-inter inline-block w-16"
-                  />
-                </span>
-                <SeverityBadge level={getSeverityLevel(editableData.lowestSpO2, 'lowestO2')} />
-              </div>
+              <span className="font-medium text-foreground font-inter">
+                <EditableField
+                  value={editableData.lowestSpO2}
+                  field="lowestSpO2"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter inline-block w-16"
+                /> / <EditableField
+                  value={editableData.averageSpO2}
+                  field="averageSpO2"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="font-medium text-foreground font-inter inline-block w-16"
+                />
+              </span>
             </div>
           </div>
         </div>
