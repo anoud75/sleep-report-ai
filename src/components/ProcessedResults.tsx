@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain, AlertTriangle, Pencil, Check, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
@@ -154,6 +155,20 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
 
   // Editable data state - initialized from data
   const [editableData, setEditableData] = useState({
+    // Patient Information (manually entered for privacy)
+    patientName: '',
+    patientMRN: '',
+    patientAge: '',
+    patientBMI: '',
+    studyDate: data.patientInfo?.studyDate || new Date().toLocaleDateString(),
+    hijraDate: '',
+    ward: 'SDC',
+    studyNumber: '',
+    referringPhysician: '',
+    clinicalDiagnosis: 'OSA',
+    psgDiagnosis: '',
+    doneBy: '',
+    scoredBy: '',
     // Respiratory Events
     ahiOverall: data.respiratoryEvents?.ahiOverall || '',
     ahiSupine: data.respiratoryEvents?.ahiSupine || '',
@@ -228,280 +243,260 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     const doc = new jsPDF('portrait', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 15;
     const contentWidth = pageWidth - (margin * 2);
     
-    // Color scheme
-    const primaryColor = [0, 123, 191] as const; // Medical blue
-    const accentColor = [244, 247, 251] as const; // Light blue-gray
-    const textColor = [51, 51, 51] as const; // Dark gray
-    const lightGray = [128, 128, 128] as const; // Medium gray
+    // Professional color scheme
+    const headerBg = [0, 51, 102] as const; // Dark blue
+    const tableBorder = [200, 200, 200] as const; // Light gray
+    const tableHeaderBg = [240, 245, 250] as const; // Very light blue
+    const textDark = [51, 51, 51] as const;
     
-    // Header with logo area and title
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.rect(0, 0, pageWidth, 40, 'F');
-    
-    // Title
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(28);
-    doc.setFont('helvetica', 'bold');
-    doc.text('SLEEP STUDY REPORT', margin, 25);
-    
-    // Patient Information Section
-    let yPos = 60;
-    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('PATIENT INFORMATION', margin, yPos);
-    
-    // Patient info box
-    doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
-    doc.roundedRect(margin, yPos + 5, contentWidth, 30, 3, 3, 'F');
-    
-    yPos += 15;
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Patient Name: ${data.patientInfo?.name || 'N/A'}`, margin + 5, yPos);
-    yPos += 7;
-    doc.text(`Study Date: ${data.patientInfo?.studyDate || 'N/A'}`, margin + 5, yPos);
-    yPos += 7;
-    doc.text(`Study Type: ${data.patientInfo?.studyType || data.studyType || 'N/A'}`, margin + 5, yPos);
-    
-    // Sleep Study Results Section
-    yPos += 25;
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('SLEEP STUDY RESULTS', margin, yPos);
-    
-    // Helper function to create a section with title and data
-    const createSection = (title, fields, startY) => {
-      let currentY = startY + 10;
-      
-      // Section title
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text(title, margin, currentY);
-      currentY += 8;
-      
-      // Section border
-      doc.setDrawColor(lightGray[0], lightGray[1], lightGray[2]);
-      doc.setLineWidth(0.5);
-      doc.line(margin, currentY - 2, pageWidth - margin, currentY - 2);
-      
-      // Data fields
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.setFontSize(10);
-      
-      fields.forEach(([label, value]) => {
-        if (currentY > pageHeight - 30) {
-          doc.addPage();
-          currentY = 40;
-        }
-        
-        // Handle object values
-        let displayValue = value || '---';
-        if (typeof value === 'object' && value !== null) {
-          if (value.NREM !== undefined && value.REM !== undefined) {
-            displayValue = `NREM: ${value.NREM || '---'}, REM: ${value.REM || '---'}`;
-          } else if (value.lowest !== undefined && value.average !== undefined) {
-            displayValue = `${value.lowest || '---'} / ${value.average || '---'}`;
-          } else {
-            displayValue = JSON.stringify(value);
-          }
-        }
-        
-        // Label (left aligned)
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
-        doc.text(label, margin + 2, currentY);
-        
-        // Value (right aligned)
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-        const valueWidth = doc.getTextWidth(displayValue.toString());
-        doc.text(displayValue.toString(), pageWidth - margin - valueWidth - 2, currentY);
-        
-        currentY += 6;
-      });
-      
-      return currentY + 5;
+    // Helper: Generate Study ID
+    const generateStudyId = () => {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      return `PSG-${year}${month}${day}-${random}`;
     };
     
-    // Organize data into logical sections
-    const sleepTimingFields = [
-      ['Light Off', data.studyInfo?.lightsOff],
-      ['Light On', data.studyInfo?.lightsOn],
-      ['Time in Bed (min)', data.studyInfo?.timeInBed],
-      ['Total Sleep Time (min)', data.studyInfo?.totalSleepTime],
-      ['CPAP/BPAP Pressure', data.titrationData?.pressureType === 'CPAP' && data.titrationData?.effectivePressure 
-        ? `CPAP ${data.titrationData.effectivePressure} cmH2O`
-        : data.titrationData?.pressureType === 'BPAP' && data.titrationData?.effectivePressure
-        ? `BPAP ${data.titrationData.effectivePressure} cmH2O`
-        : data.titrationData?.pressureType || '---'],
-      ['O2 Support', data.titrationData?.oxygenSupport ? 'Yes' : 'No']
+    // Helper: Get PSG Diagnosis from severity
+    const getPSGDiagnosis = () => {
+      const ahi = parseFloat(editableData.ahiOverall as string) || 0;
+      if (ahi < 5) return 'Normal';
+      if (ahi < 15) return 'Mild OSA';
+      if (ahi < 30) return 'Moderate OSA';
+      return 'Severe OSA';
+    };
+    
+    // Helper: Draw professional header
+    const drawHeader = () => {
+      doc.setFillColor(headerBg[0], headerBg[1], headerBg[2]);
+      doc.rect(0, 0, pageWidth, 35, 'F');
+      
+      // Logo placeholder circle
+      doc.setFillColor(255, 255, 255);
+      doc.circle(25, 17, 10, 'F');
+      
+      // Title
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Sleep Study Report Center', 45, 15);
+      
+      // Contact info
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Phone: ________  Fax: ________  Email: ________', 45, 25);
+    };
+    
+    // Helper: Draw footer
+    const drawFooter = (pageNum: number, totalPages: number) => {
+      doc.setDrawColor(tableBorder[0], tableBorder[1], tableBorder[2]);
+      doc.setLineWidth(0.3);
+      doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+      doc.text(`Done By: ${editableData.doneBy || '___________'}`, margin, pageHeight - 8);
+      doc.text(`Scored By: ${editableData.scoredBy || '___________'}`, pageWidth/2 - 20, pageHeight - 8);
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 8);
+    };
+    
+    // Helper: Draw two-column table
+    const drawTwoColumnTable = (data: [string, string][], startY: number, withBorders = true) => {
+      const colWidth = contentWidth / 2;
+      let yPos = startY;
+      
+      data.forEach(([label, value]) => {
+        // Draw row borders
+        if (withBorders) {
+          doc.setDrawColor(tableBorder[0], tableBorder[1], tableBorder[2]);
+          doc.setLineWidth(0.3);
+          doc.rect(margin, yPos, colWidth, 7);
+          doc.rect(margin + colWidth, yPos, colWidth, 7);
+        }
+        
+        // Label (left column)
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+        doc.text(label, margin + 2, yPos + 5);
+        
+        // Value (right column)
+        doc.setFont('helvetica', 'normal');
+        doc.text(value || '---', margin + colWidth + 2, yPos + 5);
+        
+        yPos += 7;
+      });
+      
+      return yPos;
+    };
+    
+    // === PAGE 1: Patient Info & Events ===
+    drawHeader();
+    
+    // Title Section
+    let yPos = 42;
+    doc.setFillColor(tableHeaderBg[0], tableHeaderBg[1], tableHeaderBg[2]);
+    doc.rect(margin, yPos, contentWidth, 10, 'F');
+    doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Interpretation of Overnight Sleep Study', pageWidth / 2, yPos + 7, { align: 'center' });
+    
+    // Patient Information Table
+    yPos = 58;
+    const patientData: [string, string][] = [
+      ['ID', generateStudyId()],
+      ['Patient Name', editableData.patientName || '---'],
+      ['MRN', editableData.patientMRN || '---'],
+      ['BMI', editableData.patientBMI || '---'],
+      ['Gregorian Date', editableData.studyDate || '---'],
+      ['Hijra Date', editableData.hijraDate || '---'],
+      ['Age (Years)', editableData.patientAge || '---'],
+      ['Ward', editableData.ward || 'SDC'],
+      ['Study Number', editableData.studyNumber || '---'],
+      ['Referring Physician', editableData.referringPhysician || '---'],
+      ['Clinical Diagnosis', editableData.clinicalDiagnosis || 'OSA'],
+      ['PSG Diagnosis', editableData.psgDiagnosis || getPSGDiagnosis()],
     ];
     
-    const sleepQualityFields = [
-      ['Sleep Latency (min)', editableData.sleepLatency || data.studyInfo?.sleepLatency],
-      ['REM Latency (min)', editableData.remLatency || data.studyInfo?.remLatency],
-      ['Sleep Efficiency (%)', editableData.sleepEfficiency || '---']
+    yPos = drawTwoColumnTable(patientData, yPos);
+    
+    // Note
+    yPos += 5;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+    doc.text('Note: Overnight sleep study was done.', margin, yPos);
+    
+    // Events Table Header
+    yPos += 10;
+    doc.setFillColor(tableHeaderBg[0], tableHeaderBg[1], tableHeaderBg[2]);
+    doc.rect(margin, yPos, contentWidth / 2, 8, 'F');
+    doc.rect(margin + contentWidth / 2, yPos, contentWidth / 2, 8, 'F');
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
+    doc.text('Events', margin + 2, yPos + 5.5);
+    doc.text('Reports', margin + contentWidth / 2 + 2, yPos + 5.5);
+    
+    // Events Data
+    yPos += 8;
+    const eventsData: [string, string][] = [
+      ['Light off', data.studyInfo?.lightsOff || '---'],
+      ['Light on', data.studyInfo?.lightsOn || '---'],
+      ['Time in Bed (min)', data.studyInfo?.timeInBed?.toString() || '---'],
+      ['Total Sleep Time (min)', data.studyInfo?.totalSleepTime?.toString() || '---'],
+      ['Sleep Latency (min)', editableData.sleepLatency?.toString() || '---'],
+      ['REM Latency (min)', editableData.remLatency?.toString() || '---'],
+      ['Sleep Efficiency (%)', editableData.sleepEfficiency?.toString() || '---'],
+      ['Sleep Stage 1 (%)', editableData.stage1Percent?.toString() || '---'],
+      ['Sleep Stage 2 (%)', editableData.stage2Percent?.toString() || '---'],
+      ['Slow Wave Sleep (%)', editableData.slowWaveSleepPercent?.toString() || '---'],
+      ['REM Sleep (%)', editableData.remPercent?.toString() || '---'],
+      ['AHI Overall (/hr)', editableData.ahiOverall?.toString() || '---'],
+      ['AHI NREM (/hr)', editableData.ahiNrem?.toString() || '---'],
+      ['AHI REM (/hr)', editableData.ahiRem?.toString() || '---'],
+      ['AHI Supine (/hr)', editableData.ahiSupine?.toString() || '---'],
+      ['AHI Lateral (/hr)', editableData.ahiLateral?.toString() || '---'],
+      ['Central Apnea Index (/hr)', editableData.centralApneaIndex?.toString() || '---'],
+      ['Obstructive Apnea Index (/hr)', editableData.obstructiveApneaIndex?.toString() || '---'],
+      ['Mixed Apnea Index (/hr)', editableData.mixedApneaIndex?.toString() || '---'],
+      ['Hypopnea Index (/hr)', editableData.hypopneaIndex?.toString() || '---'],
+      ['Hypopnea Mean Duration (sec)', editableData.meanHypopneaDuration?.toString() || '---'],
+      ['Desaturation Index (/hr)', editableData.desaturationIndex?.toString() || '---'],
+      ['% Time with O2 < 90%', editableData.timeBelow90?.toString() || '---'],
+      ['% Time with O2 < 95%', editableData.timeBelow95?.toString() || '---'],
+      ['Lowest O2 (%)', editableData.lowestSpO2?.toString() || '---'],
+      ['Average O2 (%)', editableData.averageSpO2?.toString() || '---'],
+      ['Heart Rate NREM (bpm)', editableData.meanHeartRateNrem?.toString() || '---'],
+      ['Heart Rate REM (bpm)', editableData.meanHeartRateRem?.toString() || '---'],
+      ['Arousal Index (/hr)', editableData.arousalIndex?.toString() || '---'],
+      ['Snoring (%)', editableData.snoringPercent?.toString() || '---'],
+      ['Leg Movement Index (/hr)', editableData.legMovementIndex?.toString() || '---'],
     ];
     
-    const sleepStagesFields = [
-      ['Sleep Stage 1 (%)', editableData.stage1Percent || '---'],
-      ['Sleep Stage 2 (%)', editableData.stage2Percent || '---'],
-      ['Slow Wave Sleep (%)', editableData.slowWaveSleepPercent || '---'],
-      ['REM Sleep (%)', editableData.remPercent || '---']
-    ];
+    yPos = drawTwoColumnTable(eventsData, yPos);
     
-    const respiratoryFields = [
-      ['AHI (NREM/REM)', `${editableData.ahiNrem || '---'} / ${editableData.ahiRem || '---'}`],
-      ['AHI (Supine/Lateral)', `${editableData.ahiSupine || '---'} / ${editableData.ahiLateral || '---'}`],
-      ['Central Apnea Index', editableData.centralApneaIndex || '---'],
-      ['Obstructive Apnea Index (/hr)', editableData.obstructiveApneaIndex || '---'],
-      ['Mixed Apnea Index', editableData.mixedApneaIndex || '---'],
-      ['Hypopnea Index (/hr)', editableData.hypopneaIndex || '---'],
-      ['Hypopnea Mean Duration (sec)', editableData.meanHypopneaDuration || '---']
-    ];
+    // Footer for page 1
+    drawFooter(1, 2);
     
-    const vitalSignsFields = [
-      ['Heart Rate (NREM/REM)', `${editableData.meanHeartRateNrem || '---'} / ${editableData.meanHeartRateRem || '---'}`],
-      ['Desaturation Index (/hr)', editableData.desaturationIndex || '---'],
-      ['% Time with O2 < 90%', editableData.timeBelow90 ?? '---'],
-      ['% Time with O2 < 95%', editableData.timeBelow95 ?? '---'],
-      ['Lowest O2 / Average O2', `${editableData.lowestSpO2 || '---'} / ${editableData.averageSpO2 || '---'}`]
-    ];
+    // === PAGE 2: Summary & Recommendations ===
+    doc.addPage();
+    drawHeader();
     
-    const additionalFields = [
-      ['Arousal Index (/hr)', editableData.arousalIndex || '---'],
-      ['Snoring (%)', editableData.snoringPercent || '---'],
-      ['Leg Movement Index (/hr)', editableData.legMovementIndex || '---']
-    ];
-    
-    // Create sections
-    yPos = createSection('Sleep Timing & Equipment', sleepTimingFields, yPos);
-    yPos = createSection('Sleep Quality Metrics', sleepQualityFields, yPos);
-    yPos = createSection('Sleep Architecture', sleepStagesFields, yPos);
-    yPos = createSection('Respiratory Events', respiratoryFields, yPos);
-    yPos = createSection('Oxygen Saturation & Heart Rate', vitalSignsFields, yPos);
-    yPos = createSection('Additional Metrics', additionalFields, yPos);
+    yPos = 45;
     
     // Clinical Summary Section
     if (editableData.clinicalSummary) {
-      if (yPos > pageHeight - 80) {
-        doc.addPage();
-        yPos = 40;
-      }
-      
-      yPos += 10;
-      doc.setFontSize(16);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.text('CLINICAL SUMMARY', margin, yPos);
+      doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
+      doc.text('Summary:', margin, yPos);
       
-      // Summary box
-      yPos += 10;
-      const summaryLines = doc.splitTextToSize(editableData.clinicalSummary, contentWidth - 10);
-      const summaryHeight = summaryLines.length * 6 + 10;
-      
-      doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
-      doc.roundedRect(margin, yPos, contentWidth, summaryHeight, 3, 3, 'F');
-      
-      doc.setFontSize(11);
+      yPos += 8;
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.text(summaryLines, margin + 5, yPos + 8);
+      doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+      const summaryLines = doc.splitTextToSize(editableData.clinicalSummary, contentWidth - 4);
+      doc.text(summaryLines, margin + 2, yPos);
+      yPos += summaryLines.length * 5 + 10;
+    }
+    
+    // Patient Comments Section
+    if (data.patientComments) {
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
+      doc.text("Patient's Comments:", margin, yPos);
       
-      yPos += summaryHeight + 5;
+      yPos += 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+      const commentsLines = doc.splitTextToSize(data.patientComments, contentWidth - 4);
+      doc.text(commentsLines, margin + 2, yPos);
+      yPos += commentsLines.length * 5 + 10;
     }
     
-    // Severity Assessment Section
-    if (yPos > pageHeight - 80) {
-      doc.addPage();
-      yPos = 40;
-    }
-    
-    yPos += 10;
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-    doc.text('OSA SEVERITY ASSESSMENT', margin, yPos);
-    
-    yPos += 10;
-    const severityColor = overallSeverity === 'severe' ? [220, 38, 38] as const :
-                         overallSeverity === 'moderate' ? [234, 88, 12] as const :
-                         overallSeverity === 'mild' ? [245, 158, 11] as const :
-                         [34, 197, 94] as const;
-    
-    doc.setFillColor(severityColor[0], severityColor[1], severityColor[2], 0.1);
-    doc.roundedRect(margin, yPos, contentWidth, 20, 3, 3, 'F');
-    
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(severityColor[0], severityColor[1], severityColor[2]);
-    doc.text(`Overall AHI: ${overallAhi || 'N/A'} - ${overallSeverity?.toUpperCase() || 'N/A'}`, margin + 5, yPos + 8);
-    doc.text(`AHI Supine: ${editableData.ahiSupine || 'N/A'}`, margin + 5, yPos + 15);
-    doc.text(`AHI Lateral: ${editableData.ahiLateral || 'N/A'}`, pageWidth/2, yPos + 15);
-    
-    yPos += 25;
-    
-    // Recommendations Section - Clean for patients (NO AI branding)
+    // Recommendations Section (NO AI BRANDING)
     if (editableData.recommendations && editableData.recommendations.length > 0) {
-      if (yPos > pageHeight - 80) {
-        doc.addPage();
-        yPos = 40;
-      }
-      
-      yPos += 10;
-      doc.setFontSize(16);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.text('RECOMMENDATIONS', margin, yPos);
+      doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
+      doc.text('Recommendations:', margin, yPos);
       
-      // NO AI branding or Evidence-Based note in PDF
-      
-      yPos += 10;
-      doc.setFontSize(11);
+      yPos += 8;
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setTextColor(textDark[0], textDark[1], textDark[2]);
       
       editableData.recommendations.forEach((rec: string, index: number) => {
-        if (yPos > pageHeight - 20) {
+        if (yPos > pageHeight - 30) {
           doc.addPage();
-          yPos = 40;
+          drawHeader();
+          yPos = 45;
         }
         
-        const recLines = doc.splitTextToSize(`${index + 1}. ${rec}`, contentWidth - 10);
-        doc.text(recLines, margin + 5, yPos);
-        yPos += recLines.length * 6;
+        const recLines = doc.splitTextToSize(`${index + 1}. ${rec}`, contentWidth - 4);
+        doc.text(recLines, margin + 2, yPos);
+        yPos += recLines.length * 5 + 3;
       });
     }
     
-    // Footer with generation date and page numbers
-    const totalPages = (doc as any).getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      
-      // Footer line
-      doc.setDrawColor(lightGray[0], lightGray[1], lightGray[2]);
-      doc.setLineWidth(0.5);
-      doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
-      
-      // Footer text
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
-      doc.text(`Generated on ${new Date().toLocaleDateString()}`, margin, pageHeight - 8);
-      doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 8);
-    }
+    // Footer for page 2
+    drawFooter(2, 2);
     
     doc.save(`sleep-study-report-${new Date().toISOString().split('T')[0]}.pdf`);
     
     toast({
       title: "PDF Generated",
-      description: "Your sleep study report has been downloaded.",
+      description: "Your professional sleep study report has been downloaded.",
     });
 
     // Show feedback dialog after PDF generation
@@ -581,6 +576,141 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             >
               New Report
             </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Patient Information Section - Editable for PDF */}
+      <div className="bg-background rounded-2xl border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground flex items-center gap-2">
+            <User className="h-5 w-5 text-primary" />
+            Patient Information
+          </h3>
+          <Badge variant="outline" className="text-xs">
+            For PDF Report
+          </Badge>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Patient Name</Label>
+            <Input 
+              value={editableData.patientName} 
+              onChange={(e) => handleFieldChange('patientName', e.target.value)} 
+              placeholder="Enter patient name..."
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">MRN</Label>
+            <Input 
+              value={editableData.patientMRN} 
+              onChange={(e) => handleFieldChange('patientMRN', e.target.value)} 
+              placeholder="00-00-00-00"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Age (Years)</Label>
+            <Input 
+              type="number" 
+              value={editableData.patientAge} 
+              onChange={(e) => handleFieldChange('patientAge', e.target.value)} 
+              placeholder="Age"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">BMI</Label>
+            <Input 
+              type="number" 
+              value={editableData.patientBMI} 
+              onChange={(e) => handleFieldChange('patientBMI', e.target.value)} 
+              placeholder="BMI"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Study Date</Label>
+            <Input 
+              value={editableData.studyDate} 
+              onChange={(e) => handleFieldChange('studyDate', e.target.value)} 
+              placeholder="Study date"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hijra Date</Label>
+            <Input 
+              value={editableData.hijraDate} 
+              onChange={(e) => handleFieldChange('hijraDate', e.target.value)} 
+              placeholder="Hijra date"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Ward</Label>
+            <Input 
+              value={editableData.ward} 
+              onChange={(e) => handleFieldChange('ward', e.target.value)} 
+              placeholder="Ward"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Study Number</Label>
+            <Input 
+              value={editableData.studyNumber} 
+              onChange={(e) => handleFieldChange('studyNumber', e.target.value)} 
+              placeholder="Study number"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Referring Physician</Label>
+            <Input 
+              value={editableData.referringPhysician} 
+              onChange={(e) => handleFieldChange('referringPhysician', e.target.value)} 
+              placeholder="Physician name"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Clinical Diagnosis</Label>
+            <Input 
+              value={editableData.clinicalDiagnosis} 
+              onChange={(e) => handleFieldChange('clinicalDiagnosis', e.target.value)} 
+              placeholder="Clinical diagnosis"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">PSG Diagnosis</Label>
+            <Input 
+              value={editableData.psgDiagnosis} 
+              onChange={(e) => handleFieldChange('psgDiagnosis', e.target.value)} 
+              placeholder="Auto-generated from AHI"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Done By</Label>
+            <Input 
+              value={editableData.doneBy} 
+              onChange={(e) => handleFieldChange('doneBy', e.target.value)} 
+              placeholder="Technician name"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Scored By</Label>
+            <Input 
+              value={editableData.scoredBy} 
+              onChange={(e) => handleFieldChange('scoredBy', e.target.value)} 
+              placeholder="Scorer name"
+              className="h-9"
+            />
           </div>
         </div>
       </div>
