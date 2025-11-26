@@ -145,13 +145,13 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     const sleepStagesFields = [
       ['Sleep Stage 1 (%)', data.sleepArchitecture?.stage1Percent],
       ['Sleep Stage 2 (%)', data.sleepArchitecture?.stage2Percent],
-      ['Slow Wave Sleep (%)', data.sleepArchitecture?.stage3Percent],
+      ['Slow Wave Sleep (%)', data.sleepArchitecture?.slowWaveSleepPercent || data.sleepArchitecture?.stage3Percent],
       ['REM Sleep (%)', data.sleepArchitecture?.remPercent]
     ];
     
     const respiratoryFields = [
       ['AHI (NREM/REM)', `${data.respiratoryEvents?.ahiNrem || '---'} / ${data.respiratoryEvents?.ahiRem || '---'}`],
-      ['AHI (Supine/Lateral)', `${data.respiratoryEvents?.ahiSupine || '---'} / ${data.respiratoryEvents?.ahiLateral || '---'}`],
+      ['AHI (Supine/Lateral)', `${data.respiratoryEvents?.ahiSupine || data.additionalMetrics?.supinePositionIndex || '---'} / ${data.respiratoryEvents?.ahiLateral || data.additionalMetrics?.ahiLateral || '---'}`],
       ['Central Apnea Index', data.respiratoryEvents?.centralApneaIndex],
       ['Obstructive Apnea Index (/hr)', data.respiratoryEvents?.obstructiveApneaIndex],
       ['Mixed Apnea Index', data.respiratoryEvents?.mixedApneaIndex],
@@ -385,7 +385,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground font-inter">Slow Wave Sleep (%)</span>
-              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.stage3Percent || '---'}</span>
+              <span className="font-medium text-foreground font-inter">{data.sleepArchitecture?.slowWaveSleepPercent || data.sleepArchitecture?.stage3Percent || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground font-inter">REM Sleep (%)</span>
@@ -406,8 +406,10 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
               <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.ahiNrem || '---'} / {data.respiratoryEvents?.ahiRem || '---'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground font-inter">AHI (supine/lateral)</span>
-              <span className="font-medium text-foreground font-inter">{data.respiratoryEvents?.ahiSupine || '---'} / {data.respiratoryEvents?.ahiLateral || '---'}</span>
+              <span className="text-sm text-muted-foreground font-inter">AHI (Supine/Lateral) (/hr)</span>
+              <span className="font-medium text-foreground font-inter">
+                {data.respiratoryEvents?.ahiSupine || data.additionalMetrics?.supinePositionIndex || '---'} / {data.respiratoryEvents?.ahiLateral || data.additionalMetrics?.ahiLateral || '---'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground font-inter">Central Apnea Index</span>

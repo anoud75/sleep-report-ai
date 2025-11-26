@@ -33,13 +33,21 @@ async function extractSleepMetrics(rawText: string, apiKey: string, studyType: s
 - **Sleep Onset Latency**: "Latencies" table → "Sleep onset" row, "From Light off (min)" column
 - **REM Latency**: "Latencies" table → "REM" row, "From Sleep onset (min)" column
 
-### PAGE 2: Sleep Architecture
+### PAGE 2: Sleep Architecture (USE TST (%) COLUMN - 5th COLUMN)
+**CRITICAL TABLE STRUCTURE**:
+              Episodes  Duration  TIB%   SPT%   TST%
+              (# of)    (min)     (%)    (%)    (%) ← USE THIS COLUMN ONLY
+S1            15        9.0       2.3    2.5    3.0 ← Extract 3.0
+S2            31        229.5     59.8   64.6   76.2 ← Extract 76.2
+S3            4         42.0      10.9   11.8   14.0 ← Extract 14.0
+REM           2         20.5      5.3    5.8    6.8 ← Extract 6.8
+
 - **Sleep Efficiency**: "General" block → "Sleep efficiency 1" (%)
-- **REM Duration & %**: "Sleep Stages Distribution" table → "REM" row
-- **S1 Episodes & %**: "S1" row
-- **S2 Episodes**: "S2" row
-- **S3 Episodes & %**: "S3" row (slow wave sleep)
-- **REM Cycles**: "SLEEP DATA 3" section count
+- **Stage 1 %**: "S1" row → **TST (%)** column (5th column, NOT TIB or SPT)
+- **Stage 2 %**: "S2" row → **TST (%)** column (5th column)
+- **Stage 3 %**: "S3" row → **TST (%)** column (5th column)
+- **REM %**: "REM" row → **TST (%)** column (5th column)
+- **REM Cycles**: Count of REM episodes in "SLEEP DATA 3" section
 
 ### PAGE 4: Respiratory Events
 - **CA Index**: "Index (#/h TST)" row → "CA" column
@@ -58,17 +66,21 @@ async function extractSleepMetrics(rawText: string, apiKey: string, studyType: s
 ### PAGE 6: Oxygenation & Arousal
 - **Oxygen <90%**: Oximetry Distribution "<90" row → Extract REM & NREM (minutes), Calculate: ((REM + NREM) * 100) / TST
 - **Oxygen <95%**: "<95" row → Extract REM & NREM (minutes), Calculate: ((REM + NREM) * 100) / TST
-- **Average SpO2**: "Average (%)" row
+- **Lowest SpO2**: Oximetry Summary → "Minimum (%)" or "Lowest" value
+- **Average SpO2**: "Average (%)" row → Main value
 - **Desaturation Index**: "Desat Index (#/hour)" row → TOTAL column (rightmost number ONLY)
 - **Arousal Index**: Extract from "Arousal index" line
 
-### PAGE 7: Movement & Position
+### PAGE 7: Body Position - AHI by Position
+**CRITICAL**: Extract AHI values from Body Position table → "Index (#/h)" or "AHI" column
+- **AHI Supine**: "S" or "S/SL" row → "Index (#/h)" column
+- **AHI Left**: "L" row → "Index (#/h)" column  
+- **AHI Right**: "R" row → "Index (#/h)" column
+- **Supine Position Index**: "S/SL" row → "Index (#/h)" column (positional index)
+- **Left Position Index**: "L" row → "Index (#/h)" column (positional index)
+- **Right Position Index**: "R" row → "Index (#/h)" column (positional index)
 - **Snoring Duration & %**: "Total duration with snoring"
 - **Leg Movement Index**: "Leg movements" → "Index" column
-- **Left Position Index**: "L" row → "Index (#/h)" column
-- **Right Position Index**: "R" row → "Index (#/h)" column
-- **Supine Position Index**: "S/SL" row → "Index (#/h)" column
-- **AHI Lateral**: Calculate (Right + Left) / 2 if both exist
 
 ## 📤 REQUIRED JSON OUTPUT
 
@@ -90,16 +102,20 @@ async function extractSleepMetrics(rawText: string, apiKey: string, studyType: s
   },
   "sleepArchitecture": {
     "sleepEfficiency": "number (percentage) or null",
-    "stage1Percent": "number or null",
-    "stage2Percent": "number or null",
-    "stage3Percent": "number or null",
-    "remPercent": "number or null",
+    "stage1Percent": "number or null (from TST % column)",
+    "stage2Percent": "number or null (from TST % column)",
+    "stage3Percent": "number or null (from TST % column)",
+    "stage4Percent": "number or null (from TST % column, usually 0)",
+    "remPercent": "number or null (from TST % column)",
     "remCycles": "number or null"
   },
   "respiratoryEvents": {
     "ahiOverall": "number or null",
     "ahiNrem": "number or null",
     "ahiRem": "number or null",
+    "ahiSupine": "number or null (from Body Position table S/SL row)",
+    "ahiLeft": "number or null (from Body Position table L row)",
+    "ahiRight": "number or null (from Body Position table R row)",
     "centralApneaIndex": "number or null",
     "obstructiveApneaIndex": "number or null",
     "mixedApneaIndex": "number or null",
@@ -107,6 +123,7 @@ async function extractSleepMetrics(rawText: string, apiKey: string, studyType: s
     "meanHypopneaDuration": "number (seconds) or null"
   },
   "oxygenation": {
+    "lowestSpO2": "number or null (from Oximetry Minimum %)",
     "averageSpO2": "number or null",
     "desaturationIndex": "number or null",
     "timeBelow90Percent": "number (percentage) or null",
@@ -190,6 +207,21 @@ ${rawText.substring(0, 20000)}`;
     const parsed = JSON.parse(result);
     console.log("=== Parsed Comprehensive Result ===", JSON.stringify(parsed, null, 2));
     
+    // Calculate Slow Wave Sleep (SWS) = S3 + S4
+    if (parsed.sleepArchitecture?.stage3Percent !== null) {
+      const s4 = parsed.sleepArchitecture?.stage4Percent || 0;
+      parsed.sleepArchitecture.slowWaveSleepPercent = parseFloat((parsed.sleepArchitecture.stage3Percent + s4).toFixed(1));
+      console.log(`✅ Calculated SWS: ${parsed.sleepArchitecture.stage3Percent} + ${s4} = ${parsed.sleepArchitecture.slowWaveSleepPercent}%`);
+    }
+    
+    // Calculate AHI Lateral = (AHI Left + AHI Right) / 2
+    if (!parsed.respiratoryEvents?.ahiLateral && 
+        typeof parsed.respiratoryEvents?.ahiLeft === 'number' && 
+        typeof parsed.respiratoryEvents?.ahiRight === 'number') {
+      parsed.respiratoryEvents.ahiLateral = parseFloat(((parsed.respiratoryEvents.ahiLeft + parsed.respiratoryEvents.ahiRight) / 2).toFixed(2));
+      console.log(`✅ Calculated AHI Lateral: (${parsed.respiratoryEvents.ahiLeft} + ${parsed.respiratoryEvents.ahiRight}) / 2 = ${parsed.respiratoryEvents.ahiLateral}`);
+    }
+    
     // FIX: JavaScript Zero Bug - Check for number type instead of truthy value
     // Calculate O2 percentages if AI provided raw values
     if (parsed.oxygenation?.timeBelow90Percent === null && 
@@ -210,14 +242,6 @@ ${rawText.substring(0, 20000)}`;
       const sum95 = parsed.oxygenation.calculations.under95REM + parsed.oxygenation.calculations.under95NREM;
       parsed.oxygenation.timeBelow95Percent = parseFloat(((sum95 / tst) * 100).toFixed(2));
       console.log(`✅ Calculated O2 <95%: (${parsed.oxygenation.calculations.under95REM} + ${parsed.oxygenation.calculations.under95NREM}) / ${tst} * 100 = ${parsed.oxygenation.timeBelow95Percent}%`);
-    }
-    
-    // Calculate AHI Lateral if position indices exist
-    if (!parsed.additionalMetrics?.ahiLateral && 
-        typeof parsed.additionalMetrics?.leftPositionIndex === 'number' && 
-        typeof parsed.additionalMetrics?.rightPositionIndex === 'number') {
-      parsed.additionalMetrics.ahiLateral = parseFloat(((parsed.additionalMetrics.leftPositionIndex + parsed.additionalMetrics.rightPositionIndex) / 2).toFixed(2));
-      console.log(`✅ Calculated AHI Lateral: (${parsed.additionalMetrics.leftPositionIndex} + ${parsed.additionalMetrics.rightPositionIndex}) / 2 = ${parsed.additionalMetrics.ahiLateral}`);
     }
     
     console.log("✅ Comprehensive extraction successful");
@@ -246,6 +270,8 @@ ${rawText.substring(0, 20000)}`;
         stage1Percent: null,
         stage2Percent: null,
         stage3Percent: null,
+        stage4Percent: null,
+        slowWaveSleepPercent: null,
         remPercent: null,
         remCycles: null
       },
@@ -253,6 +279,10 @@ ${rawText.substring(0, 20000)}`;
         ahiOverall: null,
         ahiNrem: null,
         ahiRem: null,
+        ahiSupine: null,
+        ahiLeft: null,
+        ahiRight: null,
+        ahiLateral: null,
         centralApneaIndex: null,
         obstructiveApneaIndex: null,
         mixedApneaIndex: null,
@@ -260,6 +290,7 @@ ${rawText.substring(0, 20000)}`;
         meanHypopneaDuration: null
       },
       oxygenation: {
+        lowestSpO2: null,
         averageSpO2: null,
         desaturationIndex: null,
         timeBelow90Percent: null,
@@ -332,6 +363,8 @@ serve(async (req) => {
         stage1Percent: null,
         stage2Percent: null,
         stage3Percent: null,
+        stage4Percent: null,
+        slowWaveSleepPercent: null,
         remPercent: null,
         remCycles: null
       },
@@ -339,6 +372,10 @@ serve(async (req) => {
         ahiOverall: null,
         ahiNrem: null,
         ahiRem: null,
+        ahiSupine: null,
+        ahiLeft: null,
+        ahiRight: null,
+        ahiLateral: null,
         centralApneaIndex: null,
         obstructiveApneaIndex: null,
         mixedApneaIndex: null,
@@ -346,6 +383,7 @@ serve(async (req) => {
         meanHypopneaDuration: null
       },
       oxygenation: extractedData.oxygenation || {
+        lowestSpO2: null,
         averageSpO2: null,
         desaturationIndex: null,
         timeBelow90Percent: null,
