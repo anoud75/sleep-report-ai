@@ -73,6 +73,38 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
     return null;
   };
 
+  const smartTruncate = (content: string, maxLength: number): string => {
+    if (content.length <= maxLength) return content;
+    
+    // Try to preserve important sections by finding them first
+    const importantSections = [
+      { name: 'Oximetry', pattern: /(Oximetry|Oxygen|SpO2|Desaturation)[\s\S]{0,5000}/gi },
+      { name: 'Sleep Architecture', pattern: /(Sleep\s+Architecture|Stage\s+distribution)[\s\S]{0,3000}/gi },
+      { name: 'Respiratory Events', pattern: /(Respiratory\s+Events|AHI|Apnea)[\s\S]{0,3000}/gi },
+      { name: 'Heart Rate', pattern: /(Heart\s+Rate|HR|BPM)[\s\S]{0,2000}/gi }
+    ];
+    
+    let preservedContent = '';
+    let remainingContent = content;
+    
+    // Extract important sections
+    for (const section of importantSections) {
+      const matches = remainingContent.match(section.pattern);
+      if (matches && matches[0]) {
+        preservedContent += matches[0] + '\n\n';
+        remainingContent = remainingContent.replace(matches[0], '');
+      }
+    }
+    
+    // Fill the rest with content from the beginning
+    const remainingSpace = maxLength - preservedContent.length;
+    if (remainingSpace > 0) {
+      preservedContent = content.substring(0, remainingSpace) + '\n\n' + preservedContent;
+    }
+    
+    return preservedContent.substring(0, maxLength);
+  };
+
   const extractFileContent = async (file: File): Promise<string> => {
     const fileExtension = file.name.toLowerCase().split('.').pop();
     
@@ -125,7 +157,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
       let fileContent = '';
       
       if (isSplitNight) {
-        // For split-night, combine both files
+        // For split-night, truncate each file separately to ensure both portions reach the AI
         const diagnosticFile = files.find(f => f.type === 'diagnostic');
         const therapeuticFile = files.find(f => f.type === 'therapeutic');
         
@@ -136,7 +168,20 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
         const diagnosticContent = await extractFileContent(diagnosticFile.file);
         const therapeuticContent = await extractFileContent(therapeuticFile.file);
         
-        fileContent = `DIAGNOSTIC PORTION:\n${diagnosticContent}\n\nTHERAPEUTIC PORTION:\n${therapeuticContent}`;
+        // Truncate each file to 40,000 characters to preserve important sections
+        const truncatedDiagnostic = smartTruncate(diagnosticContent, 40000);
+        const truncatedTherapeutic = smartTruncate(therapeuticContent, 40000);
+        
+        // Combine with clear markers for the edge function to parse
+        fileContent = `=== OFF CPAP (DIAGNOSTIC PORTION) ===\n${truncatedDiagnostic}\n\n=== ON CPAP (THERAPEUTIC PORTION) ===\n${truncatedTherapeutic}`;
+        
+        console.log('Split-Night file processing:', {
+          diagnosticOriginalLength: diagnosticContent.length,
+          therapeuticOriginalLength: therapeuticContent.length,
+          diagnosticTruncatedLength: truncatedDiagnostic.length,
+          therapeuticTruncatedLength: truncatedTherapeutic.length,
+          combinedLength: fileContent.length
+        });
       } else {
         // Single file processing
         fileContent = await extractFileContent(files[0].file);

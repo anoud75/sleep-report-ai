@@ -101,13 +101,64 @@ async function extractSleepMetrics(rawText: string, apiKey: string, studyType: s
 
   // For Split-Night studies, extract two separate datasets
   if (studyType === 'Split-Night') {
+    console.log("=== SPLIT-NIGHT DATA SEPARATION ===");
+    
+    // Parse the incoming text to find both sections
+    const diagnosticMarker = '=== OFF CPAP (DIAGNOSTIC PORTION) ===';
+    const therapeuticMarker = '=== ON CPAP (THERAPEUTIC PORTION) ===';
+    
+    const diagnosticStart = rawText.indexOf(diagnosticMarker);
+    const therapeuticStart = rawText.indexOf(therapeuticMarker);
+    
+    let diagnosticText = '';
+    let therapeuticText = '';
+    
+    if (diagnosticStart !== -1 && therapeuticStart !== -1) {
+      // Both markers found - extract each section
+      diagnosticText = rawText.substring(diagnosticStart + diagnosticMarker.length, therapeuticStart).trim();
+      therapeuticText = rawText.substring(therapeuticStart + therapeuticMarker.length).trim();
+      
+      console.log("✅ Both portions found with markers");
+      console.log("Diagnostic text length:", diagnosticText.length);
+      console.log("Therapeutic text length:", therapeuticText.length);
+    } else {
+      // Fallback: try to split by old markers
+      console.log("⚠️ New markers not found, trying old markers");
+      const oldDiagMarker = 'DIAGNOSTIC PORTION:';
+      const oldTherapMarker = 'THERAPEUTIC PORTION:';
+      
+      const oldDiagStart = rawText.indexOf(oldDiagMarker);
+      const oldTherapStart = rawText.indexOf(oldTherapMarker);
+      
+      if (oldDiagStart !== -1 && oldTherapStart !== -1) {
+        diagnosticText = rawText.substring(oldDiagStart + oldDiagMarker.length, oldTherapStart).trim();
+        therapeuticText = rawText.substring(oldTherapStart + oldTherapMarker.length).trim();
+        console.log("✅ Found old format markers");
+      } else {
+        // Last resort: split in half
+        console.log("⚠️ No markers found, splitting in half");
+        const midPoint = Math.floor(rawText.length / 2);
+        diagnosticText = rawText.substring(0, midPoint);
+        therapeuticText = rawText.substring(midPoint);
+      }
+      
+      console.log("Diagnostic text length:", diagnosticText.length);
+      console.log("Therapeutic text length:", therapeuticText.length);
+    }
+    
+    // Show samples for debugging
+    console.log("=== DIAGNOSTIC SAMPLE (first 500 chars) ===");
+    console.log(diagnosticText.substring(0, 500));
+    console.log("=== THERAPEUTIC SAMPLE (first 500 chars) ===");
+    console.log(therapeuticText.substring(0, 500));
+    
     const prompt = `You are a medical-grade AI assistant extracting comprehensive sleep study data from a Split-Night study report.
 
 ## 🔍 SPLIT-NIGHT EXTRACTION RULES
 
 **CRITICAL**: This is a Split-Night study with TWO distinct periods:
-1. **OFF CPAP (Diagnostic)** - First part of the night
-2. **ON CPAP (Therapeutic)** - Second part of the night with CPAP therapy
+1. **OFF CPAP (Diagnostic)** - First part of the night (NO THERAPY)
+2. **ON CPAP (Therapeutic)** - Second part of the night (WITH CPAP THERAPY)
 
 You must extract TWO complete sets of data, one for each period.
 
@@ -193,8 +244,11 @@ You must extract TWO complete sets of data, one for each period.
   }
 }
 
-### 📄 DOCUMENT TEXT:
-${rawText.substring(0, 30000)}`;
+### 📄 OFF CPAP (DIAGNOSTIC) DATA:
+${diagnosticText.substring(0, 25000)}
+
+### 📄 ON CPAP (THERAPEUTIC) DATA:
+${therapeuticText.substring(0, 25000)}`;
 
     try {
       console.log("=== Sending Split-Night request to AI ===");
