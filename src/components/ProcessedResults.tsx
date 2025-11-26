@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp } from "lucide-react";
+import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import { FeedbackDialog } from "@/components/FeedbackDialog";
@@ -210,7 +210,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       yPos += summaryHeight + 5;
     }
     
-    // Recommendations Section
+    // AI Recommendations Section
     if (data.recommendations && data.recommendations.length > 0) {
       if (yPos > pageHeight - 80) {
         doc.addPage();
@@ -221,11 +221,19 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.text('RECOMMENDATIONS', margin, yPos);
+      doc.text('AI RECOMMENDATIONS', margin, yPos);
+      
+      // Add guidelines note
+      yPos += 6;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+      doc.text('Based on AASM Clinical Practice Guidelines and Evidence-Based Resources', margin, yPos);
       
       yPos += 10;
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
       
       data.recommendations.forEach((rec: string, index: number) => {
         if (yPos > pageHeight - 20) {
@@ -536,13 +544,21 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         </div>
       )}
 
-      {/* Recommendations Box */}
+      {/* AI Recommendations Box */}
       {data.recommendations && data.recommendations.length > 0 && (
         <div className="bg-success/5 rounded-xl border border-success/20 p-6">
-          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
-            <Stethoscope className="h-4 w-4 text-success" />
-            Recommendations
-          </h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold font-jakarta text-foreground flex items-center gap-2">
+              <Brain className="h-4 w-4 text-success" />
+              AI Recommendations
+            </h3>
+            <Badge className="bg-success/20 text-success text-xs border-success/30">
+              Evidence-Based
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4 italic font-inter">
+            Based on AASM Clinical Practice Guidelines and Evidence-Based Resources
+          </p>
           <ul className="space-y-2">
             {data.recommendations.map((rec: string, index: number) => (
               <li key={index} className="flex items-start text-sm">

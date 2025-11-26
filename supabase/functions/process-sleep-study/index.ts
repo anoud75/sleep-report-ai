@@ -410,12 +410,13 @@ serve(async (req) => {
   }
 
   try {
-    const { rawText, studyType, clinicalData } = await req.json();
+    const { rawText, studyType, clinicalData, patientComments } = await req.json();
     
     console.log("=== REQUEST RECEIVED ===");
     console.log("Study Type:", studyType);
     console.log("Raw text length:", rawText?.length || 0);
     console.log("Clinical Data received:", !!clinicalData);
+    console.log("Patient Comments received:", patientComments?.length || 0);
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
@@ -500,7 +501,7 @@ serve(async (req) => {
       },
       clinicalSummary,
       recommendations,
-      patientComments: clinicalData?.selectedComments || [],
+      patientComments: patientComments || clinicalData?.selectedComments || [],
       extractionMethod: "comprehensive-medical-grade",
       timestamp: new Date().toISOString()
     };
