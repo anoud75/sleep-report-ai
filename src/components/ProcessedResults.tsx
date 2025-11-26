@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import { FeedbackDialog } from "@/components/FeedbackDialog";
+import { SplitNightDisplay } from "@/components/SplitNightDisplay";
 import { useState } from "react";
 
 interface ProcessedResultsProps {
@@ -152,60 +153,153 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
   const { toast } = useToast();
   const [showFeedback, setShowFeedback] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  
+  const isSplitNight = data.isSplitNight || data.studyType === 'Split-Night';
+
+  // Helper to get initial data based on study type
+  const getInitialData = () => {
+    if (isSplitNight) {
+      return {
+        // Patient Information
+        patientName: '',
+        patientMRN: '',
+        patientAge: '',
+        patientBMI: '',
+        studyDate: new Date().toLocaleDateString(),
+        hijraDate: '',
+        ward: 'SDC',
+        studyNumber: '',
+        referringPhysician: '',
+        clinicalDiagnosis: 'OSA',
+        psgDiagnosis: '',
+        doneBy: '',
+        scoredBy: '',
+        studyNote: `Split-night sleep study was done. 1st part was off CPAP and 2nd part was on Conventional CPAP pressure of ${data.onCpap?.cpapPressure || data.clinicalData?.cpapPressure || '---'} via ${data.clinicalData?.maskType || 'nasal mask'} (${data.clinicalData?.maskSize || 'Medium'}) size${data.clinicalData?.hasChinstrap ? ' with chinstrap' : ''}.`,
+        // Split Night Data - OFF CPAP
+        offCpap: {
+          lightsOff: data.offCpap?.studyInfo?.lightsOff || '',
+          lightsOn: data.offCpap?.studyInfo?.lightsOn || '',
+          timeInBed: data.offCpap?.studyInfo?.timeInBed || '',
+          totalSleepTime: data.offCpap?.studyInfo?.totalSleepTime || '',
+          sleepLatency: data.offCpap?.studyInfo?.sleepLatency || '',
+          remLatency: data.offCpap?.studyInfo?.remLatency || '',
+          sleepEfficiency: data.offCpap?.sleepArchitecture?.sleepEfficiency || '',
+          stage1Percent: data.offCpap?.sleepArchitecture?.stage1Percent || '',
+          stage2Percent: data.offCpap?.sleepArchitecture?.stage2Percent || '',
+          slowWaveSleepPercent: data.offCpap?.sleepArchitecture?.slowWaveSleepPercent || '',
+          remPercent: data.offCpap?.sleepArchitecture?.remPercent || '',
+          remCycles: data.offCpap?.sleepArchitecture?.remCycles || '',
+          ahiOverall: data.offCpap?.respiratoryEvents?.ahiOverall || '',
+          ahiNremRem: `${data.offCpap?.respiratoryEvents?.ahiNrem || '---'}/${data.offCpap?.respiratoryEvents?.ahiRem || '---'}`,
+          ahiSupineLateral: `${data.offCpap?.respiratoryEvents?.ahiSupine || '---'}/${data.offCpap?.respiratoryEvents?.ahiLateral || '---'}`,
+          centralApneaIndex: data.offCpap?.respiratoryEvents?.centralApneaIndex || '',
+          obstructiveApneaIndex: data.offCpap?.respiratoryEvents?.obstructiveApneaIndex || '',
+          mixedApneaIndex: data.offCpap?.respiratoryEvents?.mixedApneaIndex || '',
+          hypopneaIndex: data.offCpap?.respiratoryEvents?.hypopneaIndex || '',
+          meanHypopneaDuration: data.offCpap?.respiratoryEvents?.meanHypopneaDuration || '',
+          heartRateNremRem: `${data.offCpap?.cardiacData?.meanHeartRateNrem || '---'}/${data.offCpap?.cardiacData?.meanHeartRateRem || '---'}`,
+          desaturationIndex: data.offCpap?.oxygenation?.desaturationIndex || '',
+          timeBelow90: data.offCpap?.oxygenation?.timeBelow90Percent || '',
+          timeBelow95: data.offCpap?.oxygenation?.timeBelow95Percent || '',
+          lowestO2Average: `${data.offCpap?.oxygenation?.lowestSpO2 || '---'}%/${data.offCpap?.oxygenation?.averageSpO2 || '---'}%`,
+          arousalIndex: data.offCpap?.additionalMetrics?.arousalIndex || '',
+          snoring: data.offCpap?.additionalMetrics?.snoringPercent || '',
+          legMovementIndex: data.offCpap?.additionalMetrics?.legMovementIndex || ''
+        },
+        // Split Night Data - ON CPAP
+        onCpap: {
+          cpapPressure: data.onCpap?.cpapPressure || data.clinicalData?.cpapPressure || '',
+          lightsOff: data.onCpap?.studyInfo?.lightsOff || '',
+          lightsOn: data.onCpap?.studyInfo?.lightsOn || '',
+          timeInBed: data.onCpap?.studyInfo?.timeInBed || '',
+          totalSleepTime: data.onCpap?.studyInfo?.totalSleepTime || '',
+          sleepLatency: data.onCpap?.studyInfo?.sleepLatency || '',
+          remLatency: data.onCpap?.studyInfo?.remLatency || '',
+          sleepEfficiency: data.onCpap?.sleepArchitecture?.sleepEfficiency || '',
+          stage1Percent: data.onCpap?.sleepArchitecture?.stage1Percent || '',
+          stage2Percent: data.onCpap?.sleepArchitecture?.stage2Percent || '',
+          slowWaveSleepPercent: data.onCpap?.sleepArchitecture?.slowWaveSleepPercent || '',
+          remPercent: data.onCpap?.sleepArchitecture?.remPercent || '',
+          remCycles: data.onCpap?.sleepArchitecture?.remCycles || '',
+          ahiOverall: data.onCpap?.respiratoryEvents?.ahiOverall || '',
+          ahiNremRem: `${data.onCpap?.respiratoryEvents?.ahiNrem || '---'}/${data.onCpap?.respiratoryEvents?.ahiRem || '---'}`,
+          ahiSupineLateral: `${data.onCpap?.respiratoryEvents?.ahiSupine || '---'}/${data.onCpap?.respiratoryEvents?.ahiLateral || '---'}`,
+          centralApneaIndex: data.onCpap?.respiratoryEvents?.centralApneaIndex || '',
+          obstructiveApneaIndex: data.onCpap?.respiratoryEvents?.obstructiveApneaIndex || '',
+          mixedApneaIndex: data.onCpap?.respiratoryEvents?.mixedApneaIndex || '',
+          hypopneaIndex: data.onCpap?.respiratoryEvents?.hypopneaIndex || '',
+          meanHypopneaDuration: data.onCpap?.respiratoryEvents?.meanHypopneaDuration || '',
+          heartRateNremRem: `${data.onCpap?.cardiacData?.meanHeartRateNrem || '---'}/${data.onCpap?.cardiacData?.meanHeartRateRem || '---'}`,
+          desaturationIndex: data.onCpap?.oxygenation?.desaturationIndex || '',
+          timeBelow90: data.onCpap?.oxygenation?.timeBelow90Percent || '',
+          timeBelow95: data.onCpap?.oxygenation?.timeBelow95Percent || '',
+          lowestO2Average: `${data.onCpap?.oxygenation?.lowestSpO2 || '---'}%/${data.onCpap?.oxygenation?.averageSpO2 || '---'}%`,
+          arousalIndex: data.onCpap?.additionalMetrics?.arousalIndex || '',
+          snoring: data.onCpap?.additionalMetrics?.snoringPercent || '',
+          legMovementIndex: data.onCpap?.additionalMetrics?.legMovementIndex || ''
+        },
+        clinicalSummary: data.clinicalSummary || '',
+        recommendations: data.recommendations || []
+      };
+    }
+    
+    // Regular study data structure
+    return {
+      patientName: '',
+      patientMRN: '',
+      patientAge: '',
+      patientBMI: '',
+      studyDate: data.patientInfo?.studyDate || new Date().toLocaleDateString(),
+      hijraDate: '',
+      ward: 'SDC',
+      studyNumber: '',
+      referringPhysician: '',
+      clinicalDiagnosis: 'OSA',
+      psgDiagnosis: '',
+      doneBy: '',
+      scoredBy: '',
+      studyNote: 'Overnight sleep study was done.',
+      // Respiratory Events
+      ahiOverall: data.respiratoryEvents?.ahiOverall || '',
+      ahiSupine: data.respiratoryEvents?.ahiSupine || '',
+      ahiLateral: data.respiratoryEvents?.ahiLateral || '',
+      ahiNrem: data.respiratoryEvents?.ahiNrem || '',
+      ahiRem: data.respiratoryEvents?.ahiRem || '',
+      centralApneaIndex: data.respiratoryEvents?.centralApneaIndex || '',
+      obstructiveApneaIndex: data.respiratoryEvents?.obstructiveApneaIndex || '',
+      mixedApneaIndex: data.respiratoryEvents?.mixedApneaIndex || '',
+      hypopneaIndex: data.respiratoryEvents?.hypopneaIndex || '',
+      meanHypopneaDuration: data.respiratoryEvents?.meanHypopneaDuration || '',
+      // Sleep Architecture
+      sleepEfficiency: data.sleepArchitecture?.sleepEfficiency || '',
+      stage1Percent: data.sleepArchitecture?.stage1Percent || '',
+      stage2Percent: data.sleepArchitecture?.stage2Percent || '',
+      slowWaveSleepPercent: data.sleepArchitecture?.slowWaveSleepPercent || data.sleepArchitecture?.stage3Percent || '',
+      remPercent: data.sleepArchitecture?.remPercent || '',
+      // Additional Metrics
+      snoringPercent: data.additionalMetrics?.snoringPercent || '',
+      legMovementIndex: data.additionalMetrics?.legMovementIndex || '',
+      arousalIndex: data.additionalMetrics?.arousalIndex || '',
+      // Oxygenation
+      desaturationIndex: data.oxygenation?.desaturationIndex || '',
+      timeBelow90: data.oxygenation?.timeBelow90Percent ?? '',
+      timeBelow95: data.oxygenation?.timeBelow95Percent ?? '',
+      lowestSpO2: data.oxygenation?.lowestSpO2 || '',
+      averageSpO2: data.oxygenation?.averageSpO2 || '',
+      // Cardiac
+      meanHeartRateNrem: data.cardiacData?.meanHeartRateNrem || '',
+      meanHeartRateRem: data.cardiacData?.meanHeartRateRem || '',
+      // Sleep Info
+      sleepLatency: data.studyInfo?.sleepLatency || '',
+      remLatency: data.studyInfo?.remLatency || '',
+      // Clinical Summary & Recommendations
+      clinicalSummary: data.clinicalSummary || '',
+      recommendations: data.recommendations || [],
+    };
+  };
 
   // Editable data state - initialized from data
-  const [editableData, setEditableData] = useState({
-    // Patient Information (manually entered for privacy)
-    patientName: '',
-    patientMRN: '',
-    patientAge: '',
-    patientBMI: '',
-    studyDate: data.patientInfo?.studyDate || new Date().toLocaleDateString(),
-    hijraDate: '',
-    ward: 'SDC',
-    studyNumber: '',
-    referringPhysician: '',
-    clinicalDiagnosis: 'OSA',
-    psgDiagnosis: '',
-    doneBy: '',
-    scoredBy: '',
-    // Respiratory Events
-    ahiOverall: data.respiratoryEvents?.ahiOverall || '',
-    ahiSupine: data.respiratoryEvents?.ahiSupine || '',
-    ahiLateral: data.respiratoryEvents?.ahiLateral || '',
-    ahiNrem: data.respiratoryEvents?.ahiNrem || '',
-    ahiRem: data.respiratoryEvents?.ahiRem || '',
-    centralApneaIndex: data.respiratoryEvents?.centralApneaIndex || '',
-    obstructiveApneaIndex: data.respiratoryEvents?.obstructiveApneaIndex || '',
-    mixedApneaIndex: data.respiratoryEvents?.mixedApneaIndex || '',
-    hypopneaIndex: data.respiratoryEvents?.hypopneaIndex || '',
-    meanHypopneaDuration: data.respiratoryEvents?.meanHypopneaDuration || '',
-    // Sleep Architecture
-    sleepEfficiency: data.sleepArchitecture?.sleepEfficiency || '',
-    stage1Percent: data.sleepArchitecture?.stage1Percent || '',
-    stage2Percent: data.sleepArchitecture?.stage2Percent || '',
-    slowWaveSleepPercent: data.sleepArchitecture?.slowWaveSleepPercent || data.sleepArchitecture?.stage3Percent || '',
-    remPercent: data.sleepArchitecture?.remPercent || '',
-    // Additional Metrics
-    snoringPercent: data.additionalMetrics?.snoringPercent || '',
-    legMovementIndex: data.additionalMetrics?.legMovementIndex || '',
-    arousalIndex: data.additionalMetrics?.arousalIndex || '',
-    // Oxygenation
-    desaturationIndex: data.oxygenation?.desaturationIndex || '',
-    timeBelow90: data.oxygenation?.timeBelow90Percent ?? '',
-    timeBelow95: data.oxygenation?.timeBelow95Percent ?? '',
-    lowestSpO2: data.oxygenation?.lowestSpO2 || '',
-    averageSpO2: data.oxygenation?.averageSpO2 || '',
-    // Cardiac
-    meanHeartRateNrem: data.cardiacData?.meanHeartRateNrem || '',
-    meanHeartRateRem: data.cardiacData?.meanHeartRateRem || '',
-    // Sleep Info
-    sleepLatency: data.studyInfo?.sleepLatency || '',
-    remLatency: data.studyInfo?.remLatency || '',
-    // Clinical Summary & Recommendations
-    clinicalSummary: data.clinicalSummary || '',
-    recommendations: data.recommendations || [],
-  });
+  const [editableData, setEditableData] = useState(getInitialData());
 
   // Handle field change
   const handleFieldChange = (field: string, value: string) => {
@@ -336,6 +430,38 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       return yPos;
     };
     
+    // Helper: Draw three-column table for Split-Night studies
+    const drawThreeColumnTable = (data: [string, string, string][], startY: number, rowHeight = 8) => {
+      const colWidths = [contentWidth * 0.4, contentWidth * 0.3, contentWidth * 0.3];
+      let yPos = startY;
+      
+      data.forEach(([label, offValue, onValue]) => {
+        // Draw row borders
+        doc.setDrawColor(tableBorder[0], tableBorder[1], tableBorder[2]);
+        doc.setLineWidth(0.3);
+        doc.rect(margin, yPos, colWidths[0], rowHeight);
+        doc.rect(margin + colWidths[0], yPos, colWidths[1], rowHeight);
+        doc.rect(margin + colWidths[0] + colWidths[1], yPos, colWidths[2], rowHeight);
+        
+        // Label (left column)
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+        doc.text(label, margin + 2, yPos + 5.5);
+        
+        // Values (center aligned in middle and right columns)
+        doc.setFont('helvetica', 'normal');
+        const centerX1 = margin + colWidths[0] + colWidths[1] / 2;
+        const centerX2 = margin + colWidths[0] + colWidths[1] + colWidths[2] / 2;
+        doc.text(offValue || '---', centerX1, yPos + 5.5, { align: 'center' });
+        doc.text(onValue || '---', centerX2, yPos + 5.5, { align: 'center' });
+        
+        yPos += rowHeight;
+      });
+      
+      return yPos;
+    };
+    
     // === PAGE 1: Patient Info & Events ===
     drawHeader();
     
@@ -363,27 +489,78 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       ['Referring Physician', editableData.referringPhysician || '---'],
       ['Clinical Diagnosis', editableData.clinicalDiagnosis || 'OSA'],
       ['PSG Diagnosis', editableData.psgDiagnosis || getPSGDiagnosis()],
-      ['Note', 'Overnight sleep study was done.'],
+      ['Note', editableData.studyNote || 'Overnight sleep study was done.'],
     ];
     
     yPos = drawTwoColumnTable(patientData, yPos);
     
-    // Events Table Header
+    // Events Table Header - Three columns for Split-Night, Two for regular
     yPos += 5;
-    doc.setFillColor(tableHeaderBg[0], tableHeaderBg[1], tableHeaderBg[2]);
-    doc.rect(margin, yPos, contentWidth / 2, 8, 'F');
-    doc.rect(margin + contentWidth / 2, yPos, contentWidth / 2, 8, 'F');
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
-    doc.text('Events', margin + 2, yPos + 5.5);
-    doc.text('Reports', margin + contentWidth / 2 + 2, yPos + 5.5);
     
-    // Events Data
-    yPos += 8;
-    const eventsData: [string, string][] = [
-      ['Light off', data.studyInfo?.lightsOff || '---'],
-      ['Light on', data.studyInfo?.lightsOn || '---'],
+    if (isSplitNight) {
+      // Three-column header for Split-Night
+      const colWidths = [contentWidth * 0.4, contentWidth * 0.3, contentWidth * 0.3];
+      doc.setFillColor(tableHeaderBg[0], tableHeaderBg[1], tableHeaderBg[2]);
+      doc.rect(margin, yPos, colWidths[0], 8, 'F');
+      doc.rect(margin + colWidths[0], yPos, colWidths[1], 8, 'F');
+      doc.rect(margin + colWidths[0] + colWidths[1], yPos, colWidths[2], 8, 'F');
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
+      doc.text('Events', margin + 2, yPos + 5.5);
+      doc.text('OFF CPAP', margin + colWidths[0] + colWidths[1] / 2, yPos + 5.5, { align: 'center' });
+      doc.text('ON CPAP', margin + colWidths[0] + colWidths[1] + colWidths[2] / 2, yPos + 5.5, { align: 'center' });
+      
+      // Three-column data for Split-Night
+      yPos += 8;
+      const splitNightData: [string, string, string][] = [
+        ['Light off', editableData.offCpap?.lightsOff || '---', editableData.onCpap?.lightsOff || '---'],
+        ['Light on', editableData.offCpap?.lightsOn || '---', editableData.onCpap?.lightsOn || '---'],
+        ['Time in Bed (min)', editableData.offCpap?.timeInBed || '---', editableData.onCpap?.timeInBed || '---'],
+        ['Total Sleep Time (min)', editableData.offCpap?.totalSleepTime || '---', editableData.onCpap?.totalSleepTime || '---'],
+        ['CPAP/BPAP/O2', '---', editableData.onCpap?.cpapPressure || '---'],
+        ['Sleep Latency (min)', editableData.offCpap?.sleepLatency || '---', editableData.onCpap?.sleepLatency || '---'],
+        ['REM Latency (min)', editableData.offCpap?.remLatency || '---', editableData.onCpap?.remLatency || '---'],
+        ['Sleep Efficiency (%)', editableData.offCpap?.sleepEfficiency || '---', editableData.onCpap?.sleepEfficiency || '---'],
+        ['Sleep Stage 1 (%)', editableData.offCpap?.stage1Percent || '---', editableData.onCpap?.stage1Percent || '---'],
+        ['Sleep Stage 2 (%)', editableData.offCpap?.stage2Percent || '---', editableData.onCpap?.stage2Percent || '---'],
+        ['Slow Wave Sleep (%)', editableData.offCpap?.slowWaveSleepPercent || '---', editableData.onCpap?.slowWaveSleepPercent || '---'],
+        ['REM Sleep (%)', editableData.offCpap?.remPercent || '---', editableData.onCpap?.remPercent || '---'],
+        ['REM Cycle (No. of cycles)', editableData.offCpap?.remCycles || '---', editableData.onCpap?.remCycles || '---'],
+        ['AHI (NREM/REM)', editableData.offCpap?.ahiNremRem || '---', editableData.onCpap?.ahiNremRem || '---'],
+        ['AHI (supine/lateral) (/hr)', editableData.offCpap?.ahiSupineLateral || '---', editableData.onCpap?.ahiSupineLateral || '---'],
+        ['Central Apnea Index', editableData.offCpap?.centralApneaIndex || '---', editableData.onCpap?.centralApneaIndex || '---'],
+        ['Obstructive Apnea Index (/hr)', editableData.offCpap?.obstructiveApneaIndex || '---', editableData.onCpap?.obstructiveApneaIndex || '---'],
+        ['Mixed Apnea Index', editableData.offCpap?.mixedApneaIndex || '---', editableData.onCpap?.mixedApneaIndex || '---'],
+        ['Hypopnea Index (/hr)', editableData.offCpap?.hypopneaIndex || '---', editableData.onCpap?.hypopneaIndex || '---'],
+        ['Hypopnea Mean Duration (sec)', editableData.offCpap?.meanHypopneaDuration || '---', editableData.onCpap?.meanHypopneaDuration || '---'],
+        ['Heart Rate (NREM/REM)', editableData.offCpap?.heartRateNremRem || '---', editableData.onCpap?.heartRateNremRem || '---'],
+        ['Desaturation Index (/hr)', editableData.offCpap?.desaturationIndex || '---', editableData.onCpap?.desaturationIndex || '---'],
+        ['% Time with O2 < 90% (%)', editableData.offCpap?.timeBelow90 || '---', editableData.onCpap?.timeBelow90 || '---'],
+        ['% Time with O2 < 95% (%)', editableData.offCpap?.timeBelow95 || '---', editableData.onCpap?.timeBelow95 || '---'],
+        ['Lowest O2 /Average O2', editableData.offCpap?.lowestO2Average || '---', editableData.onCpap?.lowestO2Average || '---'],
+        ['Arousal Index (/hr)', editableData.offCpap?.arousalIndex || '---', editableData.onCpap?.arousalIndex || '---'],
+        ['Snoring (%)', editableData.offCpap?.snoring || '---', editableData.onCpap?.snoring || '---'],
+        ['Leg Movement Index (/hr)', editableData.offCpap?.legMovementIndex || '---', editableData.onCpap?.legMovementIndex || '---'],
+      ];
+      
+      yPos = drawThreeColumnTable(splitNightData, yPos);
+    } else {
+      // Two-column layout for regular studies
+      doc.setFillColor(tableHeaderBg[0], tableHeaderBg[1], tableHeaderBg[2]);
+      doc.rect(margin, yPos, contentWidth / 2, 8, 'F');
+      doc.rect(margin + contentWidth / 2, yPos, contentWidth / 2, 8, 'F');
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
+      doc.text('Events', margin + 2, yPos + 5.5);
+      doc.text('Reports', margin + contentWidth / 2 + 2, yPos + 5.5);
+      
+      // Events Data
+      yPos += 8;
+      const eventsData: [string, string][] = [
+        ['Light off', data.studyInfo?.lightsOff || '---'],
+        ['Light on', data.studyInfo?.lightsOn || '---'],
       ['Time in Bed (min)', data.studyInfo?.timeInBed?.toString() || '---'],
       ['Total Sleep Time (min)', data.studyInfo?.totalSleepTime?.toString() || '---'],
       ['Sleep Latency (min)', editableData.sleepLatency?.toString() || '---'],
@@ -416,6 +593,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     ];
     
     yPos = drawTwoColumnTable(eventsData, yPos);
+    }
     
     // Footer for page 1
     drawFooter(1, 2);
@@ -803,6 +981,16 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       </div>
 
       {/* Comprehensive Sleep Study Results */}
+      {isSplitNight ? (
+        /* Split-Night Three-Column Display */
+        <SplitNightDisplay
+          editableData={editableData}
+          isEditMode={isEditMode}
+          handleFieldChange={handleFieldChange}
+          EditableField={EditableField}
+        />
+      ) : (
+        /* Regular Two-Column Display */
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Sleep Timing */}
@@ -1195,6 +1383,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           </div>
         </div>
       </div>
+      )}
 
       {/* Clinical Summary - Editable */}
       {editableData.clinicalSummary && (

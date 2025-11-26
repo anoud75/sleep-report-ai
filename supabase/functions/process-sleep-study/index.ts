@@ -99,7 +99,151 @@ async function extractSleepMetrics(rawText: string, apiKey: string, studyType: s
   console.log("=== DEBUG: Raw text sample (first 2000 chars) ===");
   console.log(rawText.substring(0, 2000));
 
-  // COMPREHENSIVE MEDICAL-GRADE AI PROMPT
+  // For Split-Night studies, extract two separate datasets
+  if (studyType === 'Split-Night') {
+    const prompt = `You are a medical-grade AI assistant extracting comprehensive sleep study data from a Split-Night study report.
+
+## 🔍 SPLIT-NIGHT EXTRACTION RULES
+
+**CRITICAL**: This is a Split-Night study with TWO distinct periods:
+1. **OFF CPAP (Diagnostic)** - First part of the night
+2. **ON CPAP (Therapeutic)** - Second part of the night with CPAP therapy
+
+You must extract TWO complete sets of data, one for each period.
+
+### Extract for BOTH periods:
+- Light Off/On times
+- Time in Bed (minutes)
+- Total Sleep Time (minutes)
+- Sleep Latency & REM Latency
+- Sleep Efficiency (%)
+- Sleep Architecture: S1%, S2%, S3%, REM%, REM Cycles
+- AHI Overall, AHI NREM/REM, AHI Supine/Lateral
+- Central/Obstructive/Mixed Apnea Index
+- Hypopnea Index & Mean Duration
+- Heart Rate NREM/REM
+- Desaturation Index
+- O2 < 90%, O2 < 95%
+- Lowest O2, Average O2
+- Arousal Index
+- Snoring %
+- Leg Movement Index
+
+### Additional for ON CPAP period:
+- CPAP Pressure (e.g., "8 cmH2O")
+
+## 📤 REQUIRED JSON OUTPUT
+
+{
+  "isSplitNight": true,
+  "offCpap": {
+    "studyInfo": {
+      "lightsOff": "string or null",
+      "lightsOn": "string or null",
+      "timeInBed": "number or null",
+      "totalSleepTime": "number or null",
+      "sleepLatency": "number or null",
+      "remLatency": "number or null"
+    },
+    "sleepArchitecture": {
+      "sleepEfficiency": "number or null",
+      "stage1Percent": "number or null",
+      "stage2Percent": "number or null",
+      "stage3Percent": "number or null",
+      "remPercent": "number or null",
+      "remCycles": "number or null"
+    },
+    "respiratoryEvents": {
+      "ahiOverall": "number or null",
+      "ahiNrem": "number or null",
+      "ahiRem": "number or null",
+      "ahiSupine": "number or null",
+      "ahiLateral": "number or null",
+      "centralApneaIndex": "number or null",
+      "obstructiveApneaIndex": "number or null",
+      "mixedApneaIndex": "number or null",
+      "hypopneaIndex": "number or null",
+      "meanHypopneaDuration": "number or null"
+    },
+    "oxygenation": {
+      "lowestSpO2": "number or null",
+      "averageSpO2": "number or null",
+      "desaturationIndex": "number or null",
+      "timeBelow90Percent": "number or null",
+      "timeBelow95Percent": "number or null"
+    },
+    "cardiacData": {
+      "meanHeartRateNrem": "number or null",
+      "meanHeartRateRem": "number or null"
+    },
+    "additionalMetrics": {
+      "arousalIndex": "number or null",
+      "snoringPercent": "number or null",
+      "legMovementIndex": "number or null"
+    }
+  },
+  "onCpap": {
+    "cpapPressure": "string or null (e.g., '8 cmH2O')",
+    "studyInfo": { /* same structure as offCpap */ },
+    "sleepArchitecture": { /* same structure */ },
+    "respiratoryEvents": { /* same structure */ },
+    "oxygenation": { /* same structure */ },
+    "cardiacData": { /* same structure */ },
+    "additionalMetrics": { /* same structure */ }
+  }
+}
+
+### 📄 DOCUMENT TEXT:
+${rawText.substring(0, 30000)}`;
+
+    try {
+      console.log("=== Sending Split-Night request to AI ===");
+      
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          max_tokens: 3000,
+          messages: [{ 
+            role: 'user', 
+            content: prompt
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`AI API failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      let result = data.choices[0].message.content.trim();
+      
+      const jsonMatch = result.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        result = jsonMatch[0];
+      }
+      result = result.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+      
+      const parsed = JSON.parse(result);
+      console.log("✅ Split-Night extraction successful");
+      
+      return parsed;
+      
+    } catch (error) {
+      console.error("❌ Split-Night AI Extraction error:", error);
+      return {
+        isSplitNight: true,
+        offCpap: getEmptyDataStructure(),
+        onCpap: { cpapPressure: null, ...getEmptyDataStructure() }
+      };
+    }
+  }
+
+  // COMPREHENSIVE MEDICAL-GRADE AI PROMPT for regular studies
   const prompt = `You are a medical-grade AI assistant extracting comprehensive sleep study data from a medical report.
 
 ## 🔍 EXTRACTION RULES (Extract ALL available data)
@@ -404,6 +548,57 @@ ${rawText.substring(0, 20000)}`;
   }
 }
 
+// Helper function to get empty data structure
+function getEmptyDataStructure() {
+  return {
+    studyInfo: {
+      lightsOff: null,
+      lightsOn: null,
+      timeInBed: null,
+      totalSleepTime: null,
+      sleepLatency: null,
+      remLatency: null
+    },
+    sleepArchitecture: {
+      sleepEfficiency: null,
+      stage1Percent: null,
+      stage2Percent: null,
+      stage3Percent: null,
+      slowWaveSleepPercent: null,
+      remPercent: null,
+      remCycles: null
+    },
+    respiratoryEvents: {
+      ahiOverall: null,
+      ahiNrem: null,
+      ahiRem: null,
+      ahiSupine: null,
+      ahiLateral: null,
+      centralApneaIndex: null,
+      obstructiveApneaIndex: null,
+      mixedApneaIndex: null,
+      hypopneaIndex: null,
+      meanHypopneaDuration: null
+    },
+    oxygenation: {
+      lowestSpO2: null,
+      averageSpO2: null,
+      desaturationIndex: null,
+      timeBelow90Percent: null,
+      timeBelow95Percent: null
+    },
+    cardiacData: {
+      meanHeartRateNrem: null,
+      meanHeartRateRem: null
+    },
+    additionalMetrics: {
+      arousalIndex: null,
+      snoringPercent: null,
+      legMovementIndex: null
+    }
+  };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -426,7 +621,39 @@ serve(async (req) => {
     // Extract ALL metrics using comprehensive pipeline
     const extractedData = await extractSleepMetrics(rawText || '', lovableApiKey, studyType);
 
-    // Generate Clinical Summary and Recommendations
+    // Handle Split-Night response differently
+    if (extractedData.isSplitNight) {
+      const clinicalSummary = generateClinicalSummary(extractedData.offCpap, studyType);
+      const recommendations = generateRecommendations(extractedData.onCpap, studyType, clinicalData);
+      
+      const response = {
+        isSplitNight: true,
+        studyType,
+        offCpap: extractedData.offCpap,
+        onCpap: extractedData.onCpap,
+        clinicalSummary,
+        recommendations,
+        patientComments: patientComments || clinicalData?.selectedComments || [],
+        clinicalData: clinicalData || {},
+        extractionMethod: "split-night-comprehensive",
+        timestamp: new Date().toISOString()
+      };
+
+      console.log("=== SPLIT-NIGHT RESPONSE ===");
+      console.log(JSON.stringify(response, null, 2));
+
+      return new Response(
+        JSON.stringify(response),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
+    }
+
+    // Generate Clinical Summary and Recommendations for regular studies
     const clinicalSummary = generateClinicalSummary(extractedData, studyType);
     const recommendations = generateRecommendations(extractedData, studyType, clinicalData);
 
