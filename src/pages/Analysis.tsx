@@ -18,7 +18,60 @@ const Analysis = () => {
   }, []);
 
   const handleFileProcessed = (data: any) => {
-    setProcessedData(data);
+    // Normalize edge function response into the structure ProcessedResults expects
+    const extracted = data?.extractedData ?? data ?? {};
+
+    const normalized = {
+      patientInfo: {
+        name: extracted.patientName || 'Patient Name',
+        studyDate: extracted.studyDate,
+        studyType: extracted.studyType,
+      },
+      studyInfo: {
+        lightsOff: null,
+        lightsOn: null,
+        timeInBed: null,
+        totalSleepTime: extracted.totalSleepTime,
+        sleepLatency: extracted.sleepLatency,
+        remLatency: extracted.remLatency,
+        studyDate: extracted.studyDate,
+        studyType: extracted.studyType,
+      },
+      sleepArchitecture: {
+        sleepEfficiency: extracted.sleepEfficiency,
+        stage1Percent: null,
+        stage2Percent: null,
+        stage3Percent: null,
+        remPercent: null,
+      },
+      respiratoryEvents: {
+        meanHypopneaDuration: extracted.hypopneaMeanDuration,
+        ahiNrem: null,
+        ahiRem: null,
+        ahiSupine: null,
+        ahiLateral: null,
+        centralApneaIndex: null,
+        obstructiveApneaIndex: null,
+        mixedApneaIndex: null,
+        hypopneaIndex: null,
+      },
+      oxygenation: {
+        timeBelow90Percent: extracted.oxygenUnder90Percent,
+        timeBelow95Percent: extracted.oxygenUnder95Percent,
+        lowestSpO2: extracted.lowestO2,
+        averageSpO2: extracted.averageO2,
+        desaturationIndex: extracted.desaturationIndex,
+      },
+      additionalMetrics: {
+        arousalIndex: extracted.arousalIndex,
+        snoringPercent: null,
+        legMovementIndex: null,
+      },
+      clinicalSummary: data?.clinicalSummary,
+      studyType: extracted.studyType,
+    };
+
+    setProcessedData(normalized);
     setReportCount(prev => prev + 1);
   };
 
