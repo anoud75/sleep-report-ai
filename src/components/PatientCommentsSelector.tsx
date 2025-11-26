@@ -27,7 +27,12 @@ export const PatientCommentsSelector = ({ onCommentsChange }: PatientCommentsSel
       ? [...selectedComments, commentValue]
       : selectedComments.filter(c => c !== commentValue);
     setSelectedComments(newComments);
-    onCommentsChange(newComments);
+    
+    // Send full label text instead of values
+    const selectedLabels = newComments.map(v => 
+      patientComments.find(c => c.value === v)?.label || v
+    );
+    onCommentsChange(selectedLabels);
   };
 
   return (
@@ -40,7 +45,7 @@ export const PatientCommentsSelector = ({ onCommentsChange }: PatientCommentsSel
             : `${selectedComments.length} comment${selectedComments.length > 1 ? 's' : ''} selected`}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-3 z-50" align="start">
+      <PopoverContent className="w-[400px] p-3 z-50 bg-background border shadow-lg" align="start">
         <div className="space-y-3 max-h-60 overflow-y-auto">
           {patientComments.map((comment) => (
             <div key={comment.value} className="flex items-start space-x-3">
