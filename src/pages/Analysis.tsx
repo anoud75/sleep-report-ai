@@ -18,59 +18,83 @@ const Analysis = () => {
   }, []);
 
   const handleFileProcessed = (data: any) => {
-    // Normalize edge function response into the structure ProcessedResults expects
-    const extracted = data?.extractedData ?? data ?? {};
+    console.log("=== FILE PROCESSED - Raw Data Received ===");
+    console.log(JSON.stringify(data, null, 2));
+    
+    if (!data) {
+      console.error("❌ No data received from edge function");
+      return;
+    }
 
+    // Comprehensive normalization - support both old and new formats
     const normalized = {
-      patientInfo: {
-        name: extracted.patientName || 'Patient Name',
-        studyDate: extracted.studyDate,
-        studyType: extracted.studyType,
+      patientInfo: data.patientInfo || {
+        name: data.extractedData?.patientName || 'Patient Name',
+        firstName: data.extractedData?.firstName || null,
+        age: data.patientInfo?.age || null,
+        gender: data.patientInfo?.gender || null,
+        studyDate: data.studyInfo?.studyDate || data.extractedData?.studyDate || null,
+        studyType: data.studyInfo?.studyType || data.extractedData?.studyType || selectedStudyType
       },
-      studyInfo: {
-        lightsOff: null,
-        lightsOn: null,
-        timeInBed: null,
-        totalSleepTime: extracted.totalSleepTime,
-        sleepLatency: extracted.sleepLatency,
-        remLatency: extracted.remLatency,
-        studyDate: extracted.studyDate,
-        studyType: extracted.studyType,
+      studyInfo: data.studyInfo || {
+        studyType: data.studyInfo?.studyType || data.extractedData?.studyType || selectedStudyType,
+        lightsOff: data.studyInfo?.lightsOff || null,
+        lightsOn: data.studyInfo?.lightsOn || null,
+        timeInBed: data.studyInfo?.timeInBed || null,
+        totalSleepTime: data.studyInfo?.totalSleepTime || data.extractedData?.totalSleepTime || null,
+        sleepLatency: data.studyInfo?.sleepLatency || data.extractedData?.sleepLatency || null,
+        remLatency: data.studyInfo?.remLatency || data.extractedData?.remLatency || null
       },
-      sleepArchitecture: {
-        sleepEfficiency: extracted.sleepEfficiency,
-        stage1Percent: null,
-        stage2Percent: null,
-        stage3Percent: null,
-        remPercent: null,
+      sleepArchitecture: data.sleepArchitecture || {
+        sleepEfficiency: data.sleepArchitecture?.sleepEfficiency || data.extractedData?.sleepEfficiency || null,
+        stage1Percent: data.sleepArchitecture?.stage1Percent || null,
+        stage2Percent: data.sleepArchitecture?.stage2Percent || null,
+        stage3Percent: data.sleepArchitecture?.stage3Percent || null,
+        remPercent: data.sleepArchitecture?.remPercent || null,
+        remCycles: data.sleepArchitecture?.remCycles || null
       },
-      respiratoryEvents: {
-        meanHypopneaDuration: extracted.hypopneaMeanDuration,
-        ahiNrem: null,
-        ahiRem: null,
-        ahiSupine: null,
-        ahiLateral: null,
-        centralApneaIndex: null,
-        obstructiveApneaIndex: null,
-        mixedApneaIndex: null,
-        hypopneaIndex: null,
+      respiratoryEvents: data.respiratoryEvents || {
+        ahiOverall: data.respiratoryEvents?.ahiOverall || null,
+        ahiNrem: data.respiratoryEvents?.ahiNrem || null,
+        ahiRem: data.respiratoryEvents?.ahiRem || null,
+        ahiSupine: data.respiratoryEvents?.ahiSupine || null,
+        ahiLateral: data.respiratoryEvents?.ahiLateral || null,
+        centralApneaIndex: data.respiratoryEvents?.centralApneaIndex || null,
+        obstructiveApneaIndex: data.respiratoryEvents?.obstructiveApneaIndex || null,
+        mixedApneaIndex: data.respiratoryEvents?.mixedApneaIndex || null,
+        hypopneaIndex: data.respiratoryEvents?.hypopneaIndex || null,
+        meanHypopneaDuration: data.respiratoryEvents?.meanHypopneaDuration || data.extractedData?.hypopneaMeanDuration || null
       },
-      oxygenation: {
-        timeBelow90Percent: extracted.oxygenUnder90Percent,
-        timeBelow95Percent: extracted.oxygenUnder95Percent,
-        lowestSpO2: extracted.lowestO2,
-        averageSpO2: extracted.averageO2,
-        desaturationIndex: extracted.desaturationIndex,
+      oxygenation: data.oxygenation || {
+        averageSpO2: data.oxygenation?.averageSpO2 || data.extractedData?.averageO2 || null,
+        desaturationIndex: data.oxygenation?.desaturationIndex || data.extractedData?.desaturationIndex || null,
+        timeBelow90Percent: data.oxygenation?.timeBelow90Percent || data.extractedData?.oxygenUnder90Percent || null,
+        timeBelow95Percent: data.oxygenation?.timeBelow95Percent || data.extractedData?.oxygenUnder95Percent || null,
+        lowestSpO2: data.oxygenation?.lowestSpO2 || data.extractedData?.lowestO2 || null
       },
-      additionalMetrics: {
-        arousalIndex: extracted.arousalIndex,
-        snoringPercent: null,
-        legMovementIndex: null,
+      cardiacData: data.cardiacData || {
+        meanHeartRateNrem: data.cardiacData?.meanHeartRateNrem || null,
+        meanHeartRateRem: data.cardiacData?.meanHeartRateRem || null
       },
-      clinicalSummary: data?.clinicalSummary,
-      studyType: extracted.studyType,
+      additionalMetrics: data.additionalMetrics || {
+        arousalIndex: data.additionalMetrics?.arousalIndex || data.extractedData?.arousalIndex || null,
+        snoringMinutes: data.additionalMetrics?.snoringMinutes || null,
+        snoringPercent: data.additionalMetrics?.snoringPercent || null,
+        legMovementIndex: data.additionalMetrics?.legMovementIndex || null,
+        leftPositionIndex: data.additionalMetrics?.leftPositionIndex || null,
+        rightPositionIndex: data.additionalMetrics?.rightPositionIndex || null,
+        supinePositionIndex: data.additionalMetrics?.supinePositionIndex || null,
+        ahiLateral: data.additionalMetrics?.ahiLateral || null
+      },
+      titrationData: data.titrationData || {},
+      clinicalSummary: data.clinicalSummary || null,
+      studyType: data.studyInfo?.studyType || data.extractedData?.studyType || selectedStudyType,
+      extractionMethod: data.extractionMethod || "unknown"
     };
 
+    console.log("=== NORMALIZED DATA FOR UI ===");
+    console.log(JSON.stringify(normalized, null, 2));
+    
     setProcessedData(normalized);
     setReportCount(prev => prev + 1);
   };

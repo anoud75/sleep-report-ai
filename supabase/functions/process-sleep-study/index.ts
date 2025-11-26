@@ -6,149 +6,146 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Universal Text Extractor Pipeline - Raw text processing with regex fallback
-async function extractSleepMetrics(rawText: string, apiKey: string) {
-  console.log("=== UNIVERSAL EXTRACTION PIPELINE START ===");
+// Universal extraction for ALL sleep study metrics
+async function extractSleepMetrics(rawText: string, apiKey: string, studyType: string) {
+  console.log("=== COMPREHENSIVE EXTRACTION PIPELINE START ===");
   console.log("Raw text length:", rawText.length);
+  console.log("Study Type:", studyType);
   
-  // DEBUG: Show sample of raw text
-  console.log("=== DEBUG: Raw text sample (first 1000 chars) ===");
-  console.log(rawText.substring(0, 1000));
-  
-  // Extract TST first - needed for calculations
-  let totalSleepTime: number | null = null;
-  const tstMatch = rawText.match(/Total Sleep Time[:\s]+(\d+\.?\d*)\s*min/i) || 
-                    rawText.match(/TST[:\s]+(\d+\.?\d*)\s*min/i) ||
-                    rawText.match(/TST[:\s]+(\d+\.?\d*)/i);
-  if (tstMatch) {
-    totalSleepTime = parseFloat(tstMatch[1]);
-    console.log("✅ Found TST:", totalSleepTime, "minutes");
-  } else {
-    console.log("⚠️ TST not found");
-  }
+  // DEBUG: Show raw text sample
+  console.log("=== DEBUG: Raw text sample (first 2000 chars) ===");
+  console.log(rawText.substring(0, 2000));
 
-  // IMPROVED REGEX FALLBACK - Extract values more robustly
-  let regexResults = {
-    desatIndex: null as number | null,
-    hypopneaMean: null as number | null,
-    under90REM: null as number | null,
-    under90NREM: null as number | null,
-    under95REM: null as number | null,
-    under95NREM: null as number | null
-  };
+  // COMPREHENSIVE MEDICAL-GRADE AI PROMPT
+  const prompt = `You are a medical-grade AI assistant extracting comprehensive sleep study data from a medical report.
 
-  console.log("=== DEBUG: Starting regex extraction ===");
+## 🔍 EXTRACTION RULES (Extract ALL available data)
 
-  // Extract Desaturation Index - TOTAL column only (rightmost value)
-  // Pattern: Desat Index (#/hour) WK REM NREM TOTAL
-  // We want the TOTAL (4th number, rightmost)
-  const desatMatch = rawText.match(/Desat(?:uration)?\s+Index\s*\(#\/hour\)[^\n]*?(\d+\.?\d*)\s*$/m) ||
-                      rawText.match(/Desat(?:uration)?\s+Index\s*\(#\/hour\)[^\n]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i);
-  if (desatMatch) {
-    // If we matched 4 groups, take the last one (TOTAL)
-    regexResults.desatIndex = desatMatch[4] ? parseFloat(desatMatch[4]) : parseFloat(desatMatch[1]);
-    console.log("✅ Regex found Desat Index (TOTAL):", regexResults.desatIndex);
-  } else {
-    console.log("⚠️ Desat Index not found");
-  }
+### PAGE 1: Patient & Basic Sleep Data
+- **Patient Name**: "Recording identification" → "Patient name" line
+- **First Name**: Line below patient name  
+- **Age**: "Patient age" line
+- **Gender**: "Sex" field
+- **Light Off Time**: "Times" section → "Light off (LO)" row
+- **Light On Time**: "Times" section → "Light on (LON)" row
+- **TIB**: "Durations" → "TIB" row (minutes)
+- **TST**: "Durations" → "TST" row (minutes)
+- **Sleep Onset Latency**: "Latencies" table → "Sleep onset" row, "From Light off (min)" column
+- **REM Latency**: "Latencies" table → "REM" row, "From Sleep onset (min)" column
 
-  // Extract Hypopnea Mean Duration from "Mean (seconds)" row, HYP column
-  const hypopneaMatch = rawText.match(/Mean\s*\(seconds\)[^\n]*?HYP[^\n]*?(\d+\.?\d*)/i) ||
-                         rawText.match(/HYP[^\n]*?Mean[^\n]*?(\d+\.?\d*)\s*sec/i) ||
-                         rawText.match(/Hypopnea[^\n]*?Mean\s*Duration[^\n]*?(\d+\.?\d*)/i);
-  if (hypopneaMatch) {
-    regexResults.hypopneaMean = parseFloat(hypopneaMatch[1]);
-    console.log("✅ Regex found Hypopnea Mean:", regexResults.hypopneaMean);
-  } else {
-    console.log("⚠️ Hypopnea Mean not found");
-  }
+### PAGE 2: Sleep Architecture
+- **Sleep Efficiency**: "General" block → "Sleep efficiency 1" (%)
+- **REM Duration & %**: "Sleep Stages Distribution" table → "REM" row
+- **S1 Episodes & %**: "S1" row
+- **S2 Episodes**: "S2" row
+- **S3 Episodes & %**: "S3" row (slow wave sleep)
+- **REM Cycles**: "SLEEP DATA 3" section count
 
-  // Extract Oxygen saturation values from Oximetry Distribution table
-  // Pattern: <90 | % | REM (min) | NREM (min) | TOTAL
-  // We need REM and NREM columns (2nd and 3rd values)
-  const oxy90Match = rawText.match(/<\s*90[^\n]*?(\d+\.?\d*)[^\d]*(\d+\.?\d*)[^\d]*(\d+\.?\d*)/i);
-  if (oxy90Match) {
-    // First value is %, second is REM, third is NREM
-    regexResults.under90REM = parseFloat(oxy90Match[2]);
-    regexResults.under90NREM = parseFloat(oxy90Match[3]);
-    console.log("✅ Regex found <90%: REM =", regexResults.under90REM, "NREM =", regexResults.under90NREM);
-  } else {
-    console.log("⚠️ <90% values not found");
-  }
+### PAGE 4: Respiratory Events
+- **CA Index**: "Index (#/h TST)" row → "CA" column
+- **OA Index**: Same row → "OA" column
+- **MA Index**: Same row → "MA" column
+- **HYP Index**: Same row → "HYP" column
+- **Hypopnea Mean Duration**: "Mean (seconds)" row → "HYP" column
+- **AHI REM**: RDI row → "REM #/h (REM)" column
+- **AHI NREM**: RDI row → "NREM #/h (NREM)" column
+- **AHI Overall**: RDI row → "TST #/h (sleep)" column
 
-  const oxy95Match = rawText.match(/<\s*95[^\n]*?(\d+\.?\d*)[^\d]*(\d+\.?\d*)[^\d]*(\d+\.?\d*)/i);
-  if (oxy95Match) {
-    regexResults.under95REM = parseFloat(oxy95Match[2]);
-    regexResults.under95NREM = parseFloat(oxy95Match[3]);
-    console.log("✅ Regex found <95%: REM =", regexResults.under95REM, "NREM =", regexResults.under95NREM);
-  } else {
-    console.log("⚠️ <95% values not found");
-  }
+### PAGE 5: Heart Rate
+- **REM Mean HR**: "HEART RATE SUMMARY" → "Mean HR (BPM)" row → "REM" column
+- **NREM Mean HR**: Same row → "NREM" column
 
-  console.log("=== DEBUG: Regex results ===", regexResults);
+### PAGE 6: Oxygenation & Arousal
+- **Oxygen <90%**: Oximetry Distribution "<90" row → Extract REM & NREM (minutes), Calculate: ((REM + NREM) * 100) / TST
+- **Oxygen <95%**: "<95" row → Extract REM & NREM (minutes), Calculate: ((REM + NREM) * 100) / TST
+- **Average SpO2**: "Average (%)" row
+- **Desaturation Index**: "Desat Index (#/hour)" row → TOTAL column (rightmost number ONLY)
+- **Arousal Index**: Extract from "Arousal index" line
 
-  // DETAILED AI PROMPT - Based on user's extraction rules
-  const prompt = `## 🔍 CRITICAL EXTRACTION TASK
+### PAGE 7: Movement & Position
+- **Snoring Duration & %**: "Total duration with snoring"
+- **Leg Movement Index**: "Leg movements" → "Index" column
+- **Left Position Index**: "L" row → "Index (#/h)" column
+- **Right Position Index**: "R" row → "Index (#/h)" column
+- **Supine Position Index**: "S/SL" row → "Index (#/h)" column
+- **AHI Lateral**: Calculate (Right + Left) / 2 if both exist
 
-You are extracting specific metrics from a sleep study medical report. Follow these rules EXACTLY.
-
-### 📋 EXTRACTION RULES
-
-**1. Oximetry Distribution Table (Usually PAGE 6)**
-Find the table with columns: | SpO2 Range | % | REM (min) | NREM (min) | TOTAL |
-
-For "<90" row:
-- Extract REM column value (in minutes)
-- Extract NREM column value (in minutes)  
-- Calculate: ((REM + NREM) / TST) * 100
-- TST = ${totalSleepTime || 'FIND IN DOCUMENT'} minutes
-
-For "<95" row:
-- Extract REM column value (in minutes)
-- Extract NREM column value (in minutes)
-- Calculate: ((REM + NREM) / TST) * 100
-
-**2. Respiratory Events Summary Table (Usually PAGE 4)**
-Find the table with "Mean (seconds)" row
-- Look for "HYP" column (Hypopnea)
-- Extract the numeric value in seconds
-
-**3. Oximetry Summary Table (Usually PAGE 6)**
-Find "Desat Index (#/hour)" row (NOT "Desat Index (dur/hour)")
-Table structure:
-                        WK    REM   NREM  TOTAL
-Desat Index (#/hour)   X.X   X.X   X.X   X.X  ← Extract TOTAL (rightmost value) ONLY
-
-**CRITICAL**: 
-- DO NOT return example values
-- Extract ACTUAL values from the document
-- If you cannot find a value, use null
-- Return calculations separately
-
-### 📤 REQUIRED OUTPUT FORMAT
-
-Return ONLY this JSON structure with ACTUAL extracted values:
+## 📤 REQUIRED JSON OUTPUT
 
 {
-  "oxygenUnder90Percent": null,
-  "oxygenUnder95Percent": null,
-  "hypopneaMeanDuration": null,
-  "desaturationIndex": null,
-  "calculations": {
-    "tst": null,
-    "under90REM": null,
-    "under90NREM": null,
-    "under95REM": null,
-    "under95NREM": null
+  "patientInfo": {
+    "name": "string or null",
+    "firstName": "string or null",
+    "age": "number or null",
+    "gender": "string or null"
+  },
+  "studyInfo": {
+    "studyType": "${studyType}",
+    "lightsOff": "string or null",
+    "lightsOn": "string or null",
+    "timeInBed": "number (minutes) or null",
+    "totalSleepTime": "number (minutes) or null",
+    "sleepLatency": "number (minutes) or null",
+    "remLatency": "number (minutes) or null"
+  },
+  "sleepArchitecture": {
+    "sleepEfficiency": "number (percentage) or null",
+    "stage1Percent": "number or null",
+    "stage2Percent": "number or null",
+    "stage3Percent": "number or null",
+    "remPercent": "number or null",
+    "remCycles": "number or null"
+  },
+  "respiratoryEvents": {
+    "ahiOverall": "number or null",
+    "ahiNrem": "number or null",
+    "ahiRem": "number or null",
+    "centralApneaIndex": "number or null",
+    "obstructiveApneaIndex": "number or null",
+    "mixedApneaIndex": "number or null",
+    "hypopneaIndex": "number or null",
+    "meanHypopneaDuration": "number (seconds) or null"
+  },
+  "oxygenation": {
+    "averageSpO2": "number or null",
+    "desaturationIndex": "number or null",
+    "timeBelow90Percent": "number (percentage) or null",
+    "timeBelow95Percent": "number (percentage) or null",
+    "calculations": {
+      "tst": "number or null",
+      "under90REM": "number or null",
+      "under90NREM": "number or null",
+      "under95REM": "number or null",
+      "under95NREM": "number or null"
+    }
+  },
+  "cardiacData": {
+    "meanHeartRateNrem": "number or null",
+    "meanHeartRateRem": "number or null"
+  },
+  "additionalMetrics": {
+    "arousalIndex": "number or null",
+    "snoringMinutes": "number or null",
+    "snoringPercent": "number or null",
+    "legMovementIndex": "number or null",
+    "leftPositionIndex": "number or null",
+    "rightPositionIndex": "number or null",
+    "supinePositionIndex": "number or null",
+    "ahiLateral": "number or null"
   }
 }
 
-### 📄 DOCUMENT TEXT (First 15,000 characters):
+**CRITICAL**: 
+- Extract ACTUAL values from document
+- Use null for missing data
+- DO NOT use example values
+- Perform calculations as specified
 
-${rawText.substring(0, 15000)}`;
+### 📄 DOCUMENT TEXT:
+${rawText.substring(0, 20000)}`;
 
   try {
-    console.log("=== Sending to Lovable AI (Gemini) ===");
+    console.log("=== Sending to Lovable AI (Comprehensive Extraction) ===");
     console.log("Prompt length:", prompt.length);
     
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -159,7 +156,7 @@ ${rawText.substring(0, 15000)}`;
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        max_tokens: 800,
+        max_tokens: 2000,
         messages: [{ 
           role: 'user', 
           content: prompt
@@ -174,7 +171,7 @@ ${rawText.substring(0, 15000)}`;
     }
 
     const data = await response.json();
-    console.log("=== AI Response ===");
+    console.log("=== AI Response (Full Extraction) ===");
     console.log(JSON.stringify(data, null, 2));
     
     if (!data.choices?.[0]?.message?.content) {
@@ -183,85 +180,111 @@ ${rawText.substring(0, 15000)}`;
 
     let result = data.choices[0].message.content.trim();
     
-    // Extract JSON from markdown if wrapped
+    // Extract JSON from markdown
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       result = jsonMatch[0];
     }
-    
     result = result.replace(/```json\s*/g, '').replace(/```\s*/g, '');
     
     const parsed = JSON.parse(result);
-    console.log("=== Parsed AI Result ===", parsed);
+    console.log("=== Parsed Comprehensive Result ===", JSON.stringify(parsed, null, 2));
     
-    // Calculate percentages if AI provided raw values
-    let oxygenUnder90Percent = parsed.oxygenUnder90Percent;
-    let oxygenUnder95Percent = parsed.oxygenUnder95Percent;
-    
-    // If AI returned calculations but not percentages, calculate them
-    if (!oxygenUnder90Percent && parsed.calculations?.under90REM && parsed.calculations?.under90NREM && parsed.calculations?.tst) {
-      const tst = parsed.calculations.tst;
-      const sum90 = parsed.calculations.under90REM + parsed.calculations.under90NREM;
-      oxygenUnder90Percent = ((sum90 / tst) * 100).toFixed(2);
-      console.log(`Calculated O2 <90%: (${parsed.calculations.under90REM} + ${parsed.calculations.under90NREM}) / ${tst} * 100 = ${oxygenUnder90Percent}%`);
+    // FIX: JavaScript Zero Bug - Check for number type instead of truthy value
+    // Calculate O2 percentages if AI provided raw values
+    if (parsed.oxygenation?.timeBelow90Percent === null && 
+        typeof parsed.oxygenation?.calculations?.under90REM === 'number' && 
+        typeof parsed.oxygenation?.calculations?.under90NREM === 'number' && 
+        parsed.oxygenation?.calculations?.tst) {
+      const tst = parsed.oxygenation.calculations.tst;
+      const sum90 = parsed.oxygenation.calculations.under90REM + parsed.oxygenation.calculations.under90NREM;
+      parsed.oxygenation.timeBelow90Percent = parseFloat(((sum90 / tst) * 100).toFixed(2));
+      console.log(`✅ Calculated O2 <90%: (${parsed.oxygenation.calculations.under90REM} + ${parsed.oxygenation.calculations.under90NREM}) / ${tst} * 100 = ${parsed.oxygenation.timeBelow90Percent}%`);
     }
     
-    if (!oxygenUnder95Percent && parsed.calculations?.under95REM && parsed.calculations?.under95NREM && parsed.calculations?.tst) {
-      const tst = parsed.calculations.tst;
-      const sum95 = parsed.calculations.under95REM + parsed.calculations.under95NREM;
-      oxygenUnder95Percent = ((sum95 / tst) * 100).toFixed(2);
-      console.log(`Calculated O2 <95%: (${parsed.calculations.under95REM} + ${parsed.calculations.under95NREM}) / ${tst} * 100 = ${oxygenUnder95Percent}%`);
+    if (parsed.oxygenation?.timeBelow95Percent === null && 
+        typeof parsed.oxygenation?.calculations?.under95REM === 'number' && 
+        typeof parsed.oxygenation?.calculations?.under95NREM === 'number' && 
+        parsed.oxygenation?.calculations?.tst) {
+      const tst = parsed.oxygenation.calculations.tst;
+      const sum95 = parsed.oxygenation.calculations.under95REM + parsed.oxygenation.calculations.under95NREM;
+      parsed.oxygenation.timeBelow95Percent = parseFloat(((sum95 / tst) * 100).toFixed(2));
+      console.log(`✅ Calculated O2 <95%: (${parsed.oxygenation.calculations.under95REM} + ${parsed.oxygenation.calculations.under95NREM}) / ${tst} * 100 = ${parsed.oxygenation.timeBelow95Percent}%`);
     }
     
-    // Merge AI results with regex fallback
-    const merged = {
-      oxygenUnder90Percent: oxygenUnder90Percent || (
-        totalSleepTime && regexResults.under90REM !== null && regexResults.under90NREM !== null
-          ? (((regexResults.under90REM + regexResults.under90NREM) / totalSleepTime) * 100).toFixed(2)
-          : null
-      ),
-      oxygenUnder95Percent: oxygenUnder95Percent || (
-        totalSleepTime && regexResults.under95REM !== null && regexResults.under95NREM !== null
-          ? (((regexResults.under95REM + regexResults.under95NREM) / totalSleepTime) * 100).toFixed(2)
-          : null
-      ),
-      hypopneaMeanDuration: parsed.hypopneaMeanDuration || regexResults.hypopneaMean,
-      desaturationIndex: parsed.desaturationIndex || regexResults.desatIndex,
-      calculations: {
-        tst: parsed.calculations?.tst || totalSleepTime,
-        under90REM: parsed.calculations?.under90REM || regexResults.under90REM,
-        under90NREM: parsed.calculations?.under90NREM || regexResults.under90NREM,
-        under95REM: parsed.calculations?.under95REM || regexResults.under95REM,
-        under95NREM: parsed.calculations?.under95NREM || regexResults.under95NREM
-      }
-    };
+    // Calculate AHI Lateral if position indices exist
+    if (!parsed.additionalMetrics?.ahiLateral && 
+        typeof parsed.additionalMetrics?.leftPositionIndex === 'number' && 
+        typeof parsed.additionalMetrics?.rightPositionIndex === 'number') {
+      parsed.additionalMetrics.ahiLateral = parseFloat(((parsed.additionalMetrics.leftPositionIndex + parsed.additionalMetrics.rightPositionIndex) / 2).toFixed(2));
+      console.log(`✅ Calculated AHI Lateral: (${parsed.additionalMetrics.leftPositionIndex} + ${parsed.additionalMetrics.rightPositionIndex}) / 2 = ${parsed.additionalMetrics.ahiLateral}`);
+    }
     
-    console.log("✅ Extraction successful (AI + Regex fallback):", merged);
-    console.log("=== UNIVERSAL EXTRACTION PIPELINE END ===");
+    console.log("✅ Comprehensive extraction successful");
+    console.log("=== COMPREHENSIVE EXTRACTION PIPELINE END ===");
     
-    return merged;
+    return parsed;
     
   } catch (error) {
-    console.error("❌ AI Extraction error:", error);
-    console.log("⚠️ Falling back to regex-only extraction");
-    console.log("=== UNIVERSAL EXTRACTION PIPELINE END ===");
+    console.error("❌ Comprehensive AI Extraction error:", error);
+    console.log("=== COMPREHENSIVE EXTRACTION PIPELINE END ===");
     
-    // Return regex results on AI error
+    // Return minimal structure on error
     return {
-      oxygenUnder90Percent: totalSleepTime && regexResults.under90REM !== null && regexResults.under90NREM !== null
-        ? (((regexResults.under90REM + regexResults.under90NREM) / totalSleepTime) * 100).toFixed(2)
-        : null,
-      oxygenUnder95Percent: totalSleepTime && regexResults.under95REM !== null && regexResults.under95NREM !== null
-        ? (((regexResults.under95REM + regexResults.under95NREM) / totalSleepTime) * 100).toFixed(2)
-        : null,
-      hypopneaMeanDuration: regexResults.hypopneaMean,
-      desaturationIndex: regexResults.desatIndex,
-      calculations: {
-        tst: totalSleepTime,
-        under90REM: regexResults.under90REM,
-        under90NREM: regexResults.under90NREM,
-        under95REM: regexResults.under95REM,
-        under95NREM: regexResults.under95NREM
+      patientInfo: { name: null, firstName: null, age: null, gender: null },
+      studyInfo: {
+        studyType,
+        lightsOff: null,
+        lightsOn: null,
+        timeInBed: null,
+        totalSleepTime: null,
+        sleepLatency: null,
+        remLatency: null
+      },
+      sleepArchitecture: {
+        sleepEfficiency: null,
+        stage1Percent: null,
+        stage2Percent: null,
+        stage3Percent: null,
+        remPercent: null,
+        remCycles: null
+      },
+      respiratoryEvents: {
+        ahiOverall: null,
+        ahiNrem: null,
+        ahiRem: null,
+        centralApneaIndex: null,
+        obstructiveApneaIndex: null,
+        mixedApneaIndex: null,
+        hypopneaIndex: null,
+        meanHypopneaDuration: null
+      },
+      oxygenation: {
+        averageSpO2: null,
+        desaturationIndex: null,
+        timeBelow90Percent: null,
+        timeBelow95Percent: null,
+        calculations: {
+          tst: null,
+          under90REM: null,
+          under90NREM: null,
+          under95REM: null,
+          under95NREM: null
+        }
+      },
+      cardiacData: {
+        meanHeartRateNrem: null,
+        meanHeartRateRem: null
+      },
+      additionalMetrics: {
+        arousalIndex: null,
+        snoringMinutes: null,
+        snoringPercent: null,
+        legMovementIndex: null,
+        leftPositionIndex: null,
+        rightPositionIndex: null,
+        supinePositionIndex: null,
+        ahiLateral: null
       }
     };
   }
@@ -284,33 +307,76 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Extract metrics using universal pipeline with regex fallback
-    const metrics = await extractSleepMetrics(rawText || '', lovableApiKey);
+    // Extract ALL metrics using comprehensive pipeline
+    const extractedData = await extractSleepMetrics(rawText || '', lovableApiKey, studyType);
 
-    // Format final response
+    // Format comprehensive response with ALL extracted data
     const response = {
-      extractedData: {
-        patientName: "Patient Name",
-        studyDate: new Date().toISOString().split('T')[0],
-        studyType: studyType || "PSG",
-        totalSleepTime: metrics.calculations?.tst || null,
-        sleepEfficiency: null,
-        sleepLatency: null,
-        remLatency: null,
-        arousalIndex: null,
-        oxygenUnder90Percent: metrics.oxygenUnder90Percent,
-        oxygenUnder95Percent: metrics.oxygenUnder95Percent,
-        lowestO2: null,
-        averageO2: null,
-        hypopneaMeanDuration: metrics.hypopneaMeanDuration,
-        desaturationIndex: metrics.desaturationIndex,
+      patientInfo: extractedData.patientInfo || {
+        name: null,
+        firstName: null,
+        age: null,
+        gender: null
       },
-      rawMetrics: metrics,
-      extractionMethod: "universal-pipeline",
+      studyInfo: extractedData.studyInfo || {
+        studyType,
+        lightsOff: null,
+        lightsOn: null,
+        timeInBed: null,
+        totalSleepTime: null,
+        sleepLatency: null,
+        remLatency: null
+      },
+      sleepArchitecture: extractedData.sleepArchitecture || {
+        sleepEfficiency: null,
+        stage1Percent: null,
+        stage2Percent: null,
+        stage3Percent: null,
+        remPercent: null,
+        remCycles: null
+      },
+      respiratoryEvents: extractedData.respiratoryEvents || {
+        ahiOverall: null,
+        ahiNrem: null,
+        ahiRem: null,
+        centralApneaIndex: null,
+        obstructiveApneaIndex: null,
+        mixedApneaIndex: null,
+        hypopneaIndex: null,
+        meanHypopneaDuration: null
+      },
+      oxygenation: extractedData.oxygenation || {
+        averageSpO2: null,
+        desaturationIndex: null,
+        timeBelow90Percent: null,
+        timeBelow95Percent: null,
+        calculations: {
+          tst: null,
+          under90REM: null,
+          under90NREM: null,
+          under95REM: null,
+          under95NREM: null
+        }
+      },
+      cardiacData: extractedData.cardiacData || {
+        meanHeartRateNrem: null,
+        meanHeartRateRem: null
+      },
+      additionalMetrics: extractedData.additionalMetrics || {
+        arousalIndex: null,
+        snoringMinutes: null,
+        snoringPercent: null,
+        legMovementIndex: null,
+        leftPositionIndex: null,
+        rightPositionIndex: null,
+        supinePositionIndex: null,
+        ahiLateral: null
+      },
+      extractionMethod: "comprehensive-medical-grade",
       timestamp: new Date().toISOString()
     };
 
-    console.log("=== FINAL RESPONSE ===");
+    console.log("=== FINAL COMPREHENSIVE RESPONSE ===");
     console.log(JSON.stringify(response, null, 2));
 
     return new Response(
