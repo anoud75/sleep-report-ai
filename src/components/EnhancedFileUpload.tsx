@@ -142,14 +142,14 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
       
       setProgress(30);
 
-      // Call the Supabase edge function
+      // Call the Supabase edge function with raw text
       const response = await fetch('https://rotdapktuwxwvylhnfry.functions.supabase.co/process-sleep-study', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fileContent,
+          rawText: fileContent,
           studyType: selectedStudyType,
           clinicalData: (selectedStudyType === 'Titration' || 
                         (selectedStudyType === 'Split-Night' && files.some(f => f.type === 'therapeutic'))) ? clinicalData : null
