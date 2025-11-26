@@ -206,6 +206,37 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(textColor[0], textColor[1], textColor[2]);
       doc.text(summaryLines, margin + 5, yPos + 8);
+      
+      yPos += summaryHeight + 5;
+    }
+    
+    // Recommendations Section
+    if (data.recommendations && data.recommendations.length > 0) {
+      if (yPos > pageHeight - 80) {
+        doc.addPage();
+        yPos = 40;
+      }
+      
+      yPos += 10;
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.text('RECOMMENDATIONS', margin, yPos);
+      
+      yPos += 10;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      
+      data.recommendations.forEach((rec: string, index: number) => {
+        if (yPos > pageHeight - 20) {
+          doc.addPage();
+          yPos = 40;
+        }
+        
+        const recLines = doc.splitTextToSize(`${index + 1}. ${rec}`, contentWidth - 10);
+        doc.text(recLines, margin + 5, yPos);
+        yPos += recLines.length * 6;
+      });
     }
     
     // Footer with generation date and page numbers
@@ -502,6 +533,24 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           <p className="text-sm text-muted-foreground leading-relaxed font-inter">
             {data.clinicalSummary}
           </p>
+        </div>
+      )}
+
+      {/* Recommendations Box */}
+      {data.recommendations && data.recommendations.length > 0 && (
+        <div className="bg-success/5 rounded-xl border border-success/20 p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
+            <Stethoscope className="h-4 w-4 text-success" />
+            Recommendations
+          </h3>
+          <ul className="space-y-2">
+            {data.recommendations.map((rec: string, index: number) => (
+              <li key={index} className="flex items-start text-sm">
+                <span className="mr-2 text-success font-bold">{index + 1}.</span>
+                <span className="text-muted-foreground font-inter">{rec}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

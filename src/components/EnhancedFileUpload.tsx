@@ -151,8 +151,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
         body: JSON.stringify({
           rawText: fileContent,
           studyType: selectedStudyType,
-          clinicalData: (selectedStudyType === 'Titration' || 
-                        (selectedStudyType === 'Split-Night' && files.some(f => f.type === 'therapeutic'))) ? clinicalData : null
+          clinicalData: clinicalData
         }),
       });
 
