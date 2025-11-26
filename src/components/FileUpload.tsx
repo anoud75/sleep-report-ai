@@ -58,25 +58,45 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
     setError(null);
 
     try {
-      // Extract text from .docx file using mammoth
+      // Extract HTML structure from .docx to preserve tables
       const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({ arrayBuffer });
-      const fileContent = result.value;
+      const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
+      const htmlContent = htmlResult.value;
       
-      console.log('Extracted text length:', fileContent.length);
-      console.log('First 500 chars:', fileContent.substring(0, 500));
+      console.log('Extracted HTML length:', htmlContent.length);
+      console.log('HTML preview:', htmlContent.substring(0, 500));
+      
+      // Extract structured tables from HTML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlContent, 'text/html');
+      const tables = Array.from(doc.querySelectorAll('table')).map(table => {
+        const rows = Array.from(table.querySelectorAll('tr'));
+        return rows.map(row => {
+          const cells = Array.from(row.querySelectorAll('td, th'));
+          return cells.map(cell => cell.textContent?.trim() || '');
+        });
+      });
+      
+      // Also get clean text for context
+      const textResult = await mammoth.extractRawText({ arrayBuffer });
+      const rawText = textResult.value;
+      
+      console.log('Extracted tables:', tables.length);
+      console.log('Tables preview:', JSON.stringify(tables.slice(0, 2), null, 2));
       
       // Update progress
       setProgress(30);
 
-      // Call the Supabase edge function to process with OpenAI
+      // Call the Supabase edge function with structured data
       const response = await fetch('https://rotdapktuwxwvylhnfry.functions.supabase.co/process-sleep-study', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fileContent: fileContent,
+          htmlContent: htmlContent,
+          rawText: rawText,
+          tables: tables,
           studyType: selectedStudyType
         }),
       });

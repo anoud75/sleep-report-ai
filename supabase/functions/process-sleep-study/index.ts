@@ -6,97 +6,37 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Format oxygen percentage to show exact values
-const formatOxygenPercentage = (percentage) => {
-  // If both REM + NREM are blank → Output: "None"
-  if (percentage === null || percentage === undefined) {
-    return "None";
-  }
+// Universal Text Extractor Pipeline - Simplified AI-based extraction
+async function extractSleepMetrics(tables: string[][][], rawText: string, apiKey: string) {
+  console.log("=== UNIVERSAL EXTRACTION PIPELINE START ===");
+  console.log("Number of tables received:", tables.length);
   
-  // Always show exact percentage with 1 decimal place
-  return `${percentage.toFixed(1)}%`;
-};
-
-// Simple hypopnea mean duration extraction
-function parseHypopneaMeanDuration(content: string): number | null {
-  const match = content.match(/Mean\s*\(seconds\)[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i);
-  if (match) {
-    const value = parseFloat(match[2]);
-    console.log(`⚠️ Could not find Hypopnea Mean Duration in Respiratory Events Summary`);
-    return value > 0 ? value : null;
-  }
-  console.log(`⚠️ Could not find Hypopnea Mean Duration in Respiratory Events Summary`);
-  return null;
-}
-
-// Enhanced desaturation index extraction with comprehensive fallback patterns
-// Simple desaturation index extraction
-function parseDesaturationIndex(content: string): number | null {
-  const match = content.match(/Desat\s+Index[\s\S]*?(\d+\.?\d*)/i);
-  if (match) {
-    const value = parseFloat(match[1]);
-    return value >= 0 ? value : null;
-  }
-  console.log(`⚠️ Could not find Desaturation Index in Oximetry Summary`);
-  return null;
-}
-
-// Simple oxygen percentage extraction
-function extractOxygenPercentages(content: string, totalSleepTime: number): { under90: string; under95: string } | null {
-  if (!totalSleepTime || totalSleepTime <= 0) {
-    console.log('⚠️ TST not found! Oxygen calculations will fail.');
-    return null;
-  }
-  
-  const match90 = content.match(/<90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i);
-  const match95 = content.match(/<95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)/i);
-  
-  if (match90 && match95) {
-    const rem90 = parseFloat(match90[1]) || 0;
-    const nrem90 = parseFloat(match90[2]) || 0;
-    const rem95 = parseFloat(match95[1]) || 0;
-    const nrem95 = parseFloat(match95[2]) || 0;
+  // Format tables as clean markdown for AI
+  const formattedTables = tables.map((table, idx) => {
+    if (table.length === 0) return '';
     
-    const percent90 = ((rem90 + nrem90) / totalSleepTime) * 100;
-    const percent95 = ((rem95 + nrem95) / totalSleepTime) * 100;
+    const header = table[0].join(' | ');
+    const separator = table[0].map(() => '---').join(' | ');
+    const rows = table.slice(1).map(row => row.join(' | ')).join('\n');
     
-    console.log(`📊 TST: ${totalSleepTime} minutes`);
-    return {
-      under90: percent90.toFixed(1),
-      under95: percent95.toFixed(1)
-    };
-  }
-  
-  return null;
-}
+    return `\n### Table ${idx + 1}\n${header}\n${separator}\n${rows}\n`;
+  }).join('\n');
 
-// Comprehensive sleep metrics extraction using Lovable AI Gateway (Gemini) with robust fallbacks
-async function extractSleepMetrics(content: string, apiKey: string): Promise<{
-  oxygenUnder90Percent: string;
-  oxygenUnder95Percent: string;
-  hypopneaMeanDuration: number | null;
-  desaturationIndex: number | null;
-  calculations: any;
-}> {
-  console.log("=== COMPREHENSIVE SLEEP METRICS EXTRACTION START ===");
-  console.log("Content length:", content.length);
-
-  // Extract TST for oxygen calculations
+  // Extract TST from raw text for calculations
   let totalSleepTime = null;
-  const tstMatch = content.match(/TST\s*:?\s*(\d+\.?\d*)/i);
+  const tstMatch = rawText.match(/Total Sleep Time.*?(\d+\.?\d*)/i) || 
+                    rawText.match(/TST.*?(\d+\.?\d*)/i);
   if (tstMatch) {
     totalSleepTime = parseFloat(tstMatch[1]);
     console.log("Found TST:", totalSleepTime, "minutes");
   }
-  
-  const prompt = `You are a medical data extraction specialist. Extract EXACTLY 4 metrics from this sleep study report.
 
-CRITICAL: Return ONLY valid JSON with NO markdown, NO explanations, NO additional text.
+  const prompt = `Extract sleep study metrics from structured tables below. Return ONLY valid JSON.
 
-REQUIRED OUTPUT FORMAT:
+REQUIRED OUTPUT:
 {
   "oxygenUnder90Percent": "12.5",
-  "oxygenUnder95Percent": "28.3",
+  "oxygenUnder95Percent": "28.3", 
   "hypopneaMeanDuration": 18.7,
   "desaturationIndex": 5.2,
   "calculations": {
@@ -108,71 +48,39 @@ REQUIRED OUTPUT FORMAT:
   }
 }
 
-EXTRACTION INSTRUCTIONS:
+EXTRACTION RULES:
 
-━━━ METRIC 1 & 2: Oxygen Saturation Percentages ━━━
-LOCATION: "Oximetry Distribution" or "SpO2 Summary" table
-FIND: Two specific rows labeled:
-  - "<90" or "< 90%" or "Below 90%"
-  - "<95" or "< 95%" or "Below 95%"
+1. % Time with O2 < 90%:
+   - Find "Oximetry Distribution" table
+   - Locate row: "<90" or "< 90%"
+   - Extract REM and NREM columns (2nd and 3rd values)
+   - Formula: ((REM + NREM) / TST) * 100
+   - TST = ${totalSleepTime || 'find in document'} minutes
 
-TABLE EXAMPLE:
-                    WK      REM     NREM    TOTAL
-<90                 3.2     8.2     15.3    26.7
-<95                 5.8     12.4    22.1    40.3
+2. % Time with O2 < 95%:
+   - Same table, row: "<95" or "< 95%"
+   - Extract REM and NREM values
+   - Formula: ((REM + NREM) / TST) * 100
 
-EXTRACT: The "REM" and "NREM" column values (2nd and 3rd numbers)
-CALCULATE: For each threshold, report the values you found in REM and NREM
+3. Hypopnea Mean Duration:
+   - Find "Respiratory Events Summary" table
+   - Locate row: "Mean (seconds)" or "Mean Duration"
+   - Find column: "Hyp" or "Hypopnea"
+   - Extract the numeric value
 
-EXAMPLES:
-- If <90 row shows: "2.1  8.2  15.3  25.6" → under90REM: 8.2, under90NREM: 15.3
-- If <95 row shows: "4.3  12.4  22.1  38.8" → under95REM: 12.4, under95NREM: 22.1
+4. Desaturation Index:
+   - Same oximetry table
+   - Find row: "Desat Index (#/hour)" (NOT dur/hour)
+   - Extract TOTAL column (rightmost value)
 
-━━━ METRIC 3: Hypopnea Mean Duration ━━━
-LOCATION: "Respiratory Events Summary" or "REM Events" table
-FIND: Row labeled "Mean (seconds)" or "Mean Duration"
-COLUMN: Look for "Hyp" or "Hypopnea" column
+TABLES:
+${formattedTables}
 
-TABLE EXAMPLE:
-Event Type          Obs    Hyp    Mixed   Central
-Number              45     128    12      8
-Mean (seconds)      32.5   18.7   25.3    28.1  ← EXTRACT 18.7
-
-EXTRACT: The numeric value under "Hyp" column in the "Mean (seconds)" row
-EXAMPLES:
-- "Mean (seconds)    30.2   18.7   24.5   29.3" → Extract: 18.7
-- "Mean Duration     28.9   22.1   26.8   31.2" → Extract: 22.1
-
-━━━ METRIC 4: Desaturation Index ━━━
-LOCATION: Same oximetry table section
-FIND: Row labeled EXACTLY "Desat Index (#/hour)"
-  ⚠️ IGNORE "Desat Index (dur/hour)" - this is different!
-
-TABLE EXAMPLE:
-                            WK     REM    NREM   TOTAL
-Average SpO2 (%)            95.2   94.8   95.5   95.1
-Number of desaturations     42     88     156    286
-Desat Index (#/hour)        2.1    5.8    3.2    5.2   ← EXTRACT 5.2
-Desat Index (dur/hour)      1.8    4.2    2.9    4.1   ← SKIP THIS ROW
-
-EXTRACT: ONLY the "TOTAL" column value (rightmost number) from "Desat Index (#/hour)"
-EXAMPLES:
-- "Desat Index (#/hour)    1.4   8.8   1.9   2.8" → Extract: 2.8
-- "Desat Index (#/hour)    0.6   12.3  0.2   5.2" → Extract: 5.2
-
-━━━ EDGE CASES ━━━
-- If a metric is not found, use null (not string "null")
-- All percentage values should be strings with 1 decimal place: "12.5"
-- Numeric metrics (hypopnea, desaturation) should be numbers: 18.7
-- If calculations section values are missing, set them to null
-
-━━━ DOCUMENT TO ANALYZE ━━━
-${content}`;
-
-  let aiResult = null;
+RAW TEXT CONTEXT:
+${rawText.substring(0, 3000)}`;
 
   try {
-    console.log("Sending extraction request to Lovable AI (Gemini)...");
+    console.log("Sending to Lovable AI (Gemini)...");
     
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -190,1378 +98,121 @@ ${content}`;
       })
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      console.log("AI response data structure:", JSON.stringify(data, null, 2));
-      
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error("Unexpected AI response structure:", data);
-        aiResult = null;
-      } else {
-        let result = data.choices[0].message.content.trim();
-        
-        console.log("Raw AI response:", result);
-      
-        // Extract JSON from response
-        let jsonMatch = result.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          result = jsonMatch[0];
-        }
-        
-        // Clean common issues
-        result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
-        result = result.replace(/```\s*/, '');
-        
-        try {
-          aiResult = JSON.parse(result);
-          console.log("✅ AI extraction successful:", aiResult);
-        } catch (parseError) {
-          console.error("Failed to parse AI JSON:", parseError);
-          console.log("Cleaned result was:", result);
-          aiResult = null;
-        }
-      }
-    } else {
-      console.error("API request failed:", response.status);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI API Error:", response.status, errorText);
+      throw new Error(`AI API failed: ${response.status}`);
     }
-  } catch (error) {
-    console.error('AI extraction error:', error);
-  }
 
-  // Normalize AI outputs to drop placeholders like "X.X" and extract numeric values
-  const normalizeNumber = (v: any): string | null => {
-    if (v === null || v === undefined) return null;
-    let s = String(v).trim();
-    if (!s || /x/i.test(s)) return null;
-    const m = s.match(/-?\d+(?:\.\d+)?/);
-    return m ? m[0] : null;
-  };
-
-  const aiOxy90 = normalizeNumber(aiResult?.oxygenUnder90Percent);
-  const aiOxy95 = normalizeNumber(aiResult?.oxygenUnder95Percent);
-  const aiHypMean = normalizeNumber(aiResult?.hypopneaMeanDuration);
-  const aiDesat = normalizeNumber(aiResult?.desaturationIndex);
-
-  // Use deterministic fallbacks for missing data
-  let hypopneaMean = aiHypMean ? parseFloat(aiHypMean) : null;
-  let desatIndex = aiDesat ? parseFloat(aiDesat) : null;
-  let oxygenData = null;
-
-  // Fallback 1: Hypopnea mean duration
-  if (!hypopneaMean) {
-    console.log("🔄 Using deterministic hypopnea extraction...");
-    hypopneaMean = parseHypopneaMeanDuration(content);
-  }
-
-  // Fallback 2: Desaturation index
-  if (!desatIndex) {
-    console.log("🔄 Using deterministic desaturation extraction...");
-    desatIndex = parseDesaturationIndex(content);
-  }
-
-  // Fallback 3: Oxygen percentages
-  if (!aiOxy90 || !aiOxy95) {
-    console.log("🔄 Using deterministic oxygen extraction...");
-    if (totalSleepTime) {
-      oxygenData = extractOxygenPercentages(content, totalSleepTime);
-    }
-  }
-
-  const finalMetrics = {
-    oxygenUnder90Percent: aiOxy90 || oxygenData?.under90 || "0.0",
-    oxygenUnder95Percent: aiOxy95 || oxygenData?.under95 || "0.0",
-    hypopneaMeanDuration: hypopneaMean,
-    desaturationIndex: desatIndex,
-    calculations: aiResult?.calculations || null
-  };
-  
-  console.log("✅ Final comprehensive metrics:", finalMetrics);
-  console.log("=== COMPREHENSIVE SLEEP METRICS EXTRACTION END ===");
-  return finalMetrics;
-}
-
-// New JavaScript regex-based extraction method
-const extractOxygenWithRegex = (content, totalSleepTimeMinutes) => {
-  try {
-    console.log('=== REGEX EXTRACTION START ===');
+    const data = await response.json();
+    console.log("AI Response:", JSON.stringify(data, null, 2));
     
-    // Look for table patterns with multiple approaches
-    const patterns = [
-      // Pattern 1: Standard table format <90 followed by 4 numbers
-      /<90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      // Pattern 2: Different spacing with < 90
-      /<\s*90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      // Pattern 3: With percentage symbol
-      /90\s*%[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      // Pattern 4: HTML encoded &lt;90
-      /&lt;90[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-    ];
-
-    const patterns95 = [
-      /<95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /<\s*95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /95\s*%[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-      /&lt;95[\s\S]*?(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)/i,
-    ];
-
-    let under90Data = null;
-    let under95Data = null;
-
-    // Try to find <90 data
-    for (const pattern of patterns) {
-      const match = content.match(pattern);
-      if (match) {
-        console.log('Found <90 pattern:', match[0]);
-        // Assuming format: Wake, REM, Non-REM, Total (or Wake, REM, Non-REM if only 3 values)
-        under90Data = {
-          rem: parseFloat(match[2]) || 0,
-          nonRem: parseFloat(match[3]) || 0
-        };
-        console.log('Extracted <90 data:', under90Data);
-        break;
-      }
+    if (!data.choices?.[0]?.message?.content) {
+      throw new Error("Invalid AI response structure");
     }
 
-    // Try to find <95 data
-    for (const pattern of patterns95) {
-      const match = content.match(pattern);
-      if (match) {
-        console.log('Found <95 pattern:', match[0]);
-        under95Data = {
-          rem: parseFloat(match[2]) || 0,
-          nonRem: parseFloat(match[3]) || 0
-        };
-        console.log('Extracted <95 data:', under95Data);
-        break;
-      }
+    let result = data.choices[0].message.content.trim();
+    
+    // Extract JSON from markdown if wrapped
+    const jsonMatch = result.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      result = jsonMatch[0];
     }
-
-    if (under90Data && under95Data) {
-      // Calculate percentages
-      const under90Total = under90Data.rem + under90Data.nonRem;
-      const under95Total = under95Data.rem + under95Data.nonRem;
-      
-      const result90 = Math.min(100, Math.max(0, (under90Total / totalSleepTimeMinutes) * 100));
-      const result95 = Math.min(100, Math.max(0, (under95Total / totalSleepTimeMinutes) * 100));
-      
-      console.log('Regex extraction calculations:');
-      console.log('      TST:', totalSleepTimeMinutes, 'minutes');
-      console.log('      <90%:', `(${under90Data.rem} + ${under90Data.nonRem}) = ${under90Total} min`);
-      console.log('      <95%:', `(${under95Data.rem} + ${under95Data.nonRem}) = ${under95Total} min`);
-      console.log('      Percentages:', `<90%=${result90.toFixed(1)}%, <95%=${result95.toFixed(1)}%`);
-      
-      console.log('Regex extraction successful');
-      console.log('=== REGEX EXTRACTION END ===');
-      
-      return {
-        timeBelow90Percent: result90.toFixed(1),
-        timeBelow95Percent: result95.toFixed(1),
-        extractionMethod: "regex",
-        success: true,
-        rawData: { under90: under90Data, under95: under95Data }
-      };
-    }
-
-    console.log('Regex extraction failed - no matching patterns found');
-    console.log('=== REGEX EXTRACTION END ===');
-    return null;
+    
+    result = result.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+    
+    const parsed = JSON.parse(result);
+    console.log("✅ Extraction successful:", parsed);
+    console.log("=== UNIVERSAL EXTRACTION PIPELINE END ===");
+    
+    return parsed;
     
   } catch (error) {
-    console.error('Regex extraction error:', error);
-    console.log('=== REGEX EXTRACTION END ===');
-    return null;
+    console.error("Extraction error:", error);
+    console.log("=== UNIVERSAL EXTRACTION PIPELINE END ===");
+    
+    // Return safe defaults on error
+    return {
+      oxygenUnder90Percent: "0.0",
+      oxygenUnder95Percent: "0.0",
+      hypopneaMeanDuration: null,
+      desaturationIndex: null,
+      calculations: null
+    };
   }
-};
-
-// Also update your desaturation index function with better debugging
-const extractDesaturationIndex = async (truncatedContent, lovableApiKey) => {
-  const desatPrompt = `You are extracting a single critical metric from a sleep study report: the Total Desaturation Index.
-
-CRITICAL: Return ONLY valid JSON. NO markdown blocks, NO explanations.
-
-━━━ STEP-BY-STEP EXTRACTION ━━━
-
-STEP 1: LOCATE THE TABLE
-Search for section headers like:
-- "Oximetry Distribution"
-- "SpO2 Summary"  
-- "Oxygen Saturation Analysis"
-
-STEP 2: IDENTIFY THE CORRECT ROW
-Look for a row labeled EXACTLY:
-- "Desat Index (#/hour)" ✓
-- "Desaturation Index (#/hr)" ✓
-- "Desat Index (events/hour)" ✓
-
-⚠️ CRITICAL: DO NOT confuse with these DIFFERENT metrics:
-- "Desat Index (dur/hour)" ✗ (this measures duration, not frequency)
-- "Oxygen Desaturation Index (duration)" ✗
-- "ODI" alone ✗ (needs the (#/hour) or events/hr specification)
-
-STEP 3: EXTRACT THE TOTAL VALUE
-The table will have multiple columns. You MUST extract the RIGHTMOST value (TOTAL column).
-
-TABLE PATTERN:
-                            WK     REM    NREM   TOTAL
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Average SpO2 (%)            95.2   94.8   95.5   95.1
-Minimum SpO2 (%)            82.0   85.3   83.7   82.0
-Number of desaturations     42     88     156    286
-Desat Index (#/hour)        2.1    5.8    3.2    5.2   ← EXTRACT: 5.2
-Desat Index (dur/hour)      1.8    4.2    2.9    4.1   ← IGNORE THIS
-
-COLUMN POSITIONS:
-- Column 1: WK (wake) - IGNORE
-- Column 2: REM - IGNORE
-- Column 3: NREM - IGNORE  
-- Column 4: TOTAL - ✓ THIS IS WHAT YOU EXTRACT
-
-━━━ CONCRETE EXAMPLES ━━━
-
-Example 1:
-Input: "Desat Index (#/hour)    1.4   8.8   1.9   2.8"
-Extract: 2.8 (the 4th number)
-
-Example 2:
-Input: "Desaturation Index (events/hr)    0.6   12.3   0.2   5.2"
-Extract: 5.2 (the 4th number)
-
-Example 3:
-Input: "Desat Index (#/hour)    0.0   0.0   0.8   0.8"
-Extract: 0.8 (the 4th number, even if it's low)
-
-Example 4 - Multiple spaces:
-Input: "Desat Index (#/hour)        3.2       11.5       4.8       6.7"
-Extract: 6.7 (rightmost number, regardless of spacing)
-
-━━━ OUTPUT FORMAT ━━━
-
-If FOUND:
-{
-  "success": true,
-  "value": 5.2,
-  "debug": "Desat Index (#/hour)    2.1    5.8    3.2    5.2"
 }
-
-If NOT FOUND:
-{
-  "success": false,
-  "value": null,
-  "error": "Could not locate 'Desat Index (#/hour)' row in oximetry section"
-}
-
-━━━ COMMON MISTAKES TO AVOID ━━━
-1. ✗ Extracting from wrong row (dur/hour instead of #/hour)
-2. ✗ Extracting wrong column (REM instead of TOTAL)
-3. ✗ Including units in value (return 5.2, not "5.2/hr")
-4. ✗ Averaging multiple values (extract TOTAL, don't calculate)
-5. ✗ Returning markdown code blocks (return raw JSON only)
-
-━━━ DOCUMENT TO ANALYZE ━━━
-${truncatedContent}`;
-
-  try {
-    console.log('=== DESATURATION INDEX EXTRACTION START ===');
-    
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        max_tokens: 200,
-        messages: [
-          { 
-            role: 'user', 
-            content: `Extract the exact TOTAL value from the "Desat Index (#/hour)" row. Be precise and include debug information.\n\n${desatPrompt}`
-          }
-        ],
-      }),
-    });
-
-      if (!response.ok) {
-        console.error('Desaturation API request failed:', response.status);
-        return null;
-      }
-
-      const data = await response.json();
-      console.log('Desaturation AI response structure:', JSON.stringify(data, null, 2));
-      
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error("Unexpected desaturation AI response:", data);
-        return null;
-      }
-      
-      let result = data.choices[0].message.content.trim();
-    
-    console.log('Raw desaturation response:', result);
-    
-    // Clean JSON response
-    if (result.includes('```json')) {
-      result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
-    }
-    if (result.includes('```')) {
-      result = result.replace(/```\s*/, '').replace(/```\s*$/, '');
-    }
-    
-    const desatData = JSON.parse(result);
-    console.log('Parsed desaturation data:', desatData);
-    
-    if (desatData.debug) {
-      console.log('Row found:', desatData.debug);
-    }
-    
-    const finalValue = desatData.success ? desatData.value : null;
-    console.log('Final desaturation index:', finalValue);
-    console.log('=== DESATURATION INDEX EXTRACTION END ===');
-    
-    return finalValue;
-    
-  } catch (error) {
-    console.error('Desaturation index extraction error:', error);
-    console.log('=== DESATURATION INDEX EXTRACTION FAILED ===');
-    return null;
-  }
-};
-
-// Mask types and sizes for clinical data reference
-const maskTypes = [
-  { value: 'resmed_airfit_f20', label: 'Resmed AirFit F20 Full Face mask' },
-  { value: 'resmed_airfit_n20', label: 'Resmed AirFit N20 Nasal mask' },
-  { value: 'resmed_airfit_n30', label: 'Resmed AirFit N30 Nasal Pillows' },
-  { value: 'resmed_airfit_f10', label: 'Resmed AirFit F10 Full Face mask' },
-  { value: 'nonvented_resmed_full_face', label: 'NONVENTED RESMED FULL FACE MASK' },
-  { value: 'amara_gel_full_face', label: 'AMARA GEL FULL FACE MASK' },
-  { value: 'amara_full_face', label: 'AMARA FULL FACE MASK' },
-  { value: 'amara_view_full_face', label: 'AMARA VIEW FULL FACE MASK' },
-  { value: 'comfort_gel_blue_full_face', label: 'COMFORT GEL BLUE FULL FACE' },
-  { value: 'comfortgel_nasal', label: 'COMFORTGEL NASAL MASK' },
-  { value: 'dreamwear_full_face', label: 'DREAMWEAR FULL FACE MASK' },
-  { value: 'dreamwear_gel_nasal_pillow', label: 'DREAMWEAR GEL NASAL PILLOW' },
-  { value: 'dreamwear_nasal', label: 'DREAMWEAR NASAL MASK' },
-  { value: 'true_blue_nasal', label: 'TRUE BLUE NASAL MASK' },
-  { value: 'wisp_minimal_nasal', label: 'WISP MINIMAL CONTACT NASAL MASK' }
-];
-
-const maskSizes = [
-  { value: 'petite', label: 'PETITE' },
-  { value: 'small', label: 'SMALL' },
-  { value: 'medium_small', label: 'MEDIUM/SMALL' },
-  { value: 'medium', label: 'MEDIUM' },
-  { value: 'medium_wide', label: 'MEDIUM/WIDE' },
-  { value: 'large', label: 'LARGE' },
-  { value: 'x_large', label: 'X LARGE' }
-];
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Validate request method
-    if (req.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-        status: 405,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Validate content type
-    const contentType = req.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      return new Response(JSON.stringify({ error: 'Invalid content type' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const requestBody = await req.json();
-    const { fileContent, studyType, clinicalData } = requestBody;
-
-    // Input validation
-    if (!fileContent || typeof fileContent !== 'string') {
-      return new Response(JSON.stringify({ error: 'Invalid file content' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (!studyType || typeof studyType !== 'string') {
-      return new Response(JSON.stringify({ error: 'Invalid study type' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Validate study type
-    const validStudyTypes = ['Diagnostic', 'Titration', 'Split-Night'];
-    if (!validStudyTypes.includes(studyType)) {
-      return new Response(JSON.stringify({ error: 'Invalid study type. Must be Diagnostic, Titration, or Split-Night' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Sanitize file content
-    const sanitizedContent = fileContent
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<[^>]*>/g, '')
-      .trim();
+    const { htmlContent, rawText, tables, studyType } = await req.json();
     
+    console.log("=== REQUEST RECEIVED ===");
+    console.log("Study Type:", studyType);
+    console.log("Tables count:", tables?.length || 0);
+    console.log("Raw text length:", rawText?.length || 0);
+
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    
-    console.log('Lovable API key exists:', !!lovableApiKey);
-    if (lovableApiKey) {
-      console.log('API key length:', lovableApiKey.length);
-    }
-    
     if (!lovableApiKey) {
-      console.warn('Lovable API key not configured; proceeding with deterministic extraction only.');
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Truncate file content if too long to avoid token limits, but ALWAYS include the Oximetry section
-    const maxContentLength = 50000;
-    let truncatedContent = sanitizedContent;
-
-    if (sanitizedContent.length > maxContentLength) {
-      // Try to extract the Oximetry section to ensure it's included
-      const oximetryRegexes = [
-        /(Oximetry|Oxygen|SpO2|Desaturation|O2\s*Saturation)[\s\S]*?(?=(BODY\s*POSITION|Leg\s*Movements|Snoring|Summary|$))/i
-      ];
-
-      let oximetrySection: string | null = null;
-      for (const rx of oximetryRegexes) {
-        const m = sanitizedContent.match(rx);
-        if (m) { oximetrySection = m[0]; break; }
-      }
-
-      // Leave some buffer and include oximetry section if found
-      const buffer = 200; // safety buffer for prompt
-      const baseLength = oximetrySection ? Math.max(0, maxContentLength - oximetrySection.length - buffer) : maxContentLength;
-      const base = sanitizedContent.substring(0, baseLength);
-
-      if (oximetrySection && !base.includes(oximetrySection)) {
-        truncatedContent = `${base}\n\n[Included Oximetry Section]\n${oximetrySection}`;
-        console.log('Included Oximetry section in truncated content.', { sectionLength: oximetrySection.length, baseLength, finalLength: truncatedContent.length });
-      } else {
-        truncatedContent = base + (sanitizedContent.length > baseLength ? "\n\n[Content truncated...]" : "");
-      }
-    }
-
-    console.log('Processing file content length:', sanitizedContent.length);
-    console.log('Truncated content preview (last 1000 chars):', truncatedContent.slice(-1000));
-    
-    // === CONTENT DEBUG - USER REQUESTED ===
-    console.log('=== CONTENT DEBUG ===');
-    console.log('Content length:', truncatedContent.length);
-    console.log('Has TST:', truncatedContent.includes('TST'));
-    console.log('Has oximetry:', truncatedContent.toLowerCase().includes('oximetry'));
-    console.log('Has Desat Index:', truncatedContent.includes('Desat Index'));
-    
-    // Also check if content contains oximetry keywords
-    const hasOximetryKeywords = sanitizedContent.toLowerCase().includes('oximetry') || 
-                                sanitizedContent.toLowerCase().includes('spo2') || 
-                                sanitizedContent.toLowerCase().includes('oxygen saturation');
-    console.log('Content contains oximetry keywords:', hasOximetryKeywords);
-
-    const MEDICAL_GRADE_PROMPT = `You are a medical-grade AI sleep study assistant. Your task is to extract and summarize **key clinical metrics** from uploaded sleep study files and generate a **clean, modern, and medically accurate** summary based on approved formats and logic.
-
-## 🔍 PRECISE PAGE-BY-PAGE EXTRACTION RULES
-
-### 📄 PAGE 1: Patient Information & Basic Sleep Data
-
-**Patient Information Section (Top-Left):**
-- **Patient Name**: Look in "Recording identification" section, line labeled "Patient name", extract value after the colon
-- **First Name**: Directly below patient name, line labeled "First name", extract value after the colon  
-- **Age**: Line labeled "Patient age", extract value after the colon in patient demographics block
-
-**Sleep Data Section - Times Block (Middle-Left):**
-- **Light Off Time**: In "SLEEP DATA 1" section under "Times", row labeled "Light off (LO)", extract from right column
-- **Light On Time**: Same "Times" block, row labeled "Light on (LON)", extract from right column (may have "[Recording end]" annotation)
-
-**Durations Section (Middle-Left, below Times):**
-- **TIB (Time in Bed)**: In "Durations" block, row labeled "TIB", extract value after colon (explanation: "Light off -> Light on")
-- **TST (Total Sleep Time)**: Same "Durations" block, row labeled "TST", extract value after colon (explanation: "REM + NREM + MVT (during SPT)")
-
-**Latencies Section (Bottom of page):**
-- **Sleep Onset Latency**: In "Latencies" table at bottom, "Sleep onset" row, under "From Light off (min)" column
-- **REM Latency**: Same "Latencies" table, "REM" row, under "From Sleep onset (min)" column
-
-### 📄 PAGE 2: Sleep Architecture & Efficiency
-
-**General Section (Top-Left):**
-- **Sleep Efficiency**: In "General" block, row labeled "Sleep efficiency 1", extract value after colon (includes "%" symbol)
-
-**Sleep Stages Distribution Table (Middle Section):**
-- **REM Duration**: In "Sleep Stages Distribution" table, "REM" row, under "duration (min)" column
-- **REM TST Percentage**: Same "REM" row, under "TST (%)" column (may have handwritten annotation "N24")
-- **S1 Episodes**: In "S1" row, under "Episodes (# of)" column
-- **S1 TST Percentage**: Same "S1" row, under "TST (%)" column (may have handwritten annotation "N2t")
-- **S2 Episodes**: In "S2" row, under "Episodes (# of)" column
-- **S3 Episodes**: In "S3" row (may have handwritten note "slow wave sleep"), under "Episodes (# of)" column
-- **S3 TST Percentage**: Same "S3" row, under "TST (%)" column (may have handwritten annotation "N3t")
-
-**Sleep Data 3 Section (Bottom):**
-- **REM Cycles**: In "SLEEP DATA 3" section, next to "REM Cycles" label as standalone number
-- **REM 1**: In REM cycles table, "REM 1" row, under "Tot" column
-- **REM 2**: In "REM 2" row, under "Tot" column
-
-### 📄 PAGE 3: No data required
-
-### 📄 PAGE 4: Respiratory Events
-
-**Respiratory Events Summary - Total Sleep Time Section (Bottom Half):**
-- **Central Apnea Index (CA)**: In "Index (#/h TST)" row under "CA" column
-- **Obstructive Apnea Index (OA)**: Same row, under "OA" column
-- **Mixed Apnea Index (MA)**: Same row, under "MA" column
-- **Hypopnea Index (HYP)**: Same row, under "HYP" column
-- **Mean Hypopnea Duration**: In "Mean (seconds)" row under "HYP" column
-
-**CALCULATION REQUIRED:**
-- **Mean Hypopnea Duration**: (CA + OA + MA + HYP) / 4
-
-**Respiratory Disturbance Index Section (Bottom):**
-- **AHI REM**: In RDI row, under "REM #/h (REM)" column
-- **AHI NREM**: Same RDI row, under "NREM #/h (NREM)" column
-- **AHI Overall (TST)**: Same RDI row, under "TST #/h (sleep)" column
-
-### 📄 PAGE 5: Heart Rate Data
-
-**Heart Rate Summary Section (Bottom Half):**
-- **REM Duration**: In "HEART RATE SUMMARY" table, "Duration (min)" row under "REM" column
-- **REM Mean HR (BPM)**: Same table, "Mean HR (BPM)" row under "REM" column
-- **NREM Duration**: In "Duration (min)" row under "NREM" column
-- **NREM Mean HR (BPM)**: In "Mean HR (BPM)" row under "NREM" column
-
-### 📄 PAGE 6: Oxygenation & Arousal Data
-
-**Oximetry Distribution Section (Top Half):**
-- **<90 SpO2% Wake**: In "Oximetry Distribution" table, "<90" row under "Wake" column
-- **<95 SpO2% Wake**: Same table, "<95" row under "Wake" column
-- **Non-REM <85**: In "<85" row under "Non-REM" column
-- **Non-REM <90**: In "<90" row under "Non-REM" column
-- **REM <90**: In "<90" row under "REM" column
-- **REM <95**: In "<95" row under "REM" column
-
-**CALCULATIONS REQUIRED FOR OXYGEN SATURATION PERCENTAGES:**
-- **Oxygen < 90%**: Extract REM and NREM values from "<90" row, then calculate: ((REM + NREM) * 100) / Total Sleep Time
-- **Oxygen < 95%**: Extract REM and NREM values from "<95" row, then calculate: ((REM + NREM) * 100) / Total Sleep Time
-
-**Oximetry Summary Table (Middle Section):**
-- **Average SpO2**: In "Average (%)" row under "WK" column
-- **Total NREM**: In "NREM" column showing value
-- **Number of Desaturations Total**: In "Number of desaturations" row under "TOTAL" column
-- **Desaturation Index (#/hour) Total**: In "Desat Index (#/hour)" row under "TOTAL" column - CRITICAL: Extract ONLY the TOTAL column value (last number in row)
-
-**Respiratory Event O2 Min Levels Section:**
-- **Mean SpO2 Min Levels**: Extract percentage value (may have handwritten annotations like "significant", "<88", "minimal 74-88")
-
-**Arousal Summary Section (Bottom):**
-- **Arousal Index**: Extract value next to "Arousal index" (format: "X.X/h(sleep)")
-
-### 📄 PAGE 7: Movement & Position Data
-
-**Snoring Summary Section (Top):**
-- **Snoring Duration**: In "Total duration with snoring" line, extract "X min" value
-- **Snoring Percentage**: Same line, extract "X % of sleep" value
-
-**Leg Movements Summary Section (Middle):**
-- **Leg Movement Index**: In "Leg movements" row, under "Index" column
-
-**Body Position Summary Section (Bottom):**
-- **Left Position Index**: In "L" row, under "Index (#/h)" column
-- **Right Position Index**: In "R" row, under "Index (#/h)" column  
-- **Supine Position Index**: In "S/SL" combined row, under "Index (#/h)" column
-
-**CALCULATION REQUIRED:**
-- **AHI Lateral**: If both L and R position data exist: (Right + Left) / 2
-
-## 💨 CPAP/BPAP PRESSURE & MASK DETAILS
-
-Extract from **titration** or **split therapeutic part**:
-- Pressure Type: CPAP or BPAP
-- Starting Pressure
-- Max Pressure Reached
-- Was Pressure Effective? (based on AHI drop, oxygenation improvement)
-
-## 🧮 CALCULATIONS & INTERPRETATIONS
-
-### 🩺 AHI Classification
-- AHI < 5 → Normal Study
-- 5–15 → Mild OSA
-- 15–30 → Moderate OSA
-- >30 → Severe OSA
-
-### 💡 Sleep Efficiency
-- ≥85% → Normal
-- <85% → Reduced
-
-### 🫁 Oxygen Desaturation
-- Avg SpO2 90–94% → Mild
-- 85–89% → Moderate
-- <85% → Severe
-- If % time with SpO₂ <90% >5% of TST → "Critical desaturation"
-
-### 📊 Custom Calculations
-- **AHI Lateral =** (Right + Left) / 2
-- **O2 <90% =** Extract REM and NREM values from Oximetry Distribution table "<90" row, then calculate: ((REM + NREM) * 100) / Total Sleep Time
-- **O2 <95% =** Extract REM and NREM values from Oximetry Distribution table "<95" row, then calculate: ((REM + NREM) * 100) / Total Sleep Time
-- **Mean Hypopnea Duration =** If values exist → (CA + OA + MA + HYP) / 4
-
-## 📋 CLINICAL SUMMARY GENERATION - STRUCTURED LOGIC
-
-### A. 📅 STUDY TYPE & TIMING (OVERNIGHT vs DAYTIME)
-Use AM/PM to determine:
-- Start time between 5 PM – 9 AM → "overnight sleep study"
-- Start time between 9 AM – 5 PM → "daytime sleep study"
-
-Generate: "This (overnight/daytime) (split-night / therapeutic / repeated) sleep study shows evidence of (diagnosis)."
-
-### B. 🛌 TOTAL SLEEP TIME CONVERSION
-Convert minutes to hours/minutes:
-- hours = minutes // 60
-- remaining minutes = minutes % 60
-Example: 262 min → 4 hours and 22 minutes
-
-### C. 😴 AHI CLASSIFICATION (Apnea-Hypopnea Index)
-- AHI < 5 → Normal
-- 5 ≤ AHI < 15 → Mild OSA
-- 15 ≤ AHI < 30 → Moderate OSA
-- AHI ≥ 30 → Severe OSA
-
-Add: "…with an AHI of [X] events/hr, consistent with (mild/moderate/severe) Obstructive Sleep Apnea…"
-
-### D. 🫁 CPAP / BPAP INTERVENTION
-If CPAP used:
-"Conventional CPAP was (applied / attempted / refused). Titration was (acceptable / unacceptable). At CPAP pressure of [X] cmH2O, respiratory events were (eliminated / improved / persisted)."
-
-If CPAP failed and BPAP applied:
-"Titration was escalated to BPAP at [IPAP]/[EPAP] cmH2O where respiratory events were eliminated."
-
-### E. 😷 MASK AND ACCESSORIES DETAILS
-If CPAP/BPAP applied, and study is therapeutic or split-night:
-"CPAP was delivered via [Mask Type – Size], with (headgear / chin strap) used."
-Example: "CPAP was delivered via ResMed AirFit F20 Full Face Mask – Medium, with headgear and chin strap."
-
-### F. 🧪 CO2 MONITORING (OPTIONAL)
-If values present:
-"EtCO2 was monitored and values showed: – mmHg while awake, – mmHg in NREM, and – mmHg in REM."
-"TcCO2 values showed: – mmHg while awake, – mmHg in NREM, – mmHg in REM."
-
-### G. 💊 MEDICATION (OPTIONAL)
-"Tab. Zolpidem __ mg was given at __ PM per doctor's order. Sleep latency was __ minutes."
-"Tab. Sinemet __ mg was given at __ PM."
-"Patient refused to take Sinemet." (if applicable)
-
-### H. 🦵 LEG MOVEMENTS AND RLS
-PLM Index ≥15/hr (adult) → PLM present
-PLM Index <15/hr → PLM not clinically significant
-
-If PLM index ≥ 15/hr:
-"Frequent leg movements were noted during sleep meeting PLM criteria, with an index of [XX], suggesting Periodic Limb Movements (PLMs)."
-
-If RLS (leg movement while awake):
-"Frequent leg movements were observed while awake, suggesting the possibility of Restless Legs Syndrome (RLS)."
-
-### I. 🔉 SNORING
-If snoring present: "Snoring was noted."
-(Do not say "routine snoring" and do not mention snoring if absent.)
-
-### J. 🧠 SLEEP ARCHITECTURE
-"The patient progressed into (all sleep stages / missed REM / missed N3 / did not reach any stages)."
-
-### K. 🗣 PATIENT COMMENT (OPTIONAL)
-Include if provided. Example:
-"Patient reported sleeping better in the center and is willing to use CPAP at home."
-
-### L. 🔚 CLOSING STATEMENT LOGIC
-Only include "Otherwise, no unusual events were noted during the study." 
-IF all of the following are absent: Snoring, PLM, RLS
-
-Combinations:
-- ❌ No snoring, no PLMs, no RLS → "Otherwise, no unusual events were noted during the study."
-- ✅ Snoring only → "Snoring was noted. Otherwise, no unusual events were noted during the study."
-- ✅ PLMs only → "Frequent leg movements were noted during sleep meeting PLM criteria, with an index of [XX], suggesting PLMs. Otherwise, no unusual events were noted during the study."
-- ✅ RLS + PLMs → "Frequent leg movements were observed while awake, suggesting RLS. Frequent leg movements were also noted during sleep meeting PLM criteria, with an index of [XX], suggesting PLMs."
-- ✅ Snoring + PLMs → "Snoring was noted. Frequent leg movements were also noted during sleep meeting PLM criteria, with an index of [XX], suggesting PLMs."
-- ✅ Snoring + RLS + PLMs → "Snoring was noted. Frequent leg movements were observed while awake, suggesting RLS. Frequent leg movements were also noted during sleep meeting PLM criteria, with an index of [XX], suggesting PLMs."
-
-### EXAMPLE OUTPUT:
-"This overnight split sleep study shows evidence of Severe Obstructive Sleep Apnea. The patient had a total sleep time of 4 hours and 56 minutes with an AHI of 70.7 events per hour associated with minimal desaturations and repetitive sleep interruptions. Conventional CPAP was applied and titration was done. At CPAP pressure of 10 cmH2O, respiratory events were eliminated on supine REM sleep. He progressed into all sleep stages.
-
-EtCO2 was monitored and values showed: 31–46 mmHg while awake, 30–47 mmHg in NREM, and 30–48 mmHg in REM sleep. TcCO2 values showed: 60–64 mmHg while awake and 60–63 mmHg in NREM sleep.
-
-Otherwise, no unusual events were noted during the study."
-
-CRITICAL: Return ONLY valid JSON. Extract exact values when available. Use null for missing data.
-
-Study Type: ${studyType}
-
-${clinicalData ? `ADDITIONAL CLINICAL DATA PROVIDED BY USER:
-Mask Configuration: ${clinicalData.maskType ? maskTypes.find(t => t.value === clinicalData.maskType)?.label : 'Not specified'} - ${clinicalData.maskSize ? maskSizes.find(s => s.value === clinicalData.maskSize)?.label : 'Not specified'}
-Accessories: ${[clinicalData.hasHeadgear && 'Headgear', clinicalData.hasChinstrap && 'Chinstrap'].filter(Boolean).join(', ') || 'None'}
-${clinicalData.bpapUsed ? `BPAP Pressure: IPAP ${clinicalData.ipapPressure} cmH2O / EPAP ${clinicalData.epapPressure} cmH2O` : 
-  clinicalData.cpapPressure ? `CPAP Pressure: ${clinicalData.cpapPressure} cmH2O` : 'Pressure not specified'}
-${clinicalData.etco2?.awake || clinicalData.etco2?.nrem || clinicalData.etco2?.rem ? 
-  `EtCO2 Values: Awake ${clinicalData.etco2.awake || 'N/A'} mmHg, NREM ${clinicalData.etco2.nrem || 'N/A'} mmHg, REM ${clinicalData.etco2.rem || 'N/A'} mmHg` : ''}
-${clinicalData.tcco2?.awake || clinicalData.tcco2?.nrem || clinicalData.tcco2?.rem ? 
-  `TcCO2 Values: Awake ${clinicalData.tcco2.awake || 'N/A'} mmHg, NREM ${clinicalData.tcco2.nrem || 'N/A'} mmHg, REM ${clinicalData.tcco2.rem || 'N/A'} mmHg` : ''}
-${clinicalData.medication ? `Medication: ${clinicalData.medication}` : ''}
-${clinicalData.isRepeatedStudy ? 'NOTE: This is a repeated sleep study.' : ''}
-${clinicalData.selectedComments && clinicalData.selectedComments.length > 0 ? 
-  `Patient Comments: ${clinicalData.selectedComments.map(comment => {
-    const patientCommentLabels = [
-      { value: 'sleeping_better_center', label: 'Patient reports sleeping better in the center compared to home.' },
-      { value: 'no_difference', label: 'Patient reports no difference in sleep quality between the center and home.' },
-      { value: 'sleeping_better_home', label: 'Patient reports sleeping better at home.' },
-      { value: 'improved_with_cpap', label: 'Patient reports improved sleep in the center with CPAP and will discuss continuation at home with the physician.' },
-      { value: 'willing_cpap_home', label: 'Patient reports improved sleep in the center and expresses willingness to initiate CPAP therapy at home.' },
-      { value: 'better_without_cpap', label: 'Patient reports better sleep without CPAP.' },
-      { value: 'undecided_cpap', label: 'Patient remains undecided regarding the use of CPAP at home.' },
-      { value: 'no_comment', label: 'No comment provided' }
-    ];
-    const foundComment = patientCommentLabels.find(c => c.value === comment);
-    return foundComment ? foundComment.label : comment;
-  }).join(' ')}` : ''}
-
-IMPORTANT: Incorporate this user-provided clinical data into your analysis and clinical summary. Use these values for mask details, pressure settings, CO2 monitoring, and medication information in your clinical summary.` : ''}
-
-FILE CONTENT TO ANALYZE:
-${truncatedContent}
-
-Expected JSON structure:
-{
-  "patientInfo": {
-    "name": "string or null",
-    "firstName": "string or null",
-    "age": "number or null",
-    "gender": "string or null"
-  },
-  "studyInfo": {
-    "studyType": "diagnostic|titration|split_night",
-    "studyDate": "string or null",
-    "startTime": "string or null",
-    "lightsOff": "string or null",
-    "lightsOn": "string or null",
-    "timeInBed": "number (minutes) or null",
-    "totalSleepTime": "number (minutes) or null",
-    "sleepLatency": "number (minutes) or null",
-    "remLatency": "number (minutes) or null"
-  },
-  "sleepArchitecture": {
-    "sleepEfficiency": "number (percentage) or null",
-    "stage1Percent": "number or null",
-    "stage2Percent": "number or null",
-    "stage3Percent": "number or null",
-    "remPercent": "number or null",
-    "remCycles": {
-      "count": "number or null",
-      "startTimes": "array of strings or null",
-      "durations": "array of numbers or null"
-    }
-  },
-  "respiratoryEvents": {
-    "ahiOverall": "number or null",
-    "ahiSupine": "number or null",
-    "ahiLateral": "number or null",
-    "ahiLeft": "number or null",
-    "ahiRight": "number or null",
-    "ahiNrem": "number or null",
-    "ahiRem": "number or null",
-    "centralApneaIndex": "number or null",
-    "obstructiveApneaIndex": "number or null",
-    "mixedApneaIndex": "number or null",
-    "hypopneaIndex": "number or null",
-    "meanHypopneaDuration": "number (seconds) or null"
-  },
-  "oxygenation": {
-    "averageSpO2": "number or null",
-    "averageSpO2Nrem": "number or null",
-    "averageSpO2Rem": "number or null",
-    "lowestSpO2": "number or null",
-    "desaturationIndex": "number or null",
-    "timeBelow90Percent": "number (percentage) or null",
-    "timeBelow95Percent": "number (percentage) or null"
-  },
-  "cardiacData": {
-    "meanHeartRateNrem": "number or null",
-    "meanHeartRateRem": "number or null"
-  },
-  "additionalMetrics": {
-    "arousalIndex": "number or null",
-    "snoringMinutes": "number or null",
-    "snoringPercent": "number or null",
-    "legMovementIndex": "number or null",
-    "leftPositionIndex": "number or null",
-    "rightPositionIndex": "number or null",
-    "supinePositionIndex": "number or null"
-  },
-  "titrationData": {
-    "pressureType": "string or null",
-    "startingPressure": "number or null",
-    "maxPressure": "number or null",
-    "effectivePressure": "number or null",
-    "pressureEffective": "boolean or null"
-  },
-  "clinicalSummary": "Auto-generated clinical interpretation following the medical structure above",
-  "ahiClassification": "Normal Study|Mild OSA|Moderate OSA|Severe OSA",
-  "sleepEfficiencyStatus": "Normal|Reduced",
-  "oxygenationSeverity": "Normal|Mild|Moderate|Severe|Critical desaturation",
-  "patientComments": "string or null - Combined patient comments and study notes"
-}`;
-
-  // Separate focused extraction for desaturation index
-  const extractDesaturationIndex = async (truncatedContent, lovableApiKey) => {
-    const desatPrompt = `Extract the Total Desaturation Index from this sleep study report.
-
-LOCATION: Look in the oximetry table section
-
-FIND: The row labeled "Desat Index (#/hour)" (NOT "Desat Index (dur/hour)")
-
-TABLE STRUCTURE EXAMPLE:
-                        WK    REM   NREM  TOTAL
-Average (%)             XX    XX    XX    XX
-Number of desaturations  X     X     X     X
-Desat Index (#/hour)    X.X   X.X   X.X   X.X  ← EXTRACT TOTAL
-Desat Index (dur/hour)  X.X   X.X   X.X   X.X  ← SKIP THIS
-
-EXTRACT: Only the TOTAL column value (4th number) from "Desat Index (#/hour)" row
-
-EXAMPLES:
-- "Desat Index (#/hour)    1.4   8.8   1.9   2.8" → Extract: 2.8
-- "Desat Index (#/hour)    0.6   0.0   0.2   1.3" → Extract: 1.3
-
-Return JSON:
-{
-  "success": true,
-  "value": 2.8,
-  "debug": "exact text of the row found"
-}
-
-If not found:
-{
-  "success": false,
-  "value": null,
-  "error": "reason"
-}
-
-DOCUMENT: ${truncatedContent}`;
-
-    try {
-      console.log('=== DESATURATION INDEX EXTRACTION START ===');
-      
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-          max_tokens: 200,
-          messages: [
-            { 
-              role: 'user', 
-              content: `Extract the exact TOTAL value from the "Desat Index (#/hour)" row. Be precise and include debug information.\n\n${desatPrompt}`
-            }
-          ],
-        }),
-      });
-
-      if (!response.ok) {
-        console.error('Desaturation API request failed:', response.status);
-        return null;
-      }
-
-      const data = await response.json();
-      console.log('Nested desaturation AI response structure:', JSON.stringify(data, null, 2));
-      
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error("Unexpected nested desaturation AI response:", data);
-        return null;
-      }
-      
-      let result = data.choices[0].message.content.trim();
-      
-      console.log('Raw desaturation response:', result);
-      
-      // Clean JSON response - handle descriptive responses
-      if (result.includes('```json')) {
-        result = result.replace(/```json\s*/, '').replace(/```\s*$/, '');
-      }
-      if (result.includes('```')) {
-        result = result.replace(/```\s*/, '').replace(/```\s*$/, '');
-      }
-      
-      // Extract JSON from response - look for actual JSON content
-      const jsonMatch = result.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        result = jsonMatch[0];
-      }
-      
-      const desatData = JSON.parse(result);
-      console.log('Parsed desaturation data:', desatData);
-      
-      if (desatData.debug) {
-        console.log('Row found:', desatData.debug);
-      }
-      
-      const finalValue = desatData.success ? desatData.value : null;
-      console.log('Final desaturation index:', finalValue);
-      console.log('=== DESATURATION INDEX EXTRACTION END ===');
-      
-      return finalValue;
-      
-    } catch (error) {
-      console.error('Desaturation index extraction error:', error);
-      console.log('=== DESATURATION INDEX EXTRACTION FAILED ===');
-      return null;
-    }
-  };
-
-  console.log('Sending request to Lovable AI (Gemini)...');
-  
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json'
+    // Extract metrics using universal pipeline
+    const metrics = await extractSleepMetrics(tables || [], rawText || '', lovableApiKey);
+
+    // Format final response
+    const response = {
+      extractedData: {
+        patientName: "Patient Name",
+        studyDate: new Date().toISOString().split('T')[0],
+        studyType: studyType || "PSG",
+        totalSleepTime: metrics.calculations?.tst || null,
+        sleepEfficiency: null,
+        sleepLatency: null,
+        remLatency: null,
+        arousalIndex: null,
+        oxygenUnder90Percent: metrics.oxygenUnder90Percent,
+        oxygenUnder95Percent: metrics.oxygenUnder95Percent,
+        lowestO2: null,
+        averageO2: null,
+        hypopneaMeanDuration: metrics.hypopneaMeanDuration,
+        desaturationIndex: metrics.desaturationIndex,
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        max_tokens: 3000,
-        messages: [
-          { 
-            role: 'user', 
-            content: `You are a medical AI expert specializing in sleep study analysis. Your task is to extract exact numerical values from sleep study reports. Search thoroughly through the entire document for each requested metric. Extract ONLY the exact values as they appear in the document - do not estimate or interpolate. Return only valid JSON with actual extracted values.\n\n${MEDICAL_GRADE_PROMPT}`
-          }
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Lovable AI error:', errorData);
-      console.error('Model being used:', 'google/gemini-2.5-flash');
-      throw new Error(`Lovable AI error: ${response.status} - Model: google/gemini-2.5-flash`);
-    }
-
-    const data = await response.json();
-    console.log('Main extraction AI response structure:', JSON.stringify(data, null, 2));
-    
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error("Unexpected main extraction AI response:", data);
-      throw new Error('Invalid AI response structure');
-    }
-    
-    let analysisResult = data.choices[0].message.content;
-    
-    // === AI RESPONSE DEBUG - USER REQUESTED ===
-    console.log('=== AI RESPONSE DEBUG ===');
-    console.log('Raw response:', data.choices?.[0]?.message?.content || 'No response content');
-    
-    // Clean up the response - remove markdown code blocks if present
-    if (analysisResult.includes('```json')) {
-      analysisResult = analysisResult.replace(/```json\s*/, '').replace(/```\s*$/, '');
-    }
-    if (analysisResult.includes('```')) {
-      analysisResult = analysisResult.replace(/```\s*/, '').replace(/```\s*$/, '');
-    }
-    
-    console.log('Cleaned analysis result:', analysisResult);
-
-    // Try to parse the JSON response from OpenAI
-    let extractedData;
-    try {
-      extractedData = JSON.parse(analysisResult);
-      
-      // Post-process to add custom calculations
-      if (extractedData) {
-        console.log('=== COMPREHENSIVE SLEEP METRICS EXTRACTION START ===');
-        
-        // ========== ROBUST DETERMINISTIC EXTRACTION - PRIORITY ORDER ==========
-        console.log('🔍 Starting robust deterministic extraction...');
-        
-        let oxygen90 = null;
-        let oxygen95 = null;
-        let desatIndex: number | null = null;
-        let avgSpO2: number | null = null;
-        let lowestSpO2: number | null = null;
-        let hypopneaMean: number | null = null;
-
-        // ========== STEP 1: Extract TST (Total Sleep Time) ==========
-        const tstMatch = truncatedContent.match(/TST[:\s]+(\d+\.?\d*)\s*min/i);
-        const tst = tstMatch ? parseFloat(tstMatch[1]) : null;
-        console.log(`📊 TST: ${tst} minutes`);
-
-        if (!tst) {
-          console.warn('⚠️ TST not found! Oxygen calculations will fail.');
-        }
-
-        // ========== STEP 2: Oximetry Distribution Table (REM + NREM minutes) ==========
-        // Pattern: Look for <90 and <95 rows with whitespace-separated values
-        // Format: <90  Wake_val  REM_val  NREM_val  Total_val
-        // We want REM_val + NREM_val for calculation
-        
-        if (tst) {
-          // Match <90 row with pipes: | <90 | Wake | REM | NREM | Total |
-          const under90LineTable = truncatedContent.match(/<\s*90[^\n]*?\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
-          if (under90LineTable) {
-            // Columns: [1]=Wake, [2]=REM, [3]=NREM, [4]=TOTAL
-            const remMin90 = parseFloat(under90LineTable[2]);
-            const nremMin90 = parseFloat(under90LineTable[3]);
-            const totalMin90 = remMin90 + nremMin90;
-            oxygen90 = ((totalMin90 / tst) * 100).toFixed(1);
-            console.log(`✅ <90% from Oximetry Distribution table: REM=${remMin90} + NREM=${nremMin90} = ${totalMin90} min → ${oxygen90}% of TST`);
-          } else {
-            // Try whitespace-separated format
-            const under90LineSpace = truncatedContent.match(/<\s*90[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
-            if (under90LineSpace) {
-              const remMin90 = parseFloat(under90LineSpace[2]);
-              const nremMin90 = parseFloat(under90LineSpace[3]);
-              const totalMin90 = remMin90 + nremMin90;
-              oxygen90 = ((totalMin90 / tst) * 100).toFixed(1);
-              console.log(`✅ <90% from Oximetry Distribution whitespace: REM=${remMin90} + NREM=${nremMin90} = ${totalMin90} min → ${oxygen90}% of TST`);
-            }
-          }
-
-          // Match <95 row with pipes
-          const under95LineTable = truncatedContent.match(/<\s*95[^\n]*?\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
-          if (under95LineTable) {
-            const remMin95 = parseFloat(under95LineTable[2]);
-            const nremMin95 = parseFloat(under95LineTable[3]);
-            const totalMin95 = remMin95 + nremMin95;
-            oxygen95 = ((totalMin95 / tst) * 100).toFixed(1);
-            console.log(`✅ <95% from Oximetry Distribution table: REM=${remMin95} + NREM=${nremMin95} = ${totalMin95} min → ${oxygen95}% of TST`);
-          } else {
-            // Try whitespace-separated format
-            const under95LineSpace = truncatedContent.match(/<\s*95[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
-            if (under95LineSpace) {
-              const remMin95 = parseFloat(under95LineSpace[2]);
-              const nremMin95 = parseFloat(under95LineSpace[3]);
-              const totalMin95 = remMin95 + nremMin95;
-              oxygen95 = ((totalMin95 / tst) * 100).toFixed(1);
-              console.log(`✅ <95% from Oximetry Distribution whitespace: REM=${remMin95} + NREM=${nremMin95} = ${totalMin95} min → ${oxygen95}% of TST`);
-            }
-          }
-
-          if (!under90LineTable && !under90LineSpace) console.warn('⚠️ Could not find <90 row in Oximetry Distribution');
-          if (!under95LineTable && !under95LineSpace) console.warn('⚠️ Could not find <95 row in Oximetry Distribution');
-        }
-
-        // ========== STEP 3: Hypopnea Mean Duration from Respiratory Events Summary ==========
-        // Look in "Respiratory Events Summary (Total sleep time)" section
-        // Find "Mean (seconds)" row, extract HYP column value
-        
-        // Pattern 1: Look for the entire Mean (seconds) row with all values
-        // Format: | Mean (seconds) | 0.0 | 15.5 | 0.0 | 15.5 | 19.6 | 19.6 |
-        // Columns: CA, OA, MA, Sum Ap, HYP, Events
-        const hypopneaTableMatch = truncatedContent.match(/Mean\s*\(seconds\)[^\n]*?\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
-        if (hypopneaTableMatch) {
-          // Columns: [1]=CA, [2]=OA, [3]=MA, [4]=Sum Ap, [5]=HYP, [6]=Events
-          hypopneaMean = parseFloat(hypopneaTableMatch[5]);
-          console.log(`✅ Hypopnea Mean Duration from table: ${hypopneaMean} seconds (column 5: HYP)`);
-        } else {
-          // Pattern 2: Without pipes, just whitespace
-          const altHypMatch = truncatedContent.match(/Mean\s*\(seconds\)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
-          if (altHypMatch) {
-            hypopneaMean = parseFloat(altHypMatch[5]);
-            console.log(`✅ Hypopnea Mean Duration (whitespace pattern): ${hypopneaMean} seconds`);
-          } else {
-            // Pattern 3: Try finding HYP label followed by value
-            const hypLabelMatch = truncatedContent.match(/Mean\s*\(seconds\)[\s\S]{0,100}?([\d.]+)\s*\|\s*HYP|HYP\s*\|\s*([\d.]+)/i);
-            if (hypLabelMatch) {
-              hypopneaMean = parseFloat(hypLabelMatch[1] || hypLabelMatch[2]);
-              console.log(`✅ Hypopnea Mean Duration (label pattern): ${hypopneaMean} seconds`);
-            } else {
-              console.warn('⚠️ Could not find Hypopnea Mean Duration in Respiratory Events Summary');
-            }
-          }
-        }
-
-        // ========== STEP 4: Desaturation Index from Oximetry Summary ==========
-        // Look for "Desat Index (#/hour)" in multiple formats
-        
-        // Pattern 1: Table format with pipes: | Desat Index (#/hour) | WK | REM | NREM | TOTAL |
-        const desatTableMatch = truncatedContent.match(/Desat\s+Index\s*\(#\s*\/\s*hour\)[^\n]*?\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
-        if (desatTableMatch) {
-          // Columns: [1]=WK, [2]=REM, [3]=NREM, [4]=TOTAL
-          desatIndex = parseFloat(desatTableMatch[4]);
-          console.log(`✅ Desaturation Index from table TOTAL column: ${desatIndex} /hr`);
-        } else {
-          // Pattern 2: Colon format: Desat Index (#/hour): 1.4 (WK: 8.8, NREM: 1.9, TOTAL: 2.8)
-          const desatColonMatch = truncatedContent.match(/Desat\s+Index\s*\(#\s*\/\s*hour\)[:\s]+([\d.]+)\s*\([^)]*TOTAL[:\s]+([\d.]+)\)/i);
-          if (desatColonMatch) {
-            desatIndex = parseFloat(desatColonMatch[2]);
-            console.log(`✅ Desaturation Index from colon format TOTAL: ${desatIndex} /hr`);
-          } else {
-            // Pattern 3: Simple whitespace format: Desat Index (#/hour) WK REM NREM TOTAL
-            const desatSpaceMatch = truncatedContent.match(/Desat\s+Index\s*\(#\s*\/\s*hour\)[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
-            if (desatSpaceMatch) {
-              desatIndex = parseFloat(desatSpaceMatch[4]);
-              console.log(`✅ Desaturation Index from whitespace format TOTAL: ${desatIndex} /hr`);
-            } else {
-              console.warn('⚠️ Could not find Desaturation Index in Oximetry Summary');
-              
-              // Fallback: Calculate from Body Position Summary
-              if (tst) {
-                const bodyPosMatch = truncatedContent.match(/BODY POSITION SUMMARY[\s\S]*?(?=\n\n[A-Z]|$)/i);
-                if (bodyPosMatch) {
-                  const desatMatches = [...bodyPosMatch[0].matchAll(/Desat[^\n]*?(\d+)/gi)];
-                  if (desatMatches.length > 0) {
-                    const totalDesats = desatMatches.reduce((sum, m) => sum + parseInt(m[1]), 0);
-                    desatIndex = parseFloat((totalDesats / (tst / 60)).toFixed(1));
-                    console.log(`✅ Calculated Desat Index from Body Position: ${totalDesats} events / ${(tst / 60).toFixed(2)} hrs = ${desatIndex} /hr`);
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        // ========== STEP 5: Average O2 and Lowest O2 from Oximetry Summary ==========
-        // Look for "Average (%)" row, extract TOTAL column
-        const avgO2Match = truncatedContent.match(/Average\s*\(%\)[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
-        if (avgO2Match) {
-          avgSpO2 = parseInt(avgO2Match[4]); // TOTAL column
-          console.log(`✅ Average SpO2 from Oximetry Summary TOTAL: ${avgSpO2}%`);
-        }
-
-        // Look for "Lowest (%)" row
-        const lowestO2Match = truncatedContent.match(/Lowest\s*\(%\)[^\n]*?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
-        if (lowestO2Match) {
-          lowestSpO2 = parseInt(lowestO2Match[4]); // TOTAL column
-          console.log(`✅ Lowest SpO2 from Oximetry Summary TOTAL: ${lowestSpO2}%`);
-        }
-
-        // ========== SUMMARY OF DETERMINISTIC EXTRACTION ==========
-        console.log('📋 Deterministic extraction results:', {
-          oxygen90: oxygen90 ? `${oxygen90}%` : 'NOT FOUND',
-          oxygen95: oxygen95 ? `${oxygen95}%` : 'NOT FOUND',
-          hypopneaMean: hypopneaMean ? `${hypopneaMean} sec` : 'NOT FOUND',
-          desatIndex: desatIndex ? `${desatIndex} /hr` : 'NOT FOUND',
-          avgSpO2: avgSpO2 ? `${avgSpO2}%` : 'NOT FOUND',
-          lowestSpO2: lowestSpO2 ? `${lowestSpO2}%` : 'NOT FOUND'
-        });
-
-        // === AI FALLBACK (only if deterministic fails) ===
-        let aiResult = null;
-        if (!oxygen90 || !oxygen95 || !desatIndex || !hypopneaMean) {
-          console.log("⚠️ Some values missing from deterministic extraction. Missing:", {
-            oxygen90: !oxygen90,
-            oxygen95: !oxygen95,
-            desatIndex: !desatIndex,
-            hypopneaMean: !hypopneaMean
-          });
-          console.log("🤖 Attempting AI fallback...");
-          try {
-            aiResult = await extractSleepMetrics(truncatedContent, lovableApiKey);
-            console.log("✅ AI fallback result:", aiResult);
-          } catch (error) {
-            console.error("❌ AI fallback failed:", error);
-          }
-        } else {
-          console.log("✅ All values extracted deterministically! No AI fallback needed.");
-        }
-
-        // === ASSIGN FINAL VALUES ===
-        extractedData.oxygenation = extractedData.oxygenation || {};
-        extractedData.respiratoryEvents = extractedData.respiratoryEvents || {};
-
-        // Use deterministic first, fallback to AI, then to defaults
-        extractedData.oxygenation.timeBelow90Percent = oxygen90 ? `${oxygen90}%` : 
-          (aiResult?.oxygenUnder90Percent ? `${aiResult.oxygenUnder90Percent}%` : "0.0%");
-        
-        extractedData.oxygenation.timeBelow95Percent = oxygen95 ? `${oxygen95}%` : 
-          (aiResult?.oxygenUnder95Percent ? `${aiResult.oxygenUnder95Percent}%` : "0.0%");
-        
-        extractedData.oxygenation.desaturationIndex = desatIndex !== null ? desatIndex : 
-          (aiResult?.desaturationIndex || null);
-        
-        extractedData.respiratoryEvents.meanHypopneaDuration = hypopneaMean !== null ? hypopneaMean : 
-          (aiResult?.hypopneaMeanDuration || null);
-
-        // Update SpO2 values if we extracted them
-        if (avgSpO2 !== null) {
-          extractedData.oxygenation.averageSpO2 = avgSpO2;
-        }
-        if (lowestSpO2 !== null) {
-          extractedData.oxygenation.lowestSpO2 = lowestSpO2;
-        }
-
-        console.log("✅ Final oxygen & respiratory values:", {
-          timeBelow90: extractedData.oxygenation.timeBelow90Percent,
-          timeBelow95: extractedData.oxygenation.timeBelow95Percent,
-          desatIndex: extractedData.oxygenation.desaturationIndex,
-          hypopneaMean: extractedData.respiratoryEvents.meanHypopneaDuration,
-          avgSpO2: extractedData.oxygenation.averageSpO2,
-          lowestSpO2: extractedData.oxygenation.lowestSpO2
-        });
-
-        console.log('Final assigned values:', {
-          under90: extractedData.oxygenation.timeBelow90Percent,
-          under95: extractedData.oxygenation.timeBelow95Percent,
-          hypopneaDuration: extractedData.respiratoryEvents.meanHypopneaDuration,
-          desatIndex: extractedData.oxygenation.desaturationIndex
-        });
-        
-        console.log('=== COMPREHENSIVE SLEEP METRICS EXTRACTION END ===');
-        
-        // Calculate AHI Lateral if we have left and right values
-        if (extractedData.respiratoryEvents?.ahiLeft && extractedData.respiratoryEvents?.ahiRight) {
-          extractedData.respiratoryEvents.ahiLateral = Math.round(((extractedData.respiratoryEvents.ahiLeft + extractedData.respiratoryEvents.ahiRight) / 2) * 10) / 10;
-        }
-        
-        // Calculate mean hypopnea duration if individual values exist
-        const { centralApneaIndex, obstructiveApneaIndex, mixedApneaIndex, hypopneaIndex } = extractedData.respiratoryEvents || {};
-        if (centralApneaIndex !== null && obstructiveApneaIndex !== null && mixedApneaIndex !== null && hypopneaIndex !== null) {
-          extractedData.respiratoryEvents.meanHypopneaDuration = Math.round(((centralApneaIndex + obstructiveApneaIndex + mixedApneaIndex + hypopneaIndex) / 4) * 100) / 100;
-        }
-      }
-      
-    } catch (parseError) {
-      console.error('Failed to parse OpenAI JSON response:', parseError);
-      console.error('Raw response:', analysisResult);
-      // Fallback to structured empty data if parsing fails
-      extractedData = {
-        patientInfo: {
-          name: null,
-          firstName: null,
-          age: null,
-          gender: null
-        },
-        studyInfo: {
-          studyType: studyType.toLowerCase().replace('-', '_'),
-          studyDate: null,
-          startTime: null,
-          lightsOff: null,
-          lightsOn: null,
-          timeInBed: null,
-          totalSleepTime: null,
-          sleepLatency: null,
-          remLatency: null
-        },
-        sleepArchitecture: {
-          sleepEfficiency: null,
-          stage1Percent: null,
-          stage2Percent: null,
-          stage3Percent: null,
-          remPercent: null,
-          remCycles: {
-            count: null,
-            startTimes: null,
-            durations: null
-          }
-        },
-        respiratoryEvents: {
-          ahiOverall: null,
-          ahiSupine: null,
-          ahiLateral: null,
-          ahiLeft: null,
-          ahiRight: null,
-          ahiNrem: null,
-          ahiRem: null,
-          centralApneaIndex: null,
-          obstructiveApneaIndex: null,
-          mixedApneaIndex: null,
-          hypopneaIndex: null,
-          meanHypopneaDuration: null
-        },
-        oxygenation: {
-          averageSpO2: null,
-          averageSpO2Nrem: null,
-          averageSpO2Rem: null,
-          lowestSpO2: null,
-          desaturationIndex: null,
-          timeBelow90Percent: null,
-          timeBelow95Percent: null
-        },
-        cardiacData: {
-          meanHeartRateNrem: null,
-          meanHeartRateRem: null
-        },
-        additionalMetrics: {
-          arousalIndex: null,
-          snoringMinutes: null,
-          snoringPercent: null,
-          legMovementIndex: null,
-          leftPositionIndex: null,
-          rightPositionIndex: null,
-          supinePositionIndex: null
-        },
-        titrationData: {
-          pressureType: null,
-          startingPressure: null,
-          maxPressure: null,
-          effectivePressure: null,
-          pressureEffective: null
-        },
-        clinicalSummary: "Unable to parse sleep study report. Please check the file format.",
-        ahiClassification: "Unable to determine",
-        sleepEfficiencyStatus: "Unable to determine",
-        oxygenationSeverity: "Unable to determine"
-      };
-    }
-
-    const processedData = {
-      ...extractedData,
-      studyType: studyType
+      rawMetrics: metrics,
+      extractionMethod: "universal-pipeline",
+      timestamp: new Date().toISOString()
     };
 
-    // Process patient comments from clinical data (excluding repeated study note)
-    let patientComments = [];
-    if (clinicalData && clinicalData.selectedComments && clinicalData.selectedComments.length > 0) {
-      const patientCommentLabels = [
-        { value: 'sleeping_better_center', label: 'Patient reports sleeping better in the center compared to home.' },
-        { value: 'no_difference', label: 'Patient reports no difference in sleep quality between the center and home.' },
-        { value: 'sleeping_better_home', label: 'Patient reports sleeping better at home.' },
-        { value: 'improved_with_cpap', label: 'Patient reports improved sleep in the center with CPAP and will discuss continuation at home with the physician.' },
-        { value: 'willing_cpap_home', label: 'Patient reports improved sleep in the center and expresses willingness to initiate CPAP therapy at home.' },
-        { value: 'better_without_cpap', label: 'Patient reports better sleep without CPAP.' },
-        { value: 'undecided_cpap', label: 'Patient remains undecided regarding the use of CPAP at home.' },
-        { value: 'no_comment', label: 'No comment provided' }
-      ];
-      
-      clinicalData.selectedComments.forEach(commentValue => {
-        const comment = patientCommentLabels.find(c => c.value === commentValue);
-        if (comment) {
-          patientComments.push(comment.label);
-        }
-      });
-    }
-    
-    // Add patient comments to processed data as array
-    if (patientComments.length > 0) {
-      processedData.patientComments = patientComments;
-    }
+    console.log("=== FINAL RESPONSE ===");
+    console.log(JSON.stringify(response, null, 2));
 
-    // === FINAL VALUES DEBUG - USER REQUESTED ===
-    console.log('=== FINAL VALUES DEBUG ===');
-    console.log({
-      oxygen90: processedData.oxygenation?.timeBelow90Percent,
-      oxygen95: processedData.oxygenation?.timeBelow95Percent,
-      hypopnea: processedData.respiratoryEvents?.meanHypopneaDuration,
-      desatIndex: processedData.oxygenation?.desaturationIndex
-    });
+    return new Response(
+      JSON.stringify(response),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
 
-    console.log('Final processed data:', JSON.stringify(processedData, null, 2));
-
-    return new Response(JSON.stringify(processedData), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-    
   } catch (error) {
-    console.error('Error in process-sleep-study function:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      details: 'Failed to process sleep study report'
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Edge function error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        extractedData: null 
+      }),
+      { 
+        status: 500,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
   }
 });
