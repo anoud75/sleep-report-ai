@@ -571,7 +571,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       )}
 
       {/* Patient Comments */}
-      {data.patientComments && (
+      {data.patientComments && data.patientComments.length > 0 && (
         <div className="bg-secondary/5 rounded-xl border border-secondary/20 p-6">
           <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4">Patient Comments</h3>
           <ul className="text-sm text-muted-foreground leading-relaxed font-inter space-y-2">

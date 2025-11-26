@@ -88,6 +88,8 @@ const Analysis = () => {
       },
       titrationData: data.titrationData || {},
       clinicalSummary: data.clinicalSummary || null,
+      recommendations: data.recommendations || [],
+      patientComments: data.patientComments || [],
       studyType: data.studyInfo?.studyType || data.extractedData?.studyType || selectedStudyType,
       extractionMethod: data.extractionMethod || "unknown"
     };
