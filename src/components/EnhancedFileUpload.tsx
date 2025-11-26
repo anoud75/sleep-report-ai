@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, CheckCircle, AlertCircle, X, Brain, File, FileType } from "lucide-react";
+import { Upload, FileText, CheckCircle, AlertCircle, X, Brain, File, FileType, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import mammoth from 'mammoth';
 import { ClinicalDataEntry } from './ClinicalDataEntry';
+import { PatientCommentsSelector } from './PatientCommentsSelector';
 
 interface EnhancedFileUploadProps {
   onFileProcessed: (data: any) => void;
@@ -31,6 +32,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [clinicalData, setClinicalData] = useState<any>(null);
+  const [selectedPatientComments, setSelectedPatientComments] = useState<string[]>([]);
   const { toast } = useToast();
 
   const isSplitNight = selectedStudyType === 'Split-Night';
@@ -151,7 +153,8 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
         body: JSON.stringify({
           rawText: fileContent,
           studyType: selectedStudyType,
-          clinicalData: clinicalData
+          clinicalData: clinicalData,
+          patientComments: selectedPatientComments
         }),
       });
 
@@ -266,6 +269,7 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
     setError(null);
     setSuccess(false);
     setClinicalData(null);
+    setSelectedPatientComments([]);
     onFileUploaded?.(false);
   };
 
@@ -534,6 +538,19 @@ export const EnhancedFileUpload = ({ onFileProcessed, selectedStudyType, onFileU
                   </Button>
                 </div>
               ))}
+            </div>
+
+            {/* Patient Comments - Available for ALL study types */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-trust" />
+                <label className="text-base font-semibold text-foreground font-jakarta">Patient Comments</label>
+                <Badge className="text-xs bg-muted text-muted-foreground border">Optional</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground font-inter">
+                Select comments that apply to this patient before running analysis
+              </p>
+              <PatientCommentsSelector onCommentsChange={setSelectedPatientComments} />
             </div>
 
             {/* Clinical Data Entry for Titration Studies */}
