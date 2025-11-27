@@ -432,7 +432,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     const doc = new jsPDF('portrait', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
+    const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
     
     // Professional color scheme
@@ -509,6 +509,13 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       let yPos = startY;
       
       data.forEach(([label, value]) => {
+        // Check if we need a new page
+        if (yPos > pageHeight - 40) {
+          doc.addPage();
+          drawHeader();
+          yPos = 40;
+        }
+        
         // Draw row borders
         if (withBorders) {
           doc.setDrawColor(tableBorder[0], tableBorder[1], tableBorder[2]);
@@ -539,6 +546,13 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       let yPos = startY;
       
       data.forEach(([label, offValue, onValue]) => {
+        // Check if we need a new page
+        if (yPos > pageHeight - 40) {
+          doc.addPage();
+          drawHeader();
+          yPos = 40;
+        }
+        
         // Draw row borders
         doc.setDrawColor(tableBorder[0], tableBorder[1], tableBorder[2]);
         doc.setLineWidth(0.3);
@@ -569,7 +583,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     drawHeader();
     
     // Title Section
-    let yPos = 42;
+    let yPos = 35;
     doc.setFillColor(tableHeaderBg[0], tableHeaderBg[1], tableHeaderBg[2]);
     doc.rect(margin, yPos, contentWidth, 10, 'F');
     doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
@@ -578,7 +592,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     doc.text('Interpretation of Overnight Sleep Study', pageWidth / 2, yPos + 7, { align: 'center' });
     
     // Patient Information Table
-    yPos = 40;
+    yPos += 12;
     const patientData: [string, string][] = [
       ['ID', generateStudyId()],
       ['Patient Name', editableData.patientName || '---'],
@@ -598,7 +612,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     yPos = drawTwoColumnTable(patientData, yPos);
     
     // Events Table Header - Three columns for Split-Night, Two for regular
-    yPos += 5;
+    yPos += 8;
     
     if (isSplitNight) {
       // Three-column header for Split-Night
@@ -709,50 +723,71 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     
     // Clinical Summary Section
     if (editableData.clinicalSummary) {
+      // Check if we need to start this section
+      if (yPos > pageHeight - 60) {
+        doc.addPage();
+        drawHeader();
+        yPos = 40;
+      }
+      
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
       doc.text('Summary:', margin, yPos);
       
-      yPos += 8;
+      yPos += 10;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(textDark[0], textDark[1], textDark[2]);
       const summaryLines = doc.splitTextToSize(editableData.clinicalSummary, contentWidth - 4);
       doc.text(summaryLines, margin + 2, yPos);
-      yPos += summaryLines.length * 5 + 10;
+      yPos += summaryLines.length * 5 + 12;
     }
     
     // Patient Comments Section
     if (data.patientComments) {
+      // Check if we need a new page for this section
+      if (yPos > pageHeight - 50) {
+        doc.addPage();
+        drawHeader();
+        yPos = 40;
+      }
+      
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
       doc.text("Patient's Comments:", margin, yPos);
       
-      yPos += 8;
+      yPos += 10;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(textDark[0], textDark[1], textDark[2]);
       const commentsLines = doc.splitTextToSize(data.patientComments, contentWidth - 4);
       doc.text(commentsLines, margin + 2, yPos);
-      yPos += commentsLines.length * 5 + 10;
+      yPos += commentsLines.length * 5 + 12;
     }
     
     // Recommendations Section (NO AI BRANDING)
     if (editableData.recommendations && editableData.recommendations.length > 0) {
+      // Check if we need a new page for recommendations
+      if (yPos > pageHeight - 50) {
+        doc.addPage();
+        drawHeader();
+        yPos = 40;
+      }
+      
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(headerBg[0], headerBg[1], headerBg[2]);
       doc.text('Recommendations:', margin, yPos);
       
-      yPos += 8;
+      yPos += 10;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(textDark[0], textDark[1], textDark[2]);
       
       editableData.recommendations.forEach((rec: string, index: number) => {
-        if (yPos > pageHeight - 30) {
+        if (yPos > pageHeight - 40) {
           doc.addPage();
           drawHeader();
           yPos = 40;
@@ -760,7 +795,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         
         const recLines = doc.splitTextToSize(`${index + 1}. ${rec}`, contentWidth - 4);
         doc.text(recLines, margin + 2, yPos);
-        yPos += recLines.length * 5 + 3;
+        yPos += recLines.length * 5 + 4;
       });
     }
     
