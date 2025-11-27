@@ -176,13 +176,26 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
   
   const isSplitNight = data.isSplitNight || data.studyType === 'Split-Night';
   
-  // Get patient comments from multiple sources
-  const patientCommentsToDisplay = 
-    (data.patientComments && data.patientComments.length > 0) 
-      ? data.patientComments 
-      : (data.clinicalData?.selectedComments && data.clinicalData.selectedComments.length > 0)
-        ? convertCommentKeysToLabels(data.clinicalData.selectedComments)
-        : [];
+  // Get patient comments from multiple sources and deduplicate
+  const getAllComments = () => {
+    const allComments: string[] = [];
+    
+    // Add comments from extracted document
+    if (data.patientComments && data.patientComments.length > 0) {
+      allComments.push(...data.patientComments);
+    }
+    
+    // Add comments from clinical data entry
+    if (data.clinicalData?.selectedComments && data.clinicalData.selectedComments.length > 0) {
+      const convertedComments = convertCommentKeysToLabels(data.clinicalData.selectedComments);
+      allComments.push(...convertedComments);
+    }
+    
+    // Deduplicate comments (remove exact duplicates)
+    return Array.from(new Set(allComments));
+  };
+  
+  const patientCommentsToDisplay = getAllComments();
 
   // Helper to get initial data based on study type
   const getInitialData = () => {
