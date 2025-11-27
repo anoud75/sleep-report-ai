@@ -314,19 +314,55 @@ function generateRecommendations(data: any, studyType: string, clinicalData: any
   
   // === 9. PAP Continuation - PATIENT-SPECIFIC PRESSURE ===
   if (studyType === 'Titration' || studyType === 'Split-Night') {
+    // Get ON CPAP AHI if available (for Split-Night)
+    const onCpapAhi = data.onCpapData?.respiratoryEvents?.ahiOverall;
+    const baselineAhi = ahi; // This is OFF CPAP AHI (passed as main data)
+    
     if (bpapUsed && ipapPressure && epapPressure) {
       const diff = parseFloat(ipapPressure) - parseFloat(epapPressure);
-      recommendations.push(`Continue BPAP therapy at IPAP ${ipapPressure} cmH2O / EPAP ${epapPressure} cmH2O (pressure support: ${diff} cmH2O) as established during titration.`);
+      let pressureRec = `Continue BPAP therapy at IPAP ${ipapPressure} cmH2O / EPAP ${epapPressure} cmH2O (pressure support: ${diff} cmH2O)`;
+      if (typeof onCpapAhi === 'number') {
+        pressureRec += ` which reduced AHI from ${baselineAhi.toFixed(1)}/hr to ${onCpapAhi.toFixed(1)}/hr.`;
+      } else {
+        pressureRec += ' as established during titration.';
+      }
+      recommendations.push(pressureRec);
     } else if (cpapPressure) {
-      recommendations.push(`Continue CPAP therapy at ${cpapPressure} cmH2O as established during this titration study.`);
+      let pressureRec = `Continue CPAP therapy at ${cpapPressure} cmH2O`;
+      if (typeof onCpapAhi === 'number') {
+        pressureRec += ` which reduced AHI from ${baselineAhi.toFixed(1)}/hr to ${onCpapAhi.toFixed(1)}/hr (effective therapy).`;
+      } else {
+        pressureRec += ' as established during this titration study.';
+      }
+      recommendations.push(pressureRec);
     }
   }
   
-  // === 10. Follow-up - STUDY-TYPE SPECIFIC ===
+  // === 10. Titration Quality Assessment ===
+  if (studyType === 'Split-Night' || studyType === 'Titration') {
+    const onCpapAhi = data.onCpapData?.respiratoryEvents?.ahiOverall;
+    
+    if (typeof onCpapAhi === 'number') {
+      if (onCpapAhi < 5) {
+        recommendations.push(`Optimal titration achieved with residual AHI of ${onCpapAhi.toFixed(1)}/hr (<5) meeting AASM optimal titration criteria.`);
+      } else if (onCpapAhi <= 10) {
+        recommendations.push(`Good titration achieved with residual AHI of ${onCpapAhi.toFixed(1)}/hr (≤10) meeting AASM acceptable titration criteria.`);
+      } else {
+        recommendations.push(`Suboptimal titration noted with residual AHI of ${onCpapAhi.toFixed(1)}/hr (>10). Consider repeat titration study per AASM guidelines.`);
+      }
+    }
+  }
+  
+  // === 11. Follow-up - STUDY-TYPE SPECIFIC ===
   if (studyType === 'Diagnostic' && ahi >= 5) {
-    recommendations.push(`PAP titration study recommended to determine optimal therapeutic pressure for this patient with AHI ${ahi.toFixed(1)}/hr (AASM Good Practice Statement).`);
-  } else if ((studyType === 'Titration' || studyType === 'Split-Night')) {
-    recommendations.push(`Follow-up assessment in 1-3 months recommended to confirm PAP adherence and treatment efficacy (AASM Good Practice Statement).`);
+    recommendations.push(`PAP titration study recommended to determine optimal therapeutic pressure for this patient with baseline AHI of ${ahi.toFixed(1)}/hr (AASM Good Practice Statement).`);
+  } else if (studyType === 'Titration' || studyType === 'Split-Night') {
+    const onCpapAhi = data.onCpapData?.respiratoryEvents?.ahiOverall;
+    if (typeof onCpapAhi === 'number' && onCpapAhi < 5) {
+      recommendations.push(`Follow-up assessment in 1-3 months recommended to confirm PAP adherence and sustained treatment efficacy with AHI maintained <5/hr (AASM Good Practice Statement).`);
+    } else {
+      recommendations.push(`Follow-up assessment and possible repeat titration recommended to optimize therapy (AASM Good Practice Statement).`);
+    }
   }
   
   return recommendations;
@@ -942,7 +978,13 @@ serve(async (req) => {
         onCpapData: extractedData.onCpap
       };
       const clinicalSummary = generateClinicalSummary(offCpapWithOnData, studyType, clinicalData);
-      const recommendations = generateRecommendations(extractedData.onCpap, studyType, clinicalData);
+      // Create combined data object with baseline (offCpap) for severity classification
+      // but include onCpap reference for therapeutic outcome
+      const combinedDataForRecommendations = {
+        ...extractedData.offCpap,  // Use OFF CPAP for baseline severity
+        onCpapData: extractedData.onCpap  // Include ON CPAP for therapy reference
+      };
+      const recommendations = generateRecommendations(combinedDataForRecommendations, studyType, clinicalData);
       
       // Convert patient comment keys to readable text
       const convertedComments = clinicalData?.selectedComments 
