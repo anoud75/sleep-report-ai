@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // Generate Clinical Summary based on templates
-function generateClinicalSummary(data: any, studyType: string): string {
+function generateClinicalSummary(data: any, studyType: string, clinicalData: any): string {
   const ahi = data.respiratoryEvents?.ahiOverall || 0;
   const tst = data.studyInfo?.totalSleepTime || 0;
   const hours = Math.floor(tst / 60);
@@ -35,13 +35,17 @@ function generateClinicalSummary(data: any, studyType: string): string {
     return `In summary based on the performed study, there was no evidence of sleep disordered breathing or any other significant respiratory disturbances during sleep.${hasAllStages ? ' The patient progressed into all sleep stages.' : ''}`;
   }
   
+  // Check if repeated study
+  const isRepeated = clinicalData?.isRepeatedStudy === true;
+  const repeatedPrefix = isRepeated ? 'repeated ' : '';
+  
   // For Split-Night study
   if (studyType === 'Split-Night') {
-    return `This split night sleep study shows evidence of "${severity} Obstructive Sleep Apnea". In the pre-PAP period, the patient had a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} desaturation${lowestO2 ? ` (Lowest SpO2: ${lowestO2}%)` : ''} and repetitive sleep interruption.${hasAllStages ? ' The patient progressed into all sleep stages.' : ' The patient did not progress into slow wave sleep during the entire study.'}`;
+    return `This ${repeatedPrefix}split night sleep study shows evidence of "${severity} Obstructive Sleep Apnea". In the pre-PAP period, the patient had a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} desaturation${lowestO2 ? ` (Lowest SpO2: ${lowestO2}%)` : ''} and repetitive sleep interruption.${hasAllStages ? ' The patient progressed into all sleep stages.' : ' The patient did not progress into slow wave sleep during the entire study.'}`;
   }
   
   // For Diagnostic study
-  return `This overnight sleep study shows evidence of "${severity} Obstructive Sleep Apnea". The patient had a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} desaturation${lowestO2 ? ` (Lowest SpO2: ${lowestO2}%)` : ''} and repetitive sleep interruption.${hasAllStages ? ' The patient progressed into all sleep stages.' : ' The patient did not progress into slow wave sleep.'}`;
+  return `This ${repeatedPrefix}overnight sleep study shows evidence of "${severity} Obstructive Sleep Apnea". The patient had a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} desaturation${lowestO2 ? ` (Lowest SpO2: ${lowestO2}%)` : ''} and repetitive sleep interruption.${hasAllStages ? ' The patient progressed into all sleep stages.' : ' The patient did not progress into slow wave sleep.'}`;
 }
 
 // Generate Recommendations based on AHI and other factors
@@ -87,6 +91,22 @@ function generateRecommendations(data: any, studyType: string, clinicalData: any
   }
   
   return recommendations;
+}
+
+// Convert patient comment keys to readable text
+function convertPatientComments(selectedComments: string[]): string[] {
+  const commentMap: { [key: string]: string } = {
+    'sleeping_better_center': 'Patient reports sleeping better in the center compared to home.',
+    'no_difference': 'Patient reports no difference in sleep quality between the center and home.',
+    'sleeping_better_home': 'Patient reports sleeping better at home.',
+    'improved_with_cpap': 'Patient reports improved sleep in the center with CPAP and will discuss continuation at home with the physician.',
+    'willing_cpap_home': 'Patient reports improved sleep in the center and expresses willingness to initiate CPAP therapy at home.',
+    'better_without_cpap': 'Patient reports better sleep without CPAP.',
+    'undecided_cpap': 'Patient remains undecided regarding the use of CPAP at home.',
+    'no_comment': 'No comment provided'
+  };
+  
+  return selectedComments.map(key => commentMap[key] || key);
 }
 
 // Universal extraction for ALL sleep study metrics
@@ -677,8 +697,13 @@ serve(async (req) => {
 
     // Handle Split-Night response differently
     if (extractedData.isSplitNight) {
-      const clinicalSummary = generateClinicalSummary(extractedData.offCpap, studyType);
+      const clinicalSummary = generateClinicalSummary(extractedData.offCpap, studyType, clinicalData);
       const recommendations = generateRecommendations(extractedData.onCpap, studyType, clinicalData);
+      
+      // Convert patient comment keys to readable text
+      const convertedComments = clinicalData?.selectedComments 
+        ? convertPatientComments(clinicalData.selectedComments) 
+        : [];
       
       const response = {
         isSplitNight: true,
@@ -687,7 +712,7 @@ serve(async (req) => {
         onCpap: extractedData.onCpap,
         clinicalSummary,
         recommendations,
-        patientComments: patientComments || clinicalData?.selectedComments || [],
+        patientComments: patientComments || convertedComments,
         clinicalData: clinicalData || {},
         extractionMethod: "split-night-comprehensive",
         timestamp: new Date().toISOString()
@@ -708,7 +733,7 @@ serve(async (req) => {
     }
 
     // Generate Clinical Summary and Recommendations for regular studies
-    const clinicalSummary = generateClinicalSummary(extractedData, studyType);
+    const clinicalSummary = generateClinicalSummary(extractedData, studyType, clinicalData);
     const recommendations = generateRecommendations(extractedData, studyType, clinicalData);
 
     // Format comprehensive response with ALL extracted data
@@ -782,7 +807,7 @@ serve(async (req) => {
       },
       clinicalSummary,
       recommendations,
-      patientComments: patientComments || clinicalData?.selectedComments || [],
+      patientComments: patientComments || (clinicalData?.selectedComments ? convertPatientComments(clinicalData.selectedComments) : []),
       extractionMethod: "comprehensive-medical-grade",
       timestamp: new Date().toISOString()
     };

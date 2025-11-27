@@ -208,7 +208,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         },
         // Split Night Data - ON CPAP
         onCpap: {
-          cpapPressure: data.onCpap?.cpapPressure || data.clinicalData?.cpapPressure || '',
+          cpapPressure: data.clinicalData?.cpapPressure || data.onCpap?.cpapPressure || '',
           lightsOff: data.onCpap?.studyInfo?.lightsOff || '',
           lightsOn: data.onCpap?.studyInfo?.lightsOn || '',
           timeInBed: data.onCpap?.studyInfo?.timeInBed || '',
@@ -330,8 +330,14 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
   };
   
   // Calculate overall AHI severity using editable data
-  const overallAhi = editableData.ahiOverall;
+  const overallAhi = isSplitNight 
+    ? editableData.offCpap?.ahiOverall 
+    : editableData.ahiOverall;
   const overallSeverity = getSeverityLevel(overallAhi, 'ahi');
+  
+  // For Split-Night, get ON CPAP AHI for comparison
+  const onCpapAhi = isSplitNight ? editableData.onCpap?.ahiOverall : null;
+  const onCpapSeverity = onCpapAhi ? getSeverityLevel(onCpapAhi, 'ahi') : null;
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF('portrait', 'mm', 'a4');
@@ -887,98 +893,179 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         </div>
       </div>
 
+
       {/* OSA Severity Assessment Card */}
       <div className="bg-background rounded-2xl border p-6">
         <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
           <AlertTriangle className="h-5 w-5" />
           OSA Severity Assessment
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Overall AHI */}
-          <div className={`rounded-xl p-4 ${
-            overallSeverity === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
-            overallSeverity === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
-            overallSeverity === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
-            'bg-emerald-50 dark:bg-emerald-950/20'
-          }`}>
-            <p className="text-sm text-muted-foreground font-inter">Overall AHI</p>
-            <div className="flex items-center gap-2 mt-1">
-              <EditableField
-                value={editableData.ahiOverall}
-                field="ahiOverall"
-                isEditMode={isEditMode}
-                onChange={handleFieldChange}
-                type="number"
-                className="text-2xl font-bold text-foreground"
-              />
-              <SeverityBadge level={overallSeverity} />
+        
+        {isSplitNight ? (
+          /* Split-Night: Show OFF → ON Comparison */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* OFF CPAP AHI */}
+            <div className={`rounded-xl p-4 ${
+              overallSeverity === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+              overallSeverity === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+              overallSeverity === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+              'bg-emerald-50 dark:bg-emerald-950/20'
+            }`}>
+              <p className="text-sm text-muted-foreground font-inter">AHI (OFF CPAP)</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-2xl font-bold text-foreground">{overallAhi || '---'}</span>
+                <SeverityBadge level={overallSeverity} />
+              </div>
+            </div>
+            
+            {/* AHI Improvement */}
+            <div className={`rounded-xl p-4 ${
+              onCpapSeverity === 'normal' || onCpapSeverity === 'mild' ? 'bg-emerald-50 dark:bg-emerald-950/20' :
+              onCpapSeverity === 'moderate' ? 'bg-amber-50 dark:bg-amber-950/20' :
+              'bg-orange-50 dark:bg-orange-950/20'
+            }`}>
+              <p className="text-sm text-muted-foreground font-inter">AHI Improvement</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-lg font-bold text-foreground">
+                  {overallAhi || '---'} → {onCpapAhi || '---'}
+                </span>
+              </div>
+              <div className="mt-1">
+                <SeverityBadge level={onCpapSeverity} />
+              </div>
+            </div>
+            
+            {/* CPAP Pressure */}
+            <div className="rounded-xl p-4 bg-blue-50 dark:bg-blue-950/20">
+              <p className="text-sm text-muted-foreground font-inter">CPAP Pressure</p>
+              <div className="mt-1">
+                {isEditMode ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="text"
+                      value={(editableData as any).onCpap?.cpapPressure || ''}
+                      onChange={(e) => {
+                        setEditableData(prev => {
+                          const splitData = prev as any;
+                          return {
+                            ...splitData,
+                            onCpap: { ...splitData.onCpap, cpapPressure: e.target.value }
+                          };
+                        });
+                      }}
+                      className="w-20 h-8"
+                    />
+                    <span className="text-sm text-muted-foreground">cmH2O</span>
+                  </div>
+                ) : (
+                  <span className="text-2xl font-bold text-foreground">
+                    {(editableData as any).onCpap?.cpapPressure || '---'} 
+                    {(editableData as any).onCpap?.cpapPressure && ' cmH2O'}
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            {/* Desaturation Index Comparison */}
+            <div className="rounded-xl p-4 bg-purple-50 dark:bg-purple-950/20">
+              <p className="text-sm text-muted-foreground font-inter">Desat Index</p>
+              <div className="mt-1">
+                <span className="text-lg font-bold text-foreground">
+                  {(editableData as any).offCpap?.desaturationIndex || '---'} → {(editableData as any).onCpap?.desaturationIndex || '---'}
+                </span>
+              </div>
             </div>
           </div>
-          
-          {/* AHI Supine */}
-          <div className={`rounded-xl p-4 ${
-            getSeverityLevel(editableData.ahiSupine, 'ahiSupine') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
-            getSeverityLevel(editableData.ahiSupine, 'ahiSupine') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
-            getSeverityLevel(editableData.ahiSupine, 'ahiSupine') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
-            'bg-emerald-50 dark:bg-emerald-950/20'
-          }`}>
-            <p className="text-sm text-muted-foreground font-inter">AHI Supine</p>
-            <div className="flex items-center gap-2 mt-1">
-              <EditableField
-                value={editableData.ahiSupine}
-                field="ahiSupine"
-                isEditMode={isEditMode}
-                onChange={handleFieldChange}
-                type="number"
-                className="text-2xl font-bold text-foreground"
-              />
-              <SeverityBadge level={getSeverityLevel(editableData.ahiSupine, 'ahiSupine')} />
+        ) : (
+          /* Regular Study: Show Standard Metrics */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Overall AHI */}
+            <div className={`rounded-xl p-4 ${
+              overallSeverity === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+              overallSeverity === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+              overallSeverity === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+              'bg-emerald-50 dark:bg-emerald-950/20'
+            }`}>
+              <p className="text-sm text-muted-foreground font-inter">Overall AHI</p>
+              <div className="flex items-center gap-2 mt-1">
+                <EditableField
+                  value={editableData.ahiOverall}
+                  field="ahiOverall"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="text-2xl font-bold text-foreground"
+                />
+                <SeverityBadge level={overallSeverity} />
+              </div>
+            </div>
+            
+            {/* AHI Supine */}
+            <div className={`rounded-xl p-4 ${
+              getSeverityLevel(editableData.ahiSupine, 'ahiSupine') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+              getSeverityLevel(editableData.ahiSupine, 'ahiSupine') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+              getSeverityLevel(editableData.ahiSupine, 'ahiSupine') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+              'bg-emerald-50 dark:bg-emerald-950/20'
+            }`}>
+              <p className="text-sm text-muted-foreground font-inter">AHI Supine</p>
+              <div className="flex items-center gap-2 mt-1">
+                <EditableField
+                  value={editableData.ahiSupine}
+                  field="ahiSupine"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="text-2xl font-bold text-foreground"
+                />
+                <SeverityBadge level={getSeverityLevel(editableData.ahiSupine, 'ahiSupine')} />
+              </div>
+            </div>
+            
+            {/* AHI Lateral */}
+            <div className={`rounded-xl p-4 ${
+              getSeverityLevel(editableData.ahiLateral, 'ahiLateral') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+              getSeverityLevel(editableData.ahiLateral, 'ahiLateral') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+              getSeverityLevel(editableData.ahiLateral, 'ahiLateral') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+              'bg-emerald-50 dark:bg-emerald-950/20'
+            }`}>
+              <p className="text-sm text-muted-foreground font-inter">AHI Lateral</p>
+              <div className="flex items-center gap-2 mt-1">
+                <EditableField
+                  value={editableData.ahiLateral}
+                  field="ahiLateral"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="text-2xl font-bold text-foreground"
+                />
+                <SeverityBadge level={getSeverityLevel(editableData.ahiLateral, 'ahiLateral')} />
+              </div>
+            </div>
+            
+            {/* Desaturation Index */}
+            <div className={`rounded-xl p-4 ${
+              getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
+              getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
+              getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
+              'bg-emerald-50 dark:bg-emerald-950/20'
+            }`}>
+              <p className="text-sm text-muted-foreground font-inter">Desaturation Index</p>
+              <div className="flex items-center gap-2 mt-1">
+                <EditableField
+                  value={editableData.desaturationIndex}
+                  field="desaturationIndex"
+                  isEditMode={isEditMode}
+                  onChange={handleFieldChange}
+                  type="number"
+                  className="text-2xl font-bold text-foreground"
+                />
+                <SeverityBadge level={getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex')} />
+              </div>
             </div>
           </div>
-          
-          {/* AHI Lateral */}
-          <div className={`rounded-xl p-4 ${
-            getSeverityLevel(editableData.ahiLateral, 'ahiLateral') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
-            getSeverityLevel(editableData.ahiLateral, 'ahiLateral') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
-            getSeverityLevel(editableData.ahiLateral, 'ahiLateral') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
-            'bg-emerald-50 dark:bg-emerald-950/20'
-          }`}>
-            <p className="text-sm text-muted-foreground font-inter">AHI Lateral</p>
-            <div className="flex items-center gap-2 mt-1">
-              <EditableField
-                value={editableData.ahiLateral}
-                field="ahiLateral"
-                isEditMode={isEditMode}
-                onChange={handleFieldChange}
-                type="number"
-                className="text-2xl font-bold text-foreground"
-              />
-              <SeverityBadge level={getSeverityLevel(editableData.ahiLateral, 'ahiLateral')} />
-            </div>
-          </div>
-          
-          {/* Desaturation Index */}
-          <div className={`rounded-xl p-4 ${
-            getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex') === 'severe' ? 'bg-red-50 dark:bg-red-950/20' :
-            getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex') === 'moderate' ? 'bg-orange-50 dark:bg-orange-950/20' :
-            getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex') === 'mild' ? 'bg-amber-50 dark:bg-amber-950/20' :
-            'bg-emerald-50 dark:bg-emerald-950/20'
-          }`}>
-            <p className="text-sm text-muted-foreground font-inter">Desaturation Index</p>
-            <div className="flex items-center gap-2 mt-1">
-              <EditableField
-                value={editableData.desaturationIndex}
-                field="desaturationIndex"
-                isEditMode={isEditMode}
-                onChange={handleFieldChange}
-                type="number"
-                className="text-2xl font-bold text-foreground"
-              />
-              <SeverityBadge level={getSeverityLevel(editableData.desaturationIndex, 'desaturationIndex')} />
-            </div>
-          </div>
-        </div>
+        )}
       </div>
+
 
       {/* Comprehensive Sleep Study Results */}
       {isSplitNight ? (
