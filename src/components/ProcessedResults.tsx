@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain, AlertTriangle, Pencil, Check, Plus, Trash2, Settings, MessageSquare } from "lucide-react";
+import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain, AlertTriangle, Pencil, Check, Plus, Trash2, Settings, MessageSquare, Eye, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import jsPDF from 'jspdf';
 import { FeedbackDialog } from "@/components/FeedbackDialog";
 import { SplitNightDisplay } from "@/components/SplitNightDisplay";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface ProcessedResultsProps {
   data: any;
@@ -170,6 +171,8 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
   const { toast } = useToast();
   const [showFeedback, setShowFeedback] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   
   const isSplitNight = data.isSplitNight || data.studyType === 'Split-Night';
   
@@ -365,6 +368,54 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
   const onCpapSeverity = onCpapAhi ? getSeverityLevel(onCpapAhi, 'ahi') : null;
 
   const handleDownloadPDF = () => {
+    const doc = generatePDFDocument();
+    doc.save(`sleep-study-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    
+    toast({
+      title: "PDF Generated",
+      description: "Your professional sleep study report has been downloaded.",
+    });
+
+    // Show feedback dialog after PDF generation
+    setShowFeedback(true);
+  };
+
+  const handlePreviewReport = () => {
+    const doc = generatePDFDocument();
+    const pdfUrl = String(doc.output('bloburl'));
+    setPdfPreviewUrl(pdfUrl);
+    setShowPreview(true);
+    
+    toast({
+      title: "Preview Opened",
+      description: "Review your report before downloading.",
+    });
+  };
+  
+  const handleDownloadFromPreview = () => {
+    const doc = generatePDFDocument();
+    doc.save(`sleep-study-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    setShowPreview(false);
+    
+    toast({
+      title: "PDF Downloaded",
+      description: "Your professional sleep study report has been downloaded.",
+    });
+    
+    // Show feedback dialog after PDF generation
+    setShowFeedback(true);
+  };
+  
+  const handleClosePreview = () => {
+    setShowPreview(false);
+    if (pdfPreviewUrl) {
+      URL.revokeObjectURL(pdfPreviewUrl);
+      setPdfPreviewUrl(null);
+    }
+  };
+
+  // Generate PDF document (used by both download and preview)
+  const generatePDFDocument = () => {
     const doc = new jsPDF('portrait', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -703,22 +754,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     // Footer for page 2
     drawFooter(2, 2);
     
-    doc.save(`sleep-study-report-${new Date().toISOString().split('T')[0]}.pdf`);
-    
-    toast({
-      title: "PDF Generated",
-      description: "Your professional sleep study report has been downloaded.",
-    });
-
-    // Show feedback dialog after PDF generation
-    setShowFeedback(true);
-  };
-
-  const handlePreviewReport = () => {
-    toast({
-      title: "Preview Opened",
-      description: "Report preview will open in a new window.",
-    });
+    return doc;
   };
 
   return (
@@ -775,9 +811,11 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
               onClick={handlePreviewReport}
               variant="outline"
               size="lg"
-              className="flex-1"
+              disabled={isEditMode}
+              className="flex-1 flex items-center gap-2"
             >
-              Preview
+              <Eye className="w-4 h-4" />
+              Preview Report
             </Button>
             <Button
               onClick={onNewReport}
@@ -1710,8 +1748,51 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         </div>
       )}
 
+      {/* PDF Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={handleClosePreview}>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-primary" />
+              PDF Report Preview
+            </DialogTitle>
+            <DialogDescription>
+              Review your sleep study report before downloading
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-hidden rounded-lg border bg-muted/50">
+            {pdfPreviewUrl && (
+              <iframe
+                src={pdfPreviewUrl}
+                className="w-full h-full"
+                title="PDF Preview"
+              />
+            )}
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              onClick={handleClosePreview}
+              variant="outline"
+              className="gap-2"
+            >
+              <X className="w-4 h-4" />
+              Close
+            </Button>
+            <Button
+              onClick={handleDownloadFromPreview}
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Download Report
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Feedback Dialog */}
-      <FeedbackDialog 
+      <FeedbackDialog
         isOpen={showFeedback}
         onClose={() => setShowFeedback(false)}
         reportData={data}
