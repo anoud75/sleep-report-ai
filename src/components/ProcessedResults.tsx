@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain, AlertTriangle, Pencil, Check, Plus, Trash2, Settings, MessageSquare } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -1078,6 +1079,75 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         )}
       </div>
 
+      {/* OSA Classification Section - ALL STUDY TYPES */}
+      {data.clinicalInterpretation && (
+        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl border p-6">
+          <h3 className="text-lg font-semibold font-jakarta mb-4 flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            OSA Classification
+          </h3>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Overall Severity */}
+            <div className="p-4 rounded-lg bg-white dark:bg-slate-800 border">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Overall OSA</p>
+              <p className="text-2xl font-bold text-foreground mb-1">{data.clinicalInterpretation.osaSeverity}</p>
+              <p className="text-sm text-muted-foreground">
+                AHI: {isSplitNight 
+                  ? (data.offCpap?.respiratoryEvents?.ahiOverall || '---')
+                  : (data.respiratoryEvents?.ahiOverall || '---')
+                }/hr
+              </p>
+            </div>
+            
+            {/* Positional OSA */}
+            <div className={`p-4 rounded-lg border ${
+              data.clinicalInterpretation.isPositionalOSA 
+                ? "bg-amber-50 border-amber-300 dark:bg-amber-950/30 dark:border-amber-800" 
+                : "bg-white dark:bg-slate-800"
+            }`}>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Positional OSA</p>
+              <p className="text-2xl font-bold">
+                {data.clinicalInterpretation.isPositionalOSA ? 'Yes' : 'No'}
+              </p>
+              {data.clinicalInterpretation.isPositionalOSA && data.clinicalInterpretation.positionalRatio && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  Ratio: {data.clinicalInterpretation.positionalRatio}:1
+                </p>
+              )}
+            </div>
+            
+            {/* REM-related OSA */}
+            <div className={`p-4 rounded-lg border ${
+              data.clinicalInterpretation.isREMRelatedOSA 
+                ? "bg-purple-50 border-purple-300 dark:bg-purple-950/30 dark:border-purple-800" 
+                : "bg-white dark:bg-slate-800"
+            }`}>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">REM-related OSA</p>
+              <p className="text-2xl font-bold">
+                {data.clinicalInterpretation.isREMRelatedOSA ? 'Yes' : 'No'}
+              </p>
+              {data.clinicalInterpretation.isREMRelatedOSA && data.clinicalInterpretation.remRatio && (
+                <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                  Ratio: {data.clinicalInterpretation.remRatio}:1
+                </p>
+              )}
+            </div>
+            
+            {/* Sleep Status */}
+            <div className={`p-4 rounded-lg border ${
+              data.clinicalInterpretation.osaSeverity === 'Normal' 
+                ? "bg-green-50 border-green-300 dark:bg-green-950/30 dark:border-green-800" 
+                : "bg-white dark:bg-slate-800"
+            }`}>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Sleep Status</p>
+              <p className="text-2xl font-bold">
+                {data.clinicalInterpretation.osaSeverity === 'Normal' ? 'Normal' : 'Abnormal'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Comprehensive Sleep Study Results */}
       {isSplitNight ? (

@@ -43,6 +43,21 @@ function getMaskSizeLabel(sizeValue: string | null | undefined): string {
   return sizes[sizeValue] || sizeValue.toUpperCase();
 }
 
+// AASM Clinical Guidelines Constants
+const AASM_GUIDELINES = {
+  OSA_SEVERITY: {
+    NORMAL: { max: 5 },
+    MILD: { min: 5, max: 15 },
+    MODERATE: { min: 15, max: 30 },
+    SEVERE: { min: 30 }
+  },
+  POSITIONAL_RATIO: 2, // AHI supine > 2x lateral
+  REM_RATIO: 2, // AHI REM > 2x NREM
+  SIGNIFICANT_DESAT: 5, // >5% time below 90%
+  ELEVATED_PLM: 15, // PLM index > 15
+  SIGNIFICANT_CAI: 5 // Central Apnea Index > 5
+};
+
 // Generate Clinical Summary with comprehensive clinical data integration
 function generateClinicalSummary(data: any, studyType: string, clinicalData: any): string {
   const summaryParts: string[] = [];
@@ -130,6 +145,39 @@ function generateClinicalSummary(data: any, studyType: string, clinicalData: any
     summaryParts.push(mainSummary);
   }
   
+  // === PART 2.5: OSA Subtype Clinical Interpretation (ALL STUDY TYPES) ===
+  const ahiSupine = data.respiratoryEvents?.ahiSupine || 0;
+  const ahiLateral = data.respiratoryEvents?.ahiLateral || 0;
+  const ahiRem = data.respiratoryEvents?.ahiRem || 0;
+  const ahiNrem = data.respiratoryEvents?.ahiNrem || 0;
+  const cai = data.respiratoryEvents?.centralApneaIndex || 0;
+  const plmIndex = data.additionalMetrics?.legMovementIndex || 0;
+  
+  const isPositionalOSA = ahiSupine > 0 && ahiLateral > 0 && ahiSupine > ahiLateral * AASM_GUIDELINES.POSITIONAL_RATIO;
+  const isREMRelatedOSA = ahiRem > 0 && ahiNrem > 0 && ahiRem > ahiNrem * AASM_GUIDELINES.REM_RATIO;
+  
+  // Positional OSA interpretation
+  if (isPositionalOSA) {
+    const ratio = (ahiSupine / ahiLateral).toFixed(1);
+    summaryParts.push(`Position-dependent OSA was observed with AHI supine (${ahiSupine.toFixed(1)}/hr) significantly higher than AHI lateral (${ahiLateral.toFixed(1)}/hr) with a ratio of ${ratio}:1. Positional therapy may be beneficial as adjunctive treatment.`);
+  }
+  
+  // REM-related OSA interpretation
+  if (isREMRelatedOSA) {
+    const ratio = (ahiRem / ahiNrem).toFixed(1);
+    summaryParts.push(`REM-related OSA pattern was identified with AHI during REM (${ahiRem.toFixed(1)}/hr) significantly higher than AHI during NREM (${ahiNrem.toFixed(1)}/hr) with a ratio of ${ratio}:1. This suggests respiratory events are predominantly occurring during REM sleep.`);
+  }
+  
+  // Central Apnea component
+  if (cai > AASM_GUIDELINES.SIGNIFICANT_CAI) {
+    summaryParts.push(`Central apnea events were noted (CAI: ${cai.toFixed(1)}/hr), warranting evaluation for central sleep apnea syndromes.`);
+  }
+  
+  // PLM interpretation
+  if (plmIndex > AASM_GUIDELINES.ELEVATED_PLM) {
+    summaryParts.push(`Periodic limb movement index was elevated (${plmIndex.toFixed(1)}/hr), suggestive of periodic limb movement disorder. Consider evaluation for restless legs syndrome.`);
+  }
+  
   // === PART 3: EtCO2 Monitoring ===
   if (clinicalData?.etco2?.awake || clinicalData?.etco2?.nrem || clinicalData?.etco2?.rem) {
     const parts = [];
@@ -162,46 +210,89 @@ function generateClinicalSummary(data: any, studyType: string, clinicalData: any
   return summaryParts.join('\n\n');
 }
 
-// Generate Recommendations based on AHI and other factors
+// Generate Recommendations based on AASM Clinical Guidelines
 function generateRecommendations(data: any, studyType: string, clinicalData: any): string[] {
   const recommendations: string[] = [];
   const ahi = data.respiratoryEvents?.ahiOverall || 0;
   const ahiSupine = data.respiratoryEvents?.ahiSupine || 0;
   const ahiLateral = data.respiratoryEvents?.ahiLateral || 0;
+  const ahiRem = data.respiratoryEvents?.ahiRem || 0;
+  const ahiNrem = data.respiratoryEvents?.ahiNrem || 0;
+  const cai = data.respiratoryEvents?.centralApneaIndex || 0;
   const timeBelow90 = parseFloat(data.oxygenation?.timeBelow90Percent) || 0;
+  const lowestO2 = data.oxygenation?.lowestSpO2 || 100;
+  const plmIndex = data.additionalMetrics?.legMovementIndex || 0;
+  const bmi = clinicalData?.bmi || 0;
   
-  // Main treatment recommendation based on AHI
+  // === 1. Primary Treatment Based on OSA Severity (AASM 2019) ===
   if (ahi >= 30) {
-    recommendations.push("CPAP therapy is strongly recommended for treatment of severe OSA.");
+    recommendations.push("PAP therapy is STRONGLY recommended for severe OSA (AHI ≥30) with excessive daytime sleepiness (AASM Strong Recommendation).");
   } else if (ahi >= 15) {
-    recommendations.push("CPAP therapy is recommended for treatment of moderate OSA.");
+    recommendations.push("PAP therapy is recommended for moderate OSA (AHI 15-30). Consider CPAP or APAP as first-line treatment (AASM Strong Recommendation).");
   } else if (ahi >= 5) {
-    recommendations.push("Consider positional therapy, weight management, and lifestyle modifications for mild OSA.");
+    recommendations.push("For mild OSA (AHI 5-15): Consider PAP therapy if symptomatic. Oral appliance therapy is an effective alternative for patients preferring alternate therapy or intolerant of CPAP (AASM Standard).");
+  } else {
+    recommendations.push("AHI within normal limits. No specific treatment for sleep-disordered breathing required.");
   }
   
-  // Positional therapy recommendation
-  if (ahiSupine && ahiLateral && ahiSupine > ahiLateral * 2) {
-    recommendations.push("Positional therapy may be beneficial given significant positional component.");
+  // === 2. Positional Therapy (ALL STUDY TYPES) ===
+  const isPositionalOSA = ahiSupine > 0 && ahiLateral > 0 && ahiSupine > ahiLateral * AASM_GUIDELINES.POSITIONAL_RATIO;
+  if (isPositionalOSA) {
+    if (ahiLateral < 5) {
+      recommendations.push("Significant positional OSA identified (AHI normalized in lateral position). Positional therapy alone may be effective for this patient (AASM Option).");
+    } else {
+      recommendations.push("Positional component detected (AHI supine >2x AHI lateral). Positional therapy may be beneficial combined with PAP treatment (AASM Option).");
+    }
   }
   
-  // Oxygen supplementation
-  if (timeBelow90 > 5) {
-    recommendations.push("Supplemental oxygen may be considered given significant desaturation during sleep.");
+  // === 3. REM-related OSA (ALL STUDY TYPES) ===
+  const isREMRelatedOSA = ahiRem > 0 && ahiNrem > 0 && ahiRem > ahiNrem * AASM_GUIDELINES.REM_RATIO;
+  if (isREMRelatedOSA) {
+    recommendations.push("REM-related OSA pattern detected (AHI REM >2x AHI NREM). PAP therapy should be optimized during REM sleep periods. Ensure adequate REM sleep during titration (AASM Guideline).");
   }
   
-  // For titration studies
+  // === 4. Central Sleep Apnea (AASM 2025 CSA Guidelines) ===
+  if (cai > AASM_GUIDELINES.SIGNIFICANT_CAI) {
+    recommendations.push("Central apnea index >5 detected. Consider evaluation for central sleep apnea etiologies. ASV or CPAP with backup rate may be indicated (AASM Conditional Recommendation).");
+  }
+  
+  // === 5. Oxygen Supplementation ===
+  if (timeBelow90 > AASM_GUIDELINES.SIGNIFICANT_DESAT || lowestO2 < 80) {
+    recommendations.push("Significant oxygen desaturation noted. Supplemental oxygen may be considered as adjunctive therapy (AASM Option).");
+  }
+  
+  // === 6. Weight Management (BMI-based) ===
+  if (bmi >= 40) {
+    recommendations.push("Bariatric surgery referral may be considered for morbidly obese patients (BMI ≥40) as adjunct to primary OSA therapy (AASM Option).");
+  } else if (bmi >= 30) {
+    recommendations.push("Weight loss through dietary modification is recommended as adjunctive therapy for OSA (AASM Guideline).");
+  }
+  
+  // === 7. PLM/RLS Evaluation ===
+  if (plmIndex > AASM_GUIDELINES.ELEVATED_PLM) {
+    recommendations.push("Elevated periodic limb movement index detected. Consider evaluation for restless legs syndrome and iron deficiency.");
+  }
+  
+  // === 8. Oral Appliance Alternative (AASM 2015) ===
+  if (ahi >= 5 && ahi < 30) {
+    recommendations.push("Oral appliance therapy may be prescribed as alternative for patients intolerant of CPAP or preferring alternate therapy (AASM Standard).");
+  }
+  
+  // === 9. PAP Continuation (Titration/Split-Night specific) ===
   if (studyType === 'Titration' || studyType === 'Split-Night') {
-    if (clinicalData?.cpapPressure) {
+    if (clinicalData?.bpapUsed && clinicalData?.ipapPressure && clinicalData?.epapPressure) {
+      const diff = clinicalData.ipapPressure - clinicalData.epapPressure;
+      recommendations.push(`Continue BPAP therapy at IPAP ${clinicalData.ipapPressure} / EPAP ${clinicalData.epapPressure} cmH2O (pressure differential: ${diff} cmH2O).`);
+    } else if (clinicalData?.cpapPressure) {
       recommendations.push(`Continue CPAP therapy at ${clinicalData.cpapPressure} cmH2O as prescribed.`);
     }
-    if (clinicalData?.bpapUsed) {
-      recommendations.push(`Continue BPAP therapy at IPAP ${clinicalData.ipapPressure} / EPAP ${clinicalData.epapPressure} cmH2O.`);
-    }
   }
   
-  // Follow-up
-  if (ahi >= 5) {
-    recommendations.push("Follow-up sleep study recommended after therapy initiation to assess efficacy.");
+  // === 10. Follow-up Recommendation ===
+  if (studyType === 'Diagnostic' && ahi >= 5) {
+    recommendations.push("PAP titration study recommended to determine optimal therapeutic pressure settings (AASM Good Practice Statement).");
+  } else if ((studyType === 'Titration' || studyType === 'Split-Night') && ahi >= 5) {
+    recommendations.push("Follow-up assessment recommended to confirm PAP adherence and treatment efficacy (AASM Good Practice Statement).");
   }
   
   return recommendations;
@@ -819,6 +910,21 @@ serve(async (req) => {
         ? convertPatientComments(clinicalData.selectedComments) 
         : [];
       
+      // Calculate clinical interpretation
+      const offAhi = extractedData.offCpap?.respiratoryEvents?.ahiOverall || 0;
+      const ahiSupine = extractedData.offCpap?.respiratoryEvents?.ahiSupine || 0;
+      const ahiLateral = extractedData.offCpap?.respiratoryEvents?.ahiLateral || 0;
+      const ahiRem = extractedData.offCpap?.respiratoryEvents?.ahiRem || 0;
+      const ahiNrem = extractedData.offCpap?.respiratoryEvents?.ahiNrem || 0;
+      const cai = extractedData.offCpap?.respiratoryEvents?.centralApneaIndex || 0;
+      const timeBelow90 = parseFloat(extractedData.offCpap?.oxygenation?.timeBelow90Percent) || 0;
+      const plmIndex = extractedData.offCpap?.additionalMetrics?.legMovementIndex || 0;
+      
+      let severity = 'Normal';
+      if (offAhi >= 30) severity = 'Severe';
+      else if (offAhi >= 15) severity = 'Moderate';
+      else if (offAhi >= 5) severity = 'Mild';
+      
       const response = {
         isSplitNight: true,
         studyType,
@@ -828,6 +934,16 @@ serve(async (req) => {
         recommendations,
         patientComments: (patientComments && patientComments.length > 0) ? patientComments : convertedComments,
         clinicalData: clinicalData || {},
+        clinicalInterpretation: {
+          osaSeverity: severity,
+          isPositionalOSA: ahiSupine > 0 && ahiLateral > 0 && ahiSupine > ahiLateral * AASM_GUIDELINES.POSITIONAL_RATIO,
+          isREMRelatedOSA: ahiRem > 0 && ahiNrem > 0 && ahiRem > ahiNrem * AASM_GUIDELINES.REM_RATIO,
+          hasCentralComponent: cai > AASM_GUIDELINES.SIGNIFICANT_CAI,
+          hasSignificantDesaturation: timeBelow90 > AASM_GUIDELINES.SIGNIFICANT_DESAT,
+          hasPLM: plmIndex > AASM_GUIDELINES.ELEVATED_PLM,
+          positionalRatio: ahiLateral > 0 ? (ahiSupine / ahiLateral).toFixed(1) : null,
+          remRatio: ahiNrem > 0 ? (ahiRem / ahiNrem).toFixed(1) : null
+        },
         extractionMethod: "split-night-comprehensive",
         timestamp: new Date().toISOString()
       };
@@ -849,6 +965,16 @@ serve(async (req) => {
     // Generate Clinical Summary and Recommendations for regular studies
     const clinicalSummary = generateClinicalSummary(extractedData, studyType, clinicalData);
     const recommendations = generateRecommendations(extractedData, studyType, clinicalData);
+
+    // Extract values for clinicalInterpretation
+    const ahi = extractedData.respiratoryEvents?.ahiOverall || 0;
+    const ahiSupine = extractedData.respiratoryEvents?.ahiSupine || 0;
+    const ahiLateral = extractedData.respiratoryEvents?.ahiLateral || 0;
+    const ahiRem = extractedData.respiratoryEvents?.ahiRem || 0;
+    const ahiNrem = extractedData.respiratoryEvents?.ahiNrem || 0;
+    const cai = extractedData.respiratoryEvents?.centralApneaIndex || 0;
+    const timeBelow90 = parseFloat(extractedData.oxygenation?.timeBelow90Percent) || 0;
+    const plmIndex = extractedData.additionalMetrics?.legMovementIndex || 0;
 
     // Format comprehensive response with ALL extracted data
     const response = {
@@ -926,6 +1052,16 @@ serve(async (req) => {
         : (clinicalData?.selectedComments && clinicalData.selectedComments.length > 0 
             ? convertPatientComments(clinicalData.selectedComments) 
             : []),
+      clinicalInterpretation: {
+        osaSeverity: ahi >= 30 ? 'Severe' : ahi >= 15 ? 'Moderate' : ahi >= 5 ? 'Mild' : 'Normal',
+        isPositionalOSA: ahiSupine > 0 && ahiLateral > 0 && ahiSupine > ahiLateral * AASM_GUIDELINES.POSITIONAL_RATIO,
+        isREMRelatedOSA: ahiRem > 0 && ahiNrem > 0 && ahiRem > ahiNrem * AASM_GUIDELINES.REM_RATIO,
+        hasCentralComponent: cai > AASM_GUIDELINES.SIGNIFICANT_CAI,
+        hasSignificantDesaturation: timeBelow90 > AASM_GUIDELINES.SIGNIFICANT_DESAT,
+        hasPLM: plmIndex > AASM_GUIDELINES.ELEVATED_PLM,
+        positionalRatio: ahiLateral > 0 ? (ahiSupine / ahiLateral).toFixed(1) : null,
+        remRatio: ahiNrem > 0 ? (ahiRem / ahiNrem).toFixed(1) : null
+      },
       extractionMethod: "comprehensive-medical-grade",
       timestamp: new Date().toISOString()
     };
