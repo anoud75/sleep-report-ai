@@ -6,14 +6,51 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Generate Clinical Summary based on templates
+// Helper functions for mask label and size conversions
+function getMaskLabel(maskValue: string | null | undefined): string {
+  if (!maskValue) return '---';
+  const maskTypes: { [key: string]: string } = {
+    'resmed_airfit_f20': 'RESMED AIRFIT F20 FULL FACE MASK',
+    'resmed_airfit_n20': 'RESMED AIRFIT N20 NASAL MASK',
+    'resmed_airfit_n30': 'RESMED AIRFIT N30 NASAL PILLOWS',
+    'resmed_airfit_f10': 'RESMED AIRFIT F10 FULL FACE MASK',
+    'nonvented_resmed_full_face': 'NONVENTED RESMED FULL FACE MASK',
+    'dreamwear_full_face': 'DREAMWEAR FULL FACE MASK',
+    'dreamwear_nasal': 'DREAMWEAR NASAL MASK',
+    'dreamwear_gel_nasal_pillow': 'DREAMWEAR GEL NASAL PILLOW',
+    'amara_gel_full_face': 'AMARA GEL FULL FACE MASK',
+    'amara_view_full_face': 'AMARA VIEW FULL FACE MASK',
+    'amara_full_face': 'AMARA FULL FACE MASK',
+    'comfort_gel_blue_full_face': 'COMFORT GEL BLUE FULL FACE MASK',
+    'comfortgel_nasal': 'COMFORTGEL NASAL MASK',
+    'true_blue_nasal': 'TRUE BLUE NASAL MASK',
+    'wisp_minimal_nasal': 'WISP MINIMAL CONTACT NASAL MASK'
+  };
+  return maskTypes[maskValue] || maskValue.toUpperCase();
+}
+
+function getMaskSizeLabel(sizeValue: string | null | undefined): string {
+  if (!sizeValue) return '---';
+  const sizes: { [key: string]: string } = {
+    'petite': 'PETITE',
+    'small': 'SMALL',
+    'medium_small': 'MEDIUM/SMALL',
+    'medium': 'MEDIUM',
+    'medium_wide': 'MEDIUM/WIDE',
+    'large': 'LARGE',
+    'x_large': 'X LARGE'
+  };
+  return sizes[sizeValue] || sizeValue.toUpperCase();
+}
+
+// Generate Clinical Summary with comprehensive clinical data integration
 function generateClinicalSummary(data: any, studyType: string, clinicalData: any): string {
+  const summaryParts: string[] = [];
+  
   const ahi = data.respiratoryEvents?.ahiOverall || 0;
   const tst = data.studyInfo?.totalSleepTime || 0;
   const hours = Math.floor(tst / 60);
   const minutes = Math.round(tst % 60);
-  const age = data.patientInfo?.age || '---';
-  const gender = data.patientInfo?.gender === 'F' ? 'female' : 'male';
   const lowestO2 = data.oxygenation?.lowestSpO2;
   
   // Determine severity
@@ -30,22 +67,99 @@ function generateClinicalSummary(data: any, studyType: string, clinicalData: any
   // Check sleep stage progression
   const hasAllStages = (data.sleepArchitecture?.remPercent || 0) > 0 && 
                        (data.sleepArchitecture?.slowWaveSleepPercent || 0) > 0;
-  
-  if (severity === 'Normal') {
-    return `In summary based on the performed study, there was no evidence of sleep disordered breathing or any other significant respiratory disturbances during sleep.${hasAllStages ? ' The patient progressed into all sleep stages.' : ''}`;
-  }
+  const stageProgression = hasAllStages 
+    ? 'progressed into all sleep stages' 
+    : 'did not progress into slow wave sleep';
   
   // Check if repeated study
   const isRepeated = clinicalData?.isRepeatedStudy === true;
-  const repeatedPrefix = isRepeated ? 'repeated ' : '';
+  const repeatedPrefix = isRepeated ? 'Repeated ' : '';
   
-  // For Split-Night study
-  if (studyType === 'Split-Night') {
-    return `This ${repeatedPrefix}split night sleep study shows evidence of "${severity} Obstructive Sleep Apnea". In the pre-PAP period, the patient had a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} desaturation${lowestO2 ? ` (Lowest SpO2: ${lowestO2}%)` : ''} and repetitive sleep interruption.${hasAllStages ? ' The patient progressed into all sleep stages.' : ' The patient did not progress into slow wave sleep during the entire study.'}`;
+  // === PART 1: Equipment Line (for Split-Night/Titration) ===
+  if (studyType === 'Split-Night' || studyType === 'Titration') {
+    const maskLabel = getMaskLabel(clinicalData?.maskType);
+    const maskSize = getMaskSizeLabel(clinicalData?.maskSize);
+    
+    let pressureText = '';
+    if (clinicalData?.bpapUsed) {
+      pressureText = `BPAP (IPAP ${clinicalData?.ipapPressure} / EPAP ${clinicalData?.epapPressure} cmH2O)`;
+    } else {
+      pressureText = `Conventional CPAP pressure of ${clinicalData?.cpapPressure || '---'} cmH2O`;
+    }
+    
+    let equipmentLine = '';
+    if (studyType === 'Split-Night') {
+      equipmentLine = `${repeatedPrefix}Split night sleep study was done. 1st part was off CPAP and 2nd part was on ${pressureText} via ${maskLabel} (${maskSize}) size`;
+    } else {
+      equipmentLine = `${repeatedPrefix}Therapeutic sleep study was done on ${pressureText} from start via ${maskLabel} (${maskSize}) size`;
+    }
+    
+    // Add accessories
+    const accessories = [];
+    if (clinicalData?.hasChinstrap) accessories.push('chinstrap');
+    if (clinicalData?.hasHeatedHumidifier) accessories.push('heated humidifier');
+    
+    if (accessories.length > 0) {
+      equipmentLine += ' with ' + accessories.join(' and ');
+    }
+    
+    // Add O2 if used
+    if (clinicalData?.oxygenUsed && clinicalData?.oxygenLiters) {
+      equipmentLine += ` with supplemental O2 at ${clinicalData.oxygenLiters} L/min`;
+    }
+    
+    equipmentLine += '.';
+    summaryParts.push(equipmentLine);
   }
   
-  // For Diagnostic study
-  return `This ${repeatedPrefix}overnight sleep study shows evidence of "${severity} Obstructive Sleep Apnea". The patient had a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} desaturation${lowestO2 ? ` (Lowest SpO2: ${lowestO2}%)` : ''} and repetitive sleep interruption.${hasAllStages ? ' The patient progressed into all sleep stages.' : ' The patient did not progress into slow wave sleep.'}`;
+  // === PART 2: Main Clinical Interpretation ===
+  if (severity === 'Normal') {
+    summaryParts.push(`In summary based on the performed study, there was no evidence of sleep disordered breathing or any other significant respiratory disturbances during sleep. The patient ${stageProgression}. Otherwise, no unusual events were noted.`);
+  } else {
+    let mainSummary = '';
+    
+    if (studyType === 'Split-Night') {
+      mainSummary = `This split night sleep study shows evidence of "${severity} Obstructive Sleep Apnea". In the pre-PAP period, the patient had a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} oxygen desaturations and repetitive sleep interruptions. Conventional CPAP was applied and titration was done. At CPAP pressure of ${clinicalData?.cpapPressure || '---'} cmH2O, respiratory events were eliminated on supine REM sleep. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
+    } else if (studyType === 'Titration') {
+      mainSummary = `This ${isRepeated ? 'repeated ' : ''}therapeutic overnight sleep study was done on Conventional CPAP from start. The patient slept for a total sleep time of ${hours} hours and ${minutes} minutes. At CPAP pressure of ${clinicalData?.cpapPressure || '---'} cmH2O, respiratory events were eliminated on supine REM sleep. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
+    } else {
+      // Diagnostic
+      mainSummary = `This ${repeatedPrefix.toLowerCase()}overnight sleep study shows evidence of "${severity} Obstructive Sleep Apnea". The patient slept for a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} oxygen desaturations and repetitive sleep interruptions. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
+    }
+    
+    summaryParts.push(mainSummary);
+  }
+  
+  // === PART 3: EtCO2 Monitoring ===
+  if (clinicalData?.etco2?.awake || clinicalData?.etco2?.nrem || clinicalData?.etco2?.rem) {
+    const parts = [];
+    if (clinicalData.etco2.awake) parts.push(`${clinicalData.etco2.awake} mmHg while awake`);
+    if (clinicalData.etco2.nrem) parts.push(`${clinicalData.etco2.nrem} mmHg during NREM sleep`);
+    if (clinicalData.etco2.rem) parts.push(`${clinicalData.etco2.rem} mmHg during REM sleep`);
+    
+    if (parts.length > 0) {
+      summaryParts.push(`EtCO2 was monitored and the values show: ${parts.join(', ')}.`);
+    }
+  }
+  
+  // === PART 4: TcCO2 Monitoring ===
+  if (clinicalData?.tcco2?.awake || clinicalData?.tcco2?.nrem || clinicalData?.tcco2?.rem) {
+    const parts = [];
+    if (clinicalData.tcco2.awake) parts.push(`${clinicalData.tcco2.awake} mmHg while awake`);
+    if (clinicalData.tcco2.nrem) parts.push(`${clinicalData.tcco2.nrem} mmHg in NREM sleep`);
+    if (clinicalData.tcco2.rem) parts.push(`${clinicalData.tcco2.rem} mmHg in REM sleep`);
+    
+    if (parts.length > 0) {
+      summaryParts.push(`TcCO2 was monitored and value showed: ${parts.join(' and ')}.`);
+    }
+  }
+  
+  // === PART 5: Medication ===
+  if (clinicalData?.medication) {
+    summaryParts.push(clinicalData.medication);
+  }
+  
+  return summaryParts.join('\n\n');
 }
 
 // Generate Recommendations based on AHI and other factors

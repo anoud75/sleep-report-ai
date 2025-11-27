@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain, AlertTriangle, Pencil, Check, Plus, Trash2 } from "lucide-react";
+import { Download, FileText, User, Calendar, Activity, Stethoscope, TrendingUp, Brain, AlertTriangle, Pencil, Check, Plus, Trash2, Settings, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -174,7 +174,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         psgDiagnosis: '',
         doneBy: '',
         scoredBy: '',
-        studyNote: `Split-night sleep study was done. 1st part was off CPAP and 2nd part was on Conventional CPAP pressure of ${data.onCpap?.cpapPressure || data.clinicalData?.cpapPressure || '---'} via ${data.clinicalData?.maskType || 'nasal mask'} (${data.clinicalData?.maskSize || 'Medium'}) size${data.clinicalData?.hasChinstrap ? ' with chinstrap' : ''}.`,
+        studyNote: `Split-night sleep study was done. 1st part was off CPAP and 2nd part was on ${data.clinicalData?.bpapUsed ? `BPAP (IPAP ${data.clinicalData?.ipapPressure} / EPAP ${data.clinicalData?.epapPressure} cmH2O)` : `Conventional CPAP pressure of ${data.onCpap?.cpapPressure || data.clinicalData?.cpapPressure || '---'} cmH2O`} via ${data.clinicalData?.maskType ? data.clinicalData.maskType.replace(/_/g, ' ').toUpperCase() : 'nasal mask'} (${data.clinicalData?.maskSize ? data.clinicalData.maskSize.replace(/_/g, '/').toUpperCase() : 'Medium'}) size${data.clinicalData?.hasChinstrap ? ' with chinstrap' : ''}${data.clinicalData?.hasHeatedHumidifier ? (data.clinicalData?.hasChinstrap ? ' and heated humidifier' : ' with heated humidifier') : ''}.`,
         // Split Night Data - OFF CPAP
         offCpap: {
           lightsOff: data.offCpap?.studyInfo?.lightsOff || '',
@@ -935,32 +935,20 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
               </div>
             </div>
             
-            {/* CPAP Pressure */}
+            {/* CPAP/BPAP Pressure */}
             <div className="rounded-xl p-4 bg-blue-50 dark:bg-blue-950/20">
-              <p className="text-sm text-muted-foreground font-inter">CPAP Pressure</p>
+              <p className="text-sm text-muted-foreground font-inter">
+                {data.clinicalData?.bpapUsed ? 'BPAP Settings' : 'CPAP Pressure'}
+              </p>
               <div className="mt-1">
-                {isEditMode ? (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="text"
-                      value={(editableData as any).onCpap?.cpapPressure || ''}
-                      onChange={(e) => {
-                        setEditableData(prev => {
-                          const splitData = prev as any;
-                          return {
-                            ...splitData,
-                            onCpap: { ...splitData.onCpap, cpapPressure: e.target.value }
-                          };
-                        });
-                      }}
-                      className="w-20 h-8"
-                    />
-                    <span className="text-sm text-muted-foreground">cmH2O</span>
-                  </div>
+                {data.clinicalData?.bpapUsed ? (
+                  <span className="text-lg font-bold text-foreground">
+                    IPAP {data.clinicalData?.ipapPressure || '---'} / EPAP {data.clinicalData?.epapPressure || '---'} cmH2O
+                  </span>
                 ) : (
                   <span className="text-2xl font-bold text-foreground">
-                    {(editableData as any).onCpap?.cpapPressure || '---'} 
-                    {(editableData as any).onCpap?.cpapPressure && ' cmH2O'}
+                    {data.clinicalData?.cpapPressure || (editableData as any).onCpap?.cpapPressure || '---'}
+                    {(data.clinicalData?.cpapPressure || (editableData as any).onCpap?.cpapPressure) && ' cmH2O'}
                   </span>
                 )}
               </div>
@@ -1552,24 +1540,71 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         </div>
       )}
 
-      {/* Patient Comments */}
-      {data.patientComments && data.patientComments.length > 0 && (
-        <div className="bg-secondary/5 rounded-xl border border-secondary/20 p-6">
-          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4">Patient Comments</h3>
-          <ul className="text-sm text-muted-foreground leading-relaxed font-inter space-y-2">
-            {Array.isArray(data.patientComments) ? (
-              data.patientComments.map((comment, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="mr-2 text-primary">•</span>
-                  <span>{comment}</span>
-                </li>
-              ))
-            ) : (
-              <li className="flex items-start">
-                <span className="mr-2 text-primary">•</span>
-                <span>{data.patientComments}</span>
-              </li>
+      {/* Treatment Configuration (for Split-Night/Titration) */}
+      {(data.studyType === 'Split-Night' || data.studyType === 'Titration') && data.clinicalData && (
+        <div className="bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-200/50 p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
+            <Settings className="h-4 w-4 text-blue-500" />
+            Treatment Configuration
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground font-inter">Mask Type</p>
+              <p className="font-medium text-foreground font-inter text-xs">
+                {data.clinicalData.maskType ? 
+                  (data.clinicalData.maskType.replace(/_/g, ' ').toUpperCase()) : 
+                  '---'
+                }
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground font-inter">Mask Size</p>
+              <p className="font-medium text-foreground font-inter">
+                {data.clinicalData.maskSize ? 
+                  (data.clinicalData.maskSize.replace(/_/g, '/').toUpperCase()) : 
+                  '---'
+                }
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground font-inter">Chinstrap</p>
+              <p className="font-medium text-foreground font-inter">
+                {data.clinicalData.hasChinstrap ? 'Yes' : 'No'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground font-inter">Heated Humidifier</p>
+              <p className="font-medium text-foreground font-inter">
+                {data.clinicalData.hasHeatedHumidifier ? 'Yes' : 'No'}
+              </p>
+            </div>
+            {data.clinicalData.oxygenUsed && (
+              <div>
+                <p className="text-sm text-muted-foreground font-inter">O2 Flow Rate</p>
+                <p className="font-medium text-foreground font-inter">
+                  {data.clinicalData.oxygenLiters} L/min
+                </p>
+              </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Patient Comments */}
+      {((data.patientComments && data.patientComments.length > 0) || 
+        (data.clinicalData?.selectedComments && data.clinicalData.selectedComments.length > 0)) && (
+        <div className="bg-amber-50/50 dark:bg-amber-950/20 rounded-xl border border-amber-200/50 p-6">
+          <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-amber-500" />
+            Patient Comments
+          </h3>
+          <ul className="text-sm text-muted-foreground leading-relaxed font-inter space-y-2">
+            {(data.patientComments || data.clinicalData?.selectedComments || []).map((comment: string, index: number) => (
+              <li key={index} className="flex items-start">
+                <span className="mr-2 text-amber-500">•</span>
+                <span className="text-foreground">{comment}</span>
+              </li>
+            ))}
           </ul>
         </div>
       )}
