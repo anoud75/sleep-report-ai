@@ -64,6 +64,25 @@ function generateClinicalSummary(data: any, studyType: string, clinicalData: any
   
   const ahi = data.respiratoryEvents?.ahiOverall || 0;
   const tst = data.studyInfo?.totalSleepTime || 0;
+  
+  // For Split-Night: calculate combined TST from both portions
+  let totalStudyTst = tst;
+  let offCpapTst = tst;
+  let onCpapTst = 0;
+  
+  // If we have onCpap data, add its TST
+  if (data.onCpapData?.studyInfo?.totalSleepTime) {
+    onCpapTst = data.onCpapData.studyInfo.totalSleepTime;
+    totalStudyTst = offCpapTst + onCpapTst;
+  }
+  
+  const totalHours = Math.floor(totalStudyTst / 60);
+  const totalMinutes = Math.round(totalStudyTst % 60);
+  const offHours = Math.floor(offCpapTst / 60);
+  const offMinutes = Math.round(offCpapTst % 60);
+  const onHours = Math.floor(onCpapTst / 60);
+  const onMinutes = Math.round(onCpapTst % 60);
+  
   const hours = Math.floor(tst / 60);
   const minutes = Math.round(tst % 60);
   const lowestO2 = data.oxygenation?.lowestSpO2;
@@ -134,7 +153,16 @@ function generateClinicalSummary(data: any, studyType: string, clinicalData: any
     let mainSummary = '';
     
     if (studyType === 'Split-Night') {
-      mainSummary = `This split night sleep study shows evidence of "${severity} Obstructive Sleep Apnea". In the pre-PAP period, the patient had a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} oxygen desaturations and repetitive sleep interruptions. Conventional CPAP was applied and titration was done. At CPAP pressure of ${clinicalData?.cpapPressure || '---'} cmH2O, respiratory events were eliminated on supine REM sleep. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
+      const onCpapAhi = data.onCpapData?.respiratoryEvents?.ahiOverall || 0;
+      
+      let pressureText = '';
+      if (clinicalData?.bpapUsed) {
+        pressureText = `BPAP (IPAP ${clinicalData?.ipapPressure} / EPAP ${clinicalData?.epapPressure} cmH2O)`;
+      } else {
+        pressureText = `CPAP pressure of ${clinicalData?.cpapPressure || '---'} cmH2O`;
+      }
+      
+      mainSummary = `This split night sleep study shows evidence of "${severity} Obstructive Sleep Apnea". The patient had a total sleep time of ${totalHours} hours and ${totalMinutes} minutes (${offHours}h ${offMinutes}min OFF CPAP + ${onHours}h ${onMinutes}min ON CPAP). During the pre-PAP diagnostic period, AHI was ${ahi.toFixed(1)} events/hr associated with ${desatLevel} oxygen desaturations. At ${pressureText}, respiratory events were effectively controlled with AHI reduced to ${onCpapAhi.toFixed(1)}/hr. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
     } else if (studyType === 'Titration') {
       mainSummary = `This ${isRepeated ? 'repeated ' : ''}therapeutic overnight sleep study was done on Conventional CPAP from start. The patient slept for a total sleep time of ${hours} hours and ${minutes} minutes. At CPAP pressure of ${clinicalData?.cpapPressure || '---'} cmH2O, respiratory events were eliminated on supine REM sleep. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
     } else {
@@ -210,7 +238,7 @@ function generateClinicalSummary(data: any, studyType: string, clinicalData: any
   return summaryParts.join('\n\n');
 }
 
-// Generate Recommendations based on AASM Clinical Guidelines
+// Generate Recommendations based on AASM Clinical Guidelines with PATIENT-SPECIFIC VALUES
 function generateRecommendations(data: any, studyType: string, clinicalData: any): string[] {
   const recommendations: string[] = [];
   const ahi = data.respiratoryEvents?.ahiOverall || 0;
@@ -223,76 +251,82 @@ function generateRecommendations(data: any, studyType: string, clinicalData: any
   const lowestO2 = data.oxygenation?.lowestSpO2 || 100;
   const plmIndex = data.additionalMetrics?.legMovementIndex || 0;
   const bmi = clinicalData?.bmi || 0;
+  const cpapPressure = clinicalData?.cpapPressure;
+  const bpapUsed = clinicalData?.bpapUsed;
+  const ipapPressure = clinicalData?.ipapPressure;
+  const epapPressure = clinicalData?.epapPressure;
   
-  // === 1. Primary Treatment Based on OSA Severity (AASM 2019) ===
+  // === 1. Primary Treatment - PATIENT-SPECIFIC ===
   if (ahi >= 30) {
-    recommendations.push("PAP therapy is STRONGLY recommended for severe OSA (AHI ≥30) with excessive daytime sleepiness (AASM Strong Recommendation).");
+    recommendations.push(`PAP therapy is STRONGLY recommended based on severe OSA with AHI of ${ahi.toFixed(1)}/hr (AASM Strong Recommendation).`);
   } else if (ahi >= 15) {
-    recommendations.push("PAP therapy is recommended for moderate OSA (AHI 15-30). Consider CPAP or APAP as first-line treatment (AASM Strong Recommendation).");
+    recommendations.push(`PAP therapy is recommended based on moderate OSA with AHI of ${ahi.toFixed(1)}/hr (AASM Strong Recommendation).`);
   } else if (ahi >= 5) {
-    recommendations.push("For mild OSA (AHI 5-15): Consider PAP therapy if symptomatic. Oral appliance therapy is an effective alternative for patients preferring alternate therapy or intolerant of CPAP (AASM Standard).");
+    recommendations.push(`For this patient with mild OSA (AHI ${ahi.toFixed(1)}/hr): PAP therapy or oral appliance therapy may be considered if symptomatic (AASM Standard).`);
   } else {
-    recommendations.push("AHI within normal limits. No specific treatment for sleep-disordered breathing required.");
+    recommendations.push(`AHI of ${ahi.toFixed(1)}/hr is within normal limits. No specific treatment for sleep-disordered breathing required.`);
   }
   
-  // === 2. Positional Therapy (ALL STUDY TYPES) ===
+  // === 2. Positional Therapy - PATIENT-SPECIFIC VALUES ===
   const isPositionalOSA = ahiSupine > 0 && ahiLateral > 0 && ahiSupine > ahiLateral * AASM_GUIDELINES.POSITIONAL_RATIO;
   if (isPositionalOSA) {
+    const ratio = (ahiSupine / ahiLateral).toFixed(1);
     if (ahiLateral < 5) {
-      recommendations.push("Significant positional OSA identified (AHI normalized in lateral position). Positional therapy alone may be effective for this patient (AASM Option).");
+      recommendations.push(`Significant positional OSA identified: AHI supine ${ahiSupine.toFixed(1)}/hr vs lateral ${ahiLateral.toFixed(1)}/hr (ratio ${ratio}:1). AHI normalizes in lateral position - positional therapy alone may be effective (AASM Option).`);
     } else {
-      recommendations.push("Positional component detected (AHI supine >2x AHI lateral). Positional therapy may be beneficial combined with PAP treatment (AASM Option).");
+      recommendations.push(`Positional component detected: AHI supine ${ahiSupine.toFixed(1)}/hr vs lateral ${ahiLateral.toFixed(1)}/hr (ratio ${ratio}:1). Positional therapy recommended as adjunct to PAP (AASM Option).`);
     }
   }
   
-  // === 3. REM-related OSA (ALL STUDY TYPES) ===
+  // === 3. REM-related OSA - PATIENT-SPECIFIC VALUES ===
   const isREMRelatedOSA = ahiRem > 0 && ahiNrem > 0 && ahiRem > ahiNrem * AASM_GUIDELINES.REM_RATIO;
   if (isREMRelatedOSA) {
-    recommendations.push("REM-related OSA pattern detected (AHI REM >2x AHI NREM). PAP therapy should be optimized during REM sleep periods. Ensure adequate REM sleep during titration (AASM Guideline).");
+    const ratio = (ahiRem / ahiNrem).toFixed(1);
+    recommendations.push(`REM-related OSA pattern identified: AHI REM ${ahiRem.toFixed(1)}/hr vs NREM ${ahiNrem.toFixed(1)}/hr (ratio ${ratio}:1). Ensure adequate REM sleep capture during PAP titration (AASM Guideline).`);
   }
   
-  // === 4. Central Sleep Apnea (AASM 2025 CSA Guidelines) ===
+  // === 4. Central Apnea - PATIENT-SPECIFIC ===
   if (cai > AASM_GUIDELINES.SIGNIFICANT_CAI) {
-    recommendations.push("Central apnea index >5 detected. Consider evaluation for central sleep apnea etiologies. ASV or CPAP with backup rate may be indicated (AASM Conditional Recommendation).");
+    recommendations.push(`Central apnea index of ${cai.toFixed(1)}/hr detected. Evaluate for central sleep apnea etiologies. Consider ASV or CPAP with backup rate (AASM Conditional Recommendation).`);
   }
   
-  // === 5. Oxygen Supplementation ===
+  // === 5. Oxygen Desaturation - PATIENT-SPECIFIC VALUES ===
   if (timeBelow90 > AASM_GUIDELINES.SIGNIFICANT_DESAT || lowestO2 < 80) {
-    recommendations.push("Significant oxygen desaturation noted. Supplemental oxygen may be considered as adjunctive therapy (AASM Option).");
+    recommendations.push(`Significant desaturation noted: ${timeBelow90.toFixed(1)}% of sleep time with SpO2 <90%, lowest SpO2 ${lowestO2}%. Consider supplemental oxygen as adjunctive therapy (AASM Option).`);
   }
   
-  // === 6. Weight Management (BMI-based) ===
+  // === 6. Weight Management - PATIENT-SPECIFIC BMI ===
   if (bmi >= 40) {
-    recommendations.push("Bariatric surgery referral may be considered for morbidly obese patients (BMI ≥40) as adjunct to primary OSA therapy (AASM Option).");
+    recommendations.push(`BMI of ${bmi} kg/m² indicates morbid obesity. Consider bariatric surgery referral as adjunct to primary OSA therapy (AASM Option).`);
   } else if (bmi >= 30) {
-    recommendations.push("Weight loss through dietary modification is recommended as adjunctive therapy for OSA (AASM Guideline).");
+    recommendations.push(`BMI of ${bmi} kg/m² indicates obesity. Weight loss through dietary modification recommended as adjunctive therapy (AASM Guideline).`);
   }
   
-  // === 7. PLM/RLS Evaluation ===
+  // === 7. PLM/RLS - PATIENT-SPECIFIC ===
   if (plmIndex > AASM_GUIDELINES.ELEVATED_PLM) {
-    recommendations.push("Elevated periodic limb movement index detected. Consider evaluation for restless legs syndrome and iron deficiency.");
+    recommendations.push(`Elevated periodic limb movement index of ${plmIndex.toFixed(1)}/hr. Consider evaluation for restless legs syndrome and iron deficiency.`);
   }
   
-  // === 8. Oral Appliance Alternative (AASM 2015) ===
+  // === 8. Oral Appliance Alternative ===
   if (ahi >= 5 && ahi < 30) {
-    recommendations.push("Oral appliance therapy may be prescribed as alternative for patients intolerant of CPAP or preferring alternate therapy (AASM Standard).");
+    recommendations.push(`Oral appliance therapy is an alternative for patients with AHI ${ahi.toFixed(1)}/hr who are intolerant of CPAP (AASM Standard).`);
   }
   
-  // === 9. PAP Continuation (Titration/Split-Night specific) ===
+  // === 9. PAP Continuation - PATIENT-SPECIFIC PRESSURE ===
   if (studyType === 'Titration' || studyType === 'Split-Night') {
-    if (clinicalData?.bpapUsed && clinicalData?.ipapPressure && clinicalData?.epapPressure) {
-      const diff = clinicalData.ipapPressure - clinicalData.epapPressure;
-      recommendations.push(`Continue BPAP therapy at IPAP ${clinicalData.ipapPressure} / EPAP ${clinicalData.epapPressure} cmH2O (pressure differential: ${diff} cmH2O).`);
-    } else if (clinicalData?.cpapPressure) {
-      recommendations.push(`Continue CPAP therapy at ${clinicalData.cpapPressure} cmH2O as prescribed.`);
+    if (bpapUsed && ipapPressure && epapPressure) {
+      const diff = parseFloat(ipapPressure) - parseFloat(epapPressure);
+      recommendations.push(`Continue BPAP therapy at IPAP ${ipapPressure} cmH2O / EPAP ${epapPressure} cmH2O (pressure support: ${diff} cmH2O) as established during titration.`);
+    } else if (cpapPressure) {
+      recommendations.push(`Continue CPAP therapy at ${cpapPressure} cmH2O as established during this titration study.`);
     }
   }
   
-  // === 10. Follow-up Recommendation ===
+  // === 10. Follow-up - STUDY-TYPE SPECIFIC ===
   if (studyType === 'Diagnostic' && ahi >= 5) {
-    recommendations.push("PAP titration study recommended to determine optimal therapeutic pressure settings (AASM Good Practice Statement).");
-  } else if ((studyType === 'Titration' || studyType === 'Split-Night') && ahi >= 5) {
-    recommendations.push("Follow-up assessment recommended to confirm PAP adherence and treatment efficacy (AASM Good Practice Statement).");
+    recommendations.push(`PAP titration study recommended to determine optimal therapeutic pressure for this patient with AHI ${ahi.toFixed(1)}/hr (AASM Good Practice Statement).`);
+  } else if ((studyType === 'Titration' || studyType === 'Split-Night')) {
+    recommendations.push(`Follow-up assessment in 1-3 months recommended to confirm PAP adherence and treatment efficacy (AASM Good Practice Statement).`);
   }
   
   return recommendations;
@@ -902,7 +936,12 @@ serve(async (req) => {
 
     // Handle Split-Night response differently
     if (extractedData.isSplitNight) {
-      const clinicalSummary = generateClinicalSummary(extractedData.offCpap, studyType, clinicalData);
+      // Pass both offCpap and onCpap data to clinical summary for combined TST
+      const offCpapWithOnData = {
+        ...extractedData.offCpap,
+        onCpapData: extractedData.onCpap
+      };
+      const clinicalSummary = generateClinicalSummary(offCpapWithOnData, studyType, clinicalData);
       const recommendations = generateRecommendations(extractedData.onCpap, studyType, clinicalData);
       
       // Convert patient comment keys to readable text
