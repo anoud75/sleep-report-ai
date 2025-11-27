@@ -377,6 +377,14 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     const tableHeaderBg = [240, 245, 250] as const; // Very light blue
     const textDark = [51, 51, 51] as const;
     
+    // Helper: Safely convert values to strings for PDF
+    const safeString = (value: any): string => {
+      if (value === null || value === undefined) return '---';
+      if (typeof value === 'number') return String(value);
+      if (typeof value === 'string' && value.trim() === '') return '---';
+      return String(value);
+    };
+    
     // Helper: Generate Study ID
     const generateStudyId = () => {
       const date = new Date();
@@ -545,34 +553,34 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       // Three-column data for Split-Night
       yPos += 8;
       const splitNightData: [string, string, string][] = [
-        ['Light off', editableData.offCpap?.lightsOff || '---', editableData.onCpap?.lightsOff || '---'],
-        ['Light on', editableData.offCpap?.lightsOn || '---', editableData.onCpap?.lightsOn || '---'],
-        ['Time in Bed (min)', editableData.offCpap?.timeInBed || '---', editableData.onCpap?.timeInBed || '---'],
-        ['Total Sleep Time (min)', editableData.offCpap?.totalSleepTime || '---', editableData.onCpap?.totalSleepTime || '---'],
-        ['CPAP/BPAP/O2', '---', editableData.onCpap?.cpapPressure || '---'],
-        ['Sleep Latency (min)', editableData.offCpap?.sleepLatency || '---', editableData.onCpap?.sleepLatency || '---'],
-        ['REM Latency (min)', editableData.offCpap?.remLatency || '---', editableData.onCpap?.remLatency || '---'],
-        ['Sleep Efficiency (%)', editableData.offCpap?.sleepEfficiency || '---', editableData.onCpap?.sleepEfficiency || '---'],
-        ['Sleep Stage 1 (%)', editableData.offCpap?.stage1Percent || '---', editableData.onCpap?.stage1Percent || '---'],
-        ['Sleep Stage 2 (%)', editableData.offCpap?.stage2Percent || '---', editableData.onCpap?.stage2Percent || '---'],
-        ['Slow Wave Sleep (%)', editableData.offCpap?.slowWaveSleepPercent || '---', editableData.onCpap?.slowWaveSleepPercent || '---'],
-        ['REM Sleep (%)', editableData.offCpap?.remPercent || '---', editableData.onCpap?.remPercent || '---'],
-        ['REM Cycle (No. of cycles)', editableData.offCpap?.remCycles || '---', editableData.onCpap?.remCycles || '---'],
-        ['AHI (NREM/REM)', editableData.offCpap?.ahiNremRem || '---', editableData.onCpap?.ahiNremRem || '---'],
-        ['AHI (supine/lateral) (/hr)', editableData.offCpap?.ahiSupineLateral || '---', editableData.onCpap?.ahiSupineLateral || '---'],
-        ['Central Apnea Index', editableData.offCpap?.centralApneaIndex || '---', editableData.onCpap?.centralApneaIndex || '---'],
-        ['Obstructive Apnea Index (/hr)', editableData.offCpap?.obstructiveApneaIndex || '---', editableData.onCpap?.obstructiveApneaIndex || '---'],
-        ['Mixed Apnea Index', editableData.offCpap?.mixedApneaIndex || '---', editableData.onCpap?.mixedApneaIndex || '---'],
-        ['Hypopnea Index (/hr)', editableData.offCpap?.hypopneaIndex || '---', editableData.onCpap?.hypopneaIndex || '---'],
-        ['Hypopnea Mean Duration (sec)', editableData.offCpap?.meanHypopneaDuration || '---', editableData.onCpap?.meanHypopneaDuration || '---'],
-        ['Heart Rate (NREM/REM)', editableData.offCpap?.heartRateNremRem || '---', editableData.onCpap?.heartRateNremRem || '---'],
-        ['Desaturation Index (/hr)', editableData.offCpap?.desaturationIndex || '---', editableData.onCpap?.desaturationIndex || '---'],
-        ['% Time with O2 < 90% (%)', editableData.offCpap?.timeBelow90 || '---', editableData.onCpap?.timeBelow90 || '---'],
-        ['% Time with O2 < 95% (%)', editableData.offCpap?.timeBelow95 || '---', editableData.onCpap?.timeBelow95 || '---'],
-        ['Lowest O2 /Average O2', editableData.offCpap?.lowestO2Average || '---', editableData.onCpap?.lowestO2Average || '---'],
-        ['Arousal Index (/hr)', editableData.offCpap?.arousalIndex || '---', editableData.onCpap?.arousalIndex || '---'],
-        ['Snoring (%)', editableData.offCpap?.snoring || '---', editableData.onCpap?.snoring || '---'],
-        ['Leg Movement Index (/hr)', editableData.offCpap?.legMovementIndex || '---', editableData.onCpap?.legMovementIndex || '---'],
+        ['Light off', safeString(editableData.offCpap?.lightsOff), safeString(editableData.onCpap?.lightsOff)],
+        ['Light on', safeString(editableData.offCpap?.lightsOn), safeString(editableData.onCpap?.lightsOn)],
+        ['Time in Bed (min)', safeString(editableData.offCpap?.timeInBed), safeString(editableData.onCpap?.timeInBed)],
+        ['Total Sleep Time (min)', safeString(editableData.offCpap?.totalSleepTime), safeString(editableData.onCpap?.totalSleepTime)],
+        ['CPAP/BPAP/O2', '---', safeString(editableData.onCpap?.cpapPressure)],
+        ['Sleep Latency (min)', safeString(editableData.offCpap?.sleepLatency), safeString(editableData.onCpap?.sleepLatency)],
+        ['REM Latency (min)', safeString(editableData.offCpap?.remLatency), safeString(editableData.onCpap?.remLatency)],
+        ['Sleep Efficiency (%)', safeString(editableData.offCpap?.sleepEfficiency), safeString(editableData.onCpap?.sleepEfficiency)],
+        ['Sleep Stage 1 (%)', safeString(editableData.offCpap?.stage1Percent), safeString(editableData.onCpap?.stage1Percent)],
+        ['Sleep Stage 2 (%)', safeString(editableData.offCpap?.stage2Percent), safeString(editableData.onCpap?.stage2Percent)],
+        ['Slow Wave Sleep (%)', safeString(editableData.offCpap?.slowWaveSleepPercent), safeString(editableData.onCpap?.slowWaveSleepPercent)],
+        ['REM Sleep (%)', safeString(editableData.offCpap?.remPercent), safeString(editableData.onCpap?.remPercent)],
+        ['REM Cycle (No. of cycles)', safeString(editableData.offCpap?.remCycles), safeString(editableData.onCpap?.remCycles)],
+        ['AHI (NREM/REM)', safeString(editableData.offCpap?.ahiNremRem), safeString(editableData.onCpap?.ahiNremRem)],
+        ['AHI (supine/lateral) (/hr)', safeString(editableData.offCpap?.ahiSupineLateral), safeString(editableData.onCpap?.ahiSupineLateral)],
+        ['Central Apnea Index', safeString(editableData.offCpap?.centralApneaIndex), safeString(editableData.onCpap?.centralApneaIndex)],
+        ['Obstructive Apnea Index (/hr)', safeString(editableData.offCpap?.obstructiveApneaIndex), safeString(editableData.onCpap?.obstructiveApneaIndex)],
+        ['Mixed Apnea Index', safeString(editableData.offCpap?.mixedApneaIndex), safeString(editableData.onCpap?.mixedApneaIndex)],
+        ['Hypopnea Index (/hr)', safeString(editableData.offCpap?.hypopneaIndex), safeString(editableData.onCpap?.hypopneaIndex)],
+        ['Hypopnea Mean Duration (sec)', safeString(editableData.offCpap?.meanHypopneaDuration), safeString(editableData.onCpap?.meanHypopneaDuration)],
+        ['Heart Rate (NREM/REM)', safeString(editableData.offCpap?.heartRateNremRem), safeString(editableData.onCpap?.heartRateNremRem)],
+        ['Desaturation Index (/hr)', safeString(editableData.offCpap?.desaturationIndex), safeString(editableData.onCpap?.desaturationIndex)],
+        ['% Time with O2 < 90% (%)', safeString(editableData.offCpap?.timeBelow90), safeString(editableData.onCpap?.timeBelow90)],
+        ['% Time with O2 < 95% (%)', safeString(editableData.offCpap?.timeBelow95), safeString(editableData.onCpap?.timeBelow95)],
+        ['Lowest O2 /Average O2', safeString(editableData.offCpap?.lowestO2Average), safeString(editableData.onCpap?.lowestO2Average)],
+        ['Arousal Index (/hr)', safeString(editableData.offCpap?.arousalIndex), safeString(editableData.onCpap?.arousalIndex)],
+        ['Snoring (%)', safeString(editableData.offCpap?.snoring), safeString(editableData.onCpap?.snoring)],
+        ['Leg Movement Index (/hr)', safeString(editableData.offCpap?.legMovementIndex), safeString(editableData.onCpap?.legMovementIndex)],
       ];
       
       yPos = drawThreeColumnTable(splitNightData, yPos);
@@ -590,38 +598,38 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       // Events Data
       yPos += 8;
       const eventsData: [string, string][] = [
-        ['Light off', data.studyInfo?.lightsOff || '---'],
-        ['Light on', data.studyInfo?.lightsOn || '---'],
-      ['Time in Bed (min)', data.studyInfo?.timeInBed?.toString() || '---'],
-      ['Total Sleep Time (min)', data.studyInfo?.totalSleepTime?.toString() || '---'],
-      ['Sleep Latency (min)', editableData.sleepLatency?.toString() || '---'],
-      ['REM Latency (min)', editableData.remLatency?.toString() || '---'],
-      ['Sleep Efficiency (%)', editableData.sleepEfficiency?.toString() || '---'],
-      ['Sleep Stage 1 (%)', editableData.stage1Percent?.toString() || '---'],
-      ['Sleep Stage 2 (%)', editableData.stage2Percent?.toString() || '---'],
-      ['Slow Wave Sleep (%)', editableData.slowWaveSleepPercent?.toString() || '---'],
-      ['REM Sleep (%)', editableData.remPercent?.toString() || '---'],
-      ['AHI Overall (/hr)', editableData.ahiOverall?.toString() || '---'],
-      ['AHI NREM (/hr)', editableData.ahiNrem?.toString() || '---'],
-      ['AHI REM (/hr)', editableData.ahiRem?.toString() || '---'],
-      ['AHI Supine (/hr)', editableData.ahiSupine?.toString() || '---'],
-      ['AHI Lateral (/hr)', editableData.ahiLateral?.toString() || '---'],
-      ['Central Apnea Index (/hr)', editableData.centralApneaIndex?.toString() || '---'],
-      ['Obstructive Apnea Index (/hr)', editableData.obstructiveApneaIndex?.toString() || '---'],
-      ['Mixed Apnea Index (/hr)', editableData.mixedApneaIndex?.toString() || '---'],
-      ['Hypopnea Index (/hr)', editableData.hypopneaIndex?.toString() || '---'],
-      ['Hypopnea Mean Duration (sec)', editableData.meanHypopneaDuration?.toString() || '---'],
-      ['Desaturation Index (/hr)', editableData.desaturationIndex?.toString() || '---'],
-      ['% Time with O2 < 90%', editableData.timeBelow90?.toString() || '---'],
-      ['% Time with O2 < 95%', editableData.timeBelow95?.toString() || '---'],
-      ['Lowest O2 (%)', editableData.lowestSpO2?.toString() || '---'],
-      ['Average O2 (%)', editableData.averageSpO2?.toString() || '---'],
-      ['Heart Rate NREM (bpm)', editableData.meanHeartRateNrem?.toString() || '---'],
-      ['Heart Rate REM (bpm)', editableData.meanHeartRateRem?.toString() || '---'],
-      ['Arousal Index (/hr)', editableData.arousalIndex?.toString() || '---'],
-      ['Snoring (%)', editableData.snoringPercent?.toString() || '---'],
-      ['Leg Movement Index (/hr)', editableData.legMovementIndex?.toString() || '---'],
-    ];
+        ['Light off', safeString(data.studyInfo?.lightsOff)],
+        ['Light on', safeString(data.studyInfo?.lightsOn)],
+        ['Time in Bed (min)', safeString(data.studyInfo?.timeInBed)],
+        ['Total Sleep Time (min)', safeString(data.studyInfo?.totalSleepTime)],
+        ['Sleep Latency (min)', safeString(editableData.sleepLatency)],
+        ['REM Latency (min)', safeString(editableData.remLatency)],
+        ['Sleep Efficiency (%)', safeString(editableData.sleepEfficiency)],
+        ['Sleep Stage 1 (%)', safeString(editableData.stage1Percent)],
+        ['Sleep Stage 2 (%)', safeString(editableData.stage2Percent)],
+        ['Slow Wave Sleep (%)', safeString(editableData.slowWaveSleepPercent)],
+        ['REM Sleep (%)', safeString(editableData.remPercent)],
+        ['AHI Overall (/hr)', safeString(editableData.ahiOverall)],
+        ['AHI NREM (/hr)', safeString(editableData.ahiNrem)],
+        ['AHI REM (/hr)', safeString(editableData.ahiRem)],
+        ['AHI Supine (/hr)', safeString(editableData.ahiSupine)],
+        ['AHI Lateral (/hr)', safeString(editableData.ahiLateral)],
+        ['Central Apnea Index (/hr)', safeString(editableData.centralApneaIndex)],
+        ['Obstructive Apnea Index (/hr)', safeString(editableData.obstructiveApneaIndex)],
+        ['Mixed Apnea Index (/hr)', safeString(editableData.mixedApneaIndex)],
+        ['Hypopnea Index (/hr)', safeString(editableData.hypopneaIndex)],
+        ['Hypopnea Mean Duration (sec)', safeString(editableData.meanHypopneaDuration)],
+        ['Desaturation Index (/hr)', safeString(editableData.desaturationIndex)],
+        ['% Time with O2 < 90%', safeString(editableData.timeBelow90)],
+        ['% Time with O2 < 95%', safeString(editableData.timeBelow95)],
+        ['Lowest O2 (%)', safeString(editableData.lowestSpO2)],
+        ['Average O2 (%)', safeString(editableData.averageSpO2)],
+        ['Heart Rate NREM (bpm)', safeString(editableData.meanHeartRateNrem)],
+        ['Heart Rate REM (bpm)', safeString(editableData.meanHeartRateRem)],
+        ['Arousal Index (/hr)', safeString(editableData.arousalIndex)],
+        ['Snoring (%)', safeString(editableData.snoringPercent)],
+        ['Leg Movement Index (/hr)', safeString(editableData.legMovementIndex)],
+      ];
     
     yPos = drawTwoColumnTable(eventsData, yPos);
     }
