@@ -826,7 +826,7 @@ serve(async (req) => {
         onCpap: extractedData.onCpap,
         clinicalSummary,
         recommendations,
-        patientComments: patientComments || convertedComments,
+        patientComments: (patientComments && patientComments.length > 0) ? patientComments : convertedComments,
         clinicalData: clinicalData || {},
         extractionMethod: "split-night-comprehensive",
         timestamp: new Date().toISOString()
@@ -921,7 +921,11 @@ serve(async (req) => {
       },
       clinicalSummary,
       recommendations,
-      patientComments: patientComments || (clinicalData?.selectedComments ? convertPatientComments(clinicalData.selectedComments) : []),
+      patientComments: (patientComments && patientComments.length > 0) 
+        ? patientComments 
+        : (clinicalData?.selectedComments && clinicalData.selectedComments.length > 0 
+            ? convertPatientComments(clinicalData.selectedComments) 
+            : []),
       extractionMethod: "comprehensive-medical-grade",
       timestamp: new Date().toISOString()
     };

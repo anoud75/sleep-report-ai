@@ -149,12 +149,36 @@ const EditableField = ({ value, field, isEditMode, onChange, type = 'text', clas
   );
 };
 
+// Helper function to convert comment keys to readable labels
+const convertCommentKeysToLabels = (keys: string[]): string[] => {
+  const commentMap: { [key: string]: string } = {
+    'sleeping_better_center': 'Patient reports sleeping better in the center compared to home.',
+    'no_difference': 'Patient reports no difference in sleep quality between the center and home.',
+    'sleeping_better_home': 'Patient reports sleeping better at home.',
+    'improved_with_cpap': 'Patient reports improved sleep in the center with CPAP and will discuss continuation at home with the physician.',
+    'willing_cpap_home': 'Patient reports improved sleep in the center and expresses willingness to initiate CPAP therapy at home.',
+    'better_without_cpap': 'Patient reports better sleep without CPAP.',
+    'undecided_cpap': 'Patient remains undecided regarding the use of CPAP at home.',
+    'no_comment': 'No comment provided'
+  };
+  
+  return keys.map(key => commentMap[key] || key);
+};
+
 export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) => {
   const { toast } = useToast();
   const [showFeedback, setShowFeedback] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   
   const isSplitNight = data.isSplitNight || data.studyType === 'Split-Night';
+  
+  // Get patient comments from multiple sources
+  const patientCommentsToDisplay = 
+    (data.patientComments && data.patientComments.length > 0) 
+      ? data.patientComments 
+      : (data.clinicalData?.selectedComments && data.clinicalData.selectedComments.length > 0)
+        ? convertCommentKeysToLabels(data.clinicalData.selectedComments)
+        : [];
 
   // Helper to get initial data based on study type
   const getInitialData = () => {
@@ -1591,15 +1615,14 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       )}
 
       {/* Patient Comments */}
-      {((data.patientComments && data.patientComments.length > 0) || 
-        (data.clinicalData?.selectedComments && data.clinicalData.selectedComments.length > 0)) && (
+      {patientCommentsToDisplay.length > 0 && (
         <div className="bg-amber-50/50 dark:bg-amber-950/20 rounded-xl border border-amber-200/50 p-6">
           <h3 className="text-lg font-semibold font-jakarta text-foreground mb-4 flex items-center gap-2">
             <MessageSquare className="h-4 w-4 text-amber-500" />
             Patient Comments
           </h3>
           <ul className="text-sm text-muted-foreground leading-relaxed font-inter space-y-2">
-            {(data.patientComments || data.clinicalData?.selectedComments || []).map((comment: string, index: number) => (
+            {patientCommentsToDisplay.map((comment: string, index: number) => (
               <li key={index} className="flex items-start">
                 <span className="mr-2 text-amber-500">•</span>
                 <span className="text-foreground">{comment}</span>
