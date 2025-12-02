@@ -456,7 +456,18 @@ export const EnhancedFileUpload = ({
             </div>
 
             {/* Patient Comments - Available for ALL study types */}
-            
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                <h4 className="font-semibold text-foreground font-inter">Patient Comments</h4>
+                <span className="text-xs text-muted-foreground">(Optional)</span>
+              </div>
+              <p className="text-sm text-muted-foreground font-inter">Select comments that apply to this patient before running analysis</p>
+              <PatientCommentsSelector onCommentsChange={setSelectedPatientComments} />
+              {selectedPatientComments.length > 0 && (
+                <p className="text-sm text-success font-inter">{selectedPatientComments.length} comment{selectedPatientComments.length > 1 ? 's' : ''} selected</p>
+              )}
+            </div>
 
             {/* Clinical Data Entry for Titration Studies */}
             {needsClinicalDataEntry && <ClinicalDataEntry onDataChange={setClinicalData} studyType={selectedStudyType} />}
