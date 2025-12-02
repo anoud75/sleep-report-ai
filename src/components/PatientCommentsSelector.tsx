@@ -45,7 +45,12 @@ export const PatientCommentsSelector = ({
   };
   return <Popover>
       <PopoverTrigger asChild>
-        
+        <Button variant="outline" className="w-full justify-start gap-2 bg-background border-border hover:bg-accent">
+          <MessageSquare className="h-4 w-4" />
+          {selectedComments.length > 0 
+            ? `${selectedComments.length} comment${selectedComments.length > 1 ? 's' : ''} selected`
+            : 'Select patient comments'}
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-3 z-50 bg-background border shadow-lg" align="start">
         <div className="space-y-3 max-h-60 overflow-y-auto">

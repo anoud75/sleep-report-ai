@@ -395,13 +395,14 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
 
   const handlePreviewReport = () => {
     const doc = generatePDFDocument();
-    const pdfUrl = String(doc.output('bloburl'));
-    setPdfPreviewUrl(pdfUrl);
-    setShowPreview(true);
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    // Open PDF in new tab to avoid Chrome blocking iframe blob URLs
+    window.open(pdfUrl, '_blank');
     
     toast({
       title: "Preview Opened",
-      description: "Review your report before downloading.",
+      description: "PDF opened in a new tab for preview.",
     });
   };
   
