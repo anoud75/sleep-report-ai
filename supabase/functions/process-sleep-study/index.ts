@@ -956,9 +956,51 @@ serve(async (req) => {
   try {
     const { rawText, studyType, clinicalData, patientComments } = await req.json();
     
+    // === INPUT VALIDATION ===
+    // Validate rawText
+    if (!rawText || typeof rawText !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'rawText is required and must be a string' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Limit payload size to 500KB to prevent abuse
+    if (rawText.length > 500000) {
+      return new Response(
+        JSON.stringify({ error: 'rawText exceeds maximum allowed size (500KB)' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Validate studyType against allowed values
+    const validStudyTypes = ['Diagnostic', 'Titration', 'Split-Night'];
+    if (!studyType || !validStudyTypes.includes(studyType)) {
+      return new Response(
+        JSON.stringify({ error: `Invalid studyType. Must be one of: ${validStudyTypes.join(', ')}` }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Validate clinicalData is an object if provided
+    if (clinicalData !== undefined && clinicalData !== null && typeof clinicalData !== 'object') {
+      return new Response(
+        JSON.stringify({ error: 'clinicalData must be an object' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Validate patientComments is an array if provided
+    if (patientComments !== undefined && patientComments !== null && !Array.isArray(patientComments)) {
+      return new Response(
+        JSON.stringify({ error: 'patientComments must be an array' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     console.log("=== REQUEST RECEIVED ===");
     console.log("Study Type:", studyType);
-    console.log("Raw text length:", rawText?.length || 0);
+    console.log("Raw text length:", rawText.length);
     console.log("Clinical Data received:", !!clinicalData);
     console.log("Patient Comments received:", patientComments?.length || 0);
 
