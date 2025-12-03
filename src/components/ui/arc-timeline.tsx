@@ -21,139 +21,161 @@ interface ArcTimelineProps {
 export const ArcTimeline = ({ steps, className }: ArcTimelineProps) => {
   const [activeStep, setActiveStep] = useState(0);
 
+  // Generate comb lines with varying heights to create arc effect
+  const combLines = Array.from({ length: 80 }, (_, i) => {
+    const normalizedPosition = i / 79;
+    // Create arc curve using sine function
+    const arcHeight = Math.sin(normalizedPosition * Math.PI) * 0.7 + 0.3;
+    return {
+      index: i,
+      height: arcHeight,
+    };
+  });
+
+  // Calculate step positions along the comb
+  const stepPositions = steps.map((_, index) => {
+    const position = (index + 1) / (steps.length + 1);
+    return Math.floor(position * 79);
+  });
+
   return (
     <div className={cn("w-full", className)}>
-      {/* Desktop Arc Timeline */}
+      {/* Desktop Comb Timeline */}
       <div className="hidden md:block">
-        <div className="relative">
-          {/* Arc SVG */}
-          <svg
-            viewBox="0 0 800 200"
-            className="w-full h-auto max-w-4xl mx-auto"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            {/* Background Arc */}
-            <path
-              d="M 50 180 Q 400 20 750 180"
-              fill="none"
-              stroke="hsl(var(--pulse-200))"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-            
-            {/* Active Arc Progress */}
-            <motion.path
-              d="M 50 180 Q 400 20 750 180"
-              fill="none"
-              stroke="hsl(var(--pulse-500))"
-              strokeWidth="4"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: (activeStep + 1) / steps.length }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-            />
-            
-            {/* Timeline Points */}
-            {steps.map((step, index) => {
-              const t = index / (steps.length - 1);
-              const x = 50 + t * 700;
-              const y = 180 - (Math.sin(t * Math.PI) * 160);
-              const isActive = index === activeStep;
-              const isPast = index < activeStep;
-              
+        <div className="relative max-w-4xl mx-auto">
+          {/* Comb Effect Container */}
+          <div className="relative h-48 flex items-end justify-center gap-[2px]">
+            {combLines.map((line, i) => {
+              const isStepPosition = stepPositions.includes(i);
+              const stepIndex = stepPositions.indexOf(i);
+              const isActive = stepIndex === activeStep;
+              const maxHeight = 140;
+              const lineHeight = line.height * maxHeight;
+
               return (
-                <g key={step.id}>
-                  {/* Connector line */}
-                  <line
-                    x1={x}
-                    y1={y}
-                    x2={x}
-                    y2="195"
-                    stroke={isActive || isPast ? "hsl(var(--pulse-500))" : "hsl(var(--pulse-200))"}
-                    strokeWidth="2"
-                    strokeDasharray={isActive ? "0" : "4 2"}
-                  />
-                  
-                  {/* Circle node */}
-                  <motion.circle
-                    cx={x}
-                    cy={y}
-                    r={isActive ? 16 : 12}
-                    fill={isActive ? "hsl(var(--pulse-500))" : isPast ? "hsl(var(--pulse-400))" : "hsl(var(--pulse-100))"}
-                    stroke={isActive ? "hsl(var(--pulse-600))" : "hsl(var(--pulse-300))"}
-                    strokeWidth="3"
-                    className="cursor-pointer transition-all duration-300"
-                    onClick={() => setActiveStep(index)}
-                    whileHover={{ scale: 1.2 }}
-                    animate={{ 
-                      scale: isActive ? 1.1 : 1,
-                      fill: isActive ? "hsl(var(--pulse-500))" : isPast ? "hsl(var(--pulse-400))" : "hsl(var(--pulse-100))"
+                <div
+                  key={i}
+                  className="relative flex flex-col items-center"
+                  style={{ height: maxHeight }}
+                >
+                  {/* Date label above active step */}
+                  {isStepPosition && isActive && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute -top-8 whitespace-nowrap"
+                    >
+                      <span className="text-sm font-brockmann font-semibold text-pulse-600">
+                        {steps[stepIndex]?.date}
+                      </span>
+                    </motion.div>
+                  )}
+
+                  {/* Vertical line */}
+                  <motion.div
+                    className={cn(
+                      "absolute bottom-0 rounded-full transition-all duration-300",
+                      isStepPosition
+                        ? isActive
+                          ? "w-1 bg-pulse-500"
+                          : "w-0.5 bg-pulse-300 cursor-pointer hover:bg-pulse-400"
+                        : "w-[2px] bg-pulse-100"
+                    )}
+                    style={{
+                      height: isStepPosition ? maxHeight * 0.9 : lineHeight,
+                    }}
+                    onClick={() => {
+                      if (isStepPosition) setActiveStep(stepIndex);
                     }}
                   />
-                  
-                  {/* Step number */}
-                  <text
-                    x={x}
-                    y={y + 5}
-                    textAnchor="middle"
-                    className="text-sm font-bold pointer-events-none select-none"
-                    fill={isActive || isPast ? "white" : "hsl(var(--pulse-600))"}
-                  >
-                    {index + 1}
-                  </text>
-                </g>
+
+                  {/* Icon at bottom of step lines */}
+                  {isStepPosition && (
+                    <motion.div
+                      className={cn(
+                        "absolute -bottom-12 cursor-pointer transition-all duration-300",
+                        isActive ? "scale-100" : "scale-75 opacity-60 hover:opacity-100"
+                      )}
+                      onClick={() => setActiveStep(stepIndex)}
+                      whileHover={{ scale: isActive ? 1 : 0.85 }}
+                    >
+                      <div
+                        className={cn(
+                          "rounded-xl flex items-center justify-center transition-all duration-300",
+                          isActive
+                            ? "w-12 h-12 bg-gradient-to-br from-pulse-500 to-pulse-600 shadow-lg"
+                            : "w-9 h-9 bg-pulse-100 border border-pulse-200"
+                        )}
+                      >
+                        {(() => {
+                          const Icon = steps[stepIndex]?.icon;
+                          return Icon ? (
+                            <Icon
+                              className={cn(
+                                "transition-all duration-300",
+                                isActive ? "w-6 h-6 text-white" : "w-4 h-4 text-pulse-500"
+                              )}
+                            />
+                          ) : null;
+                        })()}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
               );
             })}
-          </svg>
-          
-          {/* Date Labels */}
-          <div className="flex justify-between max-w-4xl mx-auto px-8 -mt-2">
+          </div>
+
+          {/* Inactive dates on the side */}
+          <div className="absolute right-0 top-0 flex flex-col gap-2">
             {steps.map((step, index) => {
-              const isActive = index === activeStep;
+              if (index === activeStep) return null;
               return (
                 <button
                   key={step.id}
                   onClick={() => setActiveStep(index)}
-                  className={cn(
-                    "text-sm font-brockmann transition-all duration-300 px-3 py-1 rounded-full",
-                    isActive 
-                      ? "text-primary bg-pulse-100" 
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
+                  className="text-xs font-brockmann text-muted-foreground hover:text-pulse-500 transition-colors text-right"
                 >
                   {step.date}
                 </button>
               );
             })}
           </div>
-        </div>
-        
-        {/* Active Step Content */}
-        <motion.div
-          key={activeStep}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-          className="mt-12 max-w-2xl mx-auto text-center"
-        >
-          <div className="glass-card p-8 border border-pulse-200 hover:border-pulse-400 transition-colors">
-            <div className="w-16 h-16 bg-gradient-to-br from-pulse-100 to-pulse-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              {steps[activeStep] && (() => {
-                const ActiveIcon = steps[activeStep].icon;
-                return <ActiveIcon className="w-8 h-8 text-pulse-600" />;
-              })()}
-            </div>
-            <h3 className="text-2xl font-brockmann text-foreground mb-3">
+
+          {/* Active Step Content Below */}
+          <motion.div
+            key={activeStep}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="mt-20 text-center max-w-md mx-auto"
+          >
+            <h3 className="text-xl font-brockmann font-semibold text-foreground mb-2">
               {steps[activeStep]?.title}
             </h3>
-            <p className="text-muted-foreground leading-relaxed">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               {steps[activeStep]?.description}
             </p>
+          </motion.div>
+
+          {/* Step indicators */}
+          <div className="flex justify-center gap-2 mt-8">
+            {steps.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveStep(index)}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-all duration-300",
+                  index === activeStep
+                    ? "bg-pulse-500 w-6"
+                    : "bg-pulse-200 hover:bg-pulse-300"
+                )}
+              />
+            ))}
           </div>
-        </motion.div>
+        </div>
       </div>
-      
+
       {/* Mobile Stacked Cards */}
       <div className="md:hidden space-y-4">
         {steps.map((step, index) => {
