@@ -8,6 +8,7 @@ import ScrollableCardsSection from "@/components/ScrollableCardsSection";
 import { TextReveal } from "@/components/TextReveal";
 import HowItWorksAnimated from "@/components/HowItWorksAnimated";
 import { InteractiveGridPattern } from "@/components/InteractiveGridPattern";
+import UpcomingFeatures from "@/components/UpcomingFeatures";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -83,6 +84,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* What's Launching Soon - Upcoming Features Timeline */}
+      <UpcomingFeatures />
 
       {/* About Section - Scroll Text Reveal */}
       <TextReveal>
