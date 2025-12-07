@@ -12,7 +12,6 @@ import { InteractiveGridPattern } from "@/components/InteractiveGridPattern";
 const Index = () => {
   const navigate = useNavigate();
 
-  // Set document title on component mount
   useEffect(() => {
     document.title = "Sleep Report AI";
   }, []);
@@ -21,7 +20,6 @@ const Index = () => {
     navigate('/analysis');
   };
 
-  // Cards data for the scrollable section
   const featureCards = [
     {
       id: 1,
