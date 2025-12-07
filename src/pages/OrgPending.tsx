@@ -18,7 +18,7 @@ const OrgPending: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
       <div className="mb-8 flex items-center gap-3">
-        <SleepLogo size={48} />
+        <SleepLogo size="lg" />
         <span className="text-2xl font-brockmann font-bold text-foreground">
           Sleep Report AI
         </span>
