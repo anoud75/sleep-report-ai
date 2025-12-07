@@ -15,8 +15,8 @@ interface RegistrationRequest {
   userId: string;
   userEmail: string;
   userName: string;
-  organizationId: string | null;
   organizationName: string | null;
+  joinOrganizationId: string | null;
   isNewOrganization: boolean;
 }
 
@@ -27,14 +27,80 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const body: RegistrationRequest = await req.json();
-    const { userId, userEmail, userName, organizationId, organizationName, isNewOrganization } = body;
+    const { userId, userEmail, userName, organizationName, joinOrganizationId, isNewOrganization } = body;
 
-    console.log("Processing registration notification:", { userEmail, userName, organizationName, isNewOrganization });
+    console.log("Processing registration:", { userId, userEmail, userName, organizationName, joinOrganizationId, isNewOrganization });
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create admin client with service role to bypass RLS
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Find super admin(s)
-    const { data: superAdmins, error: saError } = await supabase
+    let orgId: string | null = null;
+    let finalOrgName: string | null = organizationName;
+
+    // Handle organization creation or joining
+    if (isNewOrganization && organizationName) {
+      console.log("Creating new organization:", organizationName);
+      
+      const { data: newOrg, error: orgError } = await supabaseAdmin
+        .from("organizations")
+        .insert({ name: organizationName, is_approved: false })
+        .select()
+        .single();
+
+      if (orgError) {
+        console.error("Error creating organization:", orgError);
+        return new Response(
+          JSON.stringify({ error: "Failed to create organization", details: orgError.message }),
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      orgId = newOrg.id;
+      console.log("Organization created with ID:", orgId);
+    } else if (joinOrganizationId) {
+      orgId = joinOrganizationId;
+      
+      // Fetch org name for email notification
+      const { data: existingOrg } = await supabaseAdmin
+        .from("organizations")
+        .select("name")
+        .eq("id", joinOrganizationId)
+        .single();
+      
+      if (existingOrg) {
+        finalOrgName = existingOrg.name;
+      }
+      console.log("User joining existing organization:", orgId);
+    }
+
+    // Update user profile with organization ID
+    if (orgId) {
+      const { error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .update({ organization_id: orgId })
+        .eq("id", userId);
+
+      if (profileError) {
+        console.error("Error updating profile:", profileError);
+      } else {
+        console.log("Profile updated with organization_id:", orgId);
+      }
+    }
+
+    // Assign role: admin for new org creators, member for joiners
+    const roleToAssign = isNewOrganization ? "admin" : "member";
+    const { error: roleError } = await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: userId, role: roleToAssign });
+
+    if (roleError) {
+      console.error("Error assigning role:", roleError);
+    } else {
+      console.log("Role assigned:", roleToAssign);
+    }
+
+    // Find super admin(s) for notification
+    const { data: superAdmins, error: saError } = await supabaseAdmin
       .from("user_roles")
       .select("user_id")
       .eq("role", "super_admin");
@@ -46,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
     const superAdminEmails: string[] = [];
     if (superAdmins && superAdmins.length > 0) {
       for (const sa of superAdmins) {
-        const { data: profile } = await supabase
+        const { data: profile } = await supabaseAdmin
           .from("profiles")
           .select("email")
           .eq("id", sa.user_id)
@@ -60,21 +126,21 @@ const handler = async (req: Request): Promise<Response> => {
     const emailsToNotify = [...superAdminEmails];
 
     // If joining existing org, also notify org admin
-    if (!isNewOrganization && organizationId) {
-      const { data: orgAdmins } = await supabase
+    if (!isNewOrganization && orgId) {
+      const { data: orgAdmins } = await supabaseAdmin
         .from("user_roles")
         .select("user_id")
         .eq("role", "admin");
 
       if (orgAdmins) {
         for (const admin of orgAdmins) {
-          const { data: adminProfile } = await supabase
+          const { data: adminProfile } = await supabaseAdmin
             .from("profiles")
             .select("email, organization_id")
             .eq("id", admin.user_id)
             .single();
 
-          if (adminProfile?.email && adminProfile.organization_id === organizationId) {
+          if (adminProfile?.email && adminProfile.organization_id === orgId) {
             if (!emailsToNotify.includes(adminProfile.email)) {
               emailsToNotify.push(adminProfile.email);
             }
@@ -84,15 +150,15 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (emailsToNotify.length === 0) {
-      console.log("No admins to notify");
-      return new Response(JSON.stringify({ success: true, message: "No admins to notify" }), {
+      console.log("No admins to notify, but registration completed successfully");
+      return new Response(JSON.stringify({ success: true, organizationId: orgId }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
     const subject = isNewOrganization
-      ? `New Organization Registration: ${organizationName}`
+      ? `New Organization Registration: ${finalOrgName}`
       : `New User Registration: ${userName}`;
 
     const htmlContent = `
@@ -146,10 +212,10 @@ const handler = async (req: Request): Promise<Response> => {
                 <div class="value">${userEmail}</div>
               </div>
               
-              ${organizationName ? `
+              ${finalOrgName ? `
                 <div style="margin-bottom: 16px;">
                   <div class="label">Organization</div>
-                  <div class="value">${organizationName}</div>
+                  <div class="value">${finalOrgName}</div>
                 </div>
               ` : ''}
             </div>
@@ -183,7 +249,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, organizationId: orgId }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
