@@ -167,7 +167,7 @@ const Admin: React.FC = () => {
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <SleepLogo size={36} />
+            <SleepLogo size="md" />
             <div>
               <h1 className="text-xl font-brockmann font-bold text-foreground">Admin Panel</h1>
               <p className="text-sm text-muted-foreground">{organization?.name}</p>

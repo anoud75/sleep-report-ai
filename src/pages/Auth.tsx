@@ -171,7 +171,7 @@ const Auth: React.FC = () => {
       {/* Left Panel - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-12 flex-col justify-between">
         <div className="flex items-center gap-3">
-          <SleepLogo size={48} />
+          <SleepLogo size="lg" />
           <span className="text-2xl font-brockmann font-bold text-primary-foreground">
             Sleep Report AI
           </span>
@@ -196,7 +196,7 @@ const Auth: React.FC = () => {
         <div className="w-full max-w-md space-y-8">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <SleepLogo size={40} />
+            <SleepLogo size="md" />
             <span className="text-xl font-brockmann font-bold text-foreground">
               Sleep Report AI
             </span>
