@@ -168,60 +168,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (data.user) {
-      let orgId: string | null = null;
-      let isNewOrg = false;
-
-      if (organizationName) {
-        const { data: newOrg, error: orgError } = await supabase
-          .from('organizations')
-          .insert({ name: organizationName, is_approved: false })
-          .select()
-          .single();
-
-        if (orgError) {
-          console.error('Error creating organization:', orgError);
-          return { error: new Error('Failed to create organization') };
-        }
-
-        orgId = newOrg.id;
-        isNewOrg = true;
-      } else if (joinOrganizationId) {
-        orgId = joinOrganizationId;
-      }
-
-      if (orgId) {
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ organization_id: orgId })
-          .eq('id', data.user.id);
-
-        if (updateError) {
-          console.error('Error updating profile with organization:', updateError);
-        }
-      }
-
-      const roleToAssign = isNewOrg ? 'admin' : 'member';
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: data.user.id, role: roleToAssign });
-
-      if (roleError) {
-        console.error('Error assigning role:', roleError);
-      }
-
+      // Use edge function with service role to handle organization creation/joining
+      // This bypasses RLS since the user may not be fully authenticated yet
       try {
-        await supabase.functions.invoke('send-registration-notification', {
+        const { data: result, error: fnError } = await supabase.functions.invoke('send-registration-notification', {
           body: {
             userId: data.user.id,
             userEmail: email,
             userName: fullName,
-            organizationId: orgId,
             organizationName: organizationName || null,
-            isNewOrganization: isNewOrg,
+            joinOrganizationId: joinOrganizationId || null,
+            isNewOrganization: !!organizationName,
           },
         });
+
+        if (fnError) {
+          console.error('Error in registration function:', fnError);
+          return { error: new Error('Failed to complete registration. Please try again.') };
+        }
+
+        if (result?.error) {
+          console.error('Registration function returned error:', result.error);
+          return { error: new Error(result.error) };
+        }
+
+        console.log('Registration completed successfully:', result);
       } catch (notifError) {
-        console.error('Error sending notification:', notifError);
+        console.error('Error calling registration function:', notifError);
+        return { error: new Error('Failed to complete registration. Please try again.') };
       }
     }
 
