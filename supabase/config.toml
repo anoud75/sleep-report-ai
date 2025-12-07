@@ -2,15 +2,3 @@ project_id = "rotdapktuwxwvylhnfry"
 
 [functions.process-sleep-study]
 verify_jwt = false
-
-[functions.send-contact-email]
-verify_jwt = false
-
-[functions.send-feedback-email]
-verify_jwt = false
-
-[functions.send-registration-notification]
-verify_jwt = false
-
-[functions.send-approval-notification]
-verify_jwt = false

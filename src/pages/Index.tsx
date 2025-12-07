@@ -8,47 +8,20 @@ import ScrollableCardsSection from "@/components/ScrollableCardsSection";
 import { TextReveal } from "@/components/TextReveal";
 import HowItWorksAnimated from "@/components/HowItWorksAnimated";
 import { InteractiveGridPattern } from "@/components/InteractiveGridPattern";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, isApproved, isOrgApproved, isSuperAdmin, isLoading } = useAuth();
 
+  // Set document title on component mount
   useEffect(() => {
     document.title = "Sleep Report AI";
   }, []);
 
   const navigateToAnalysis = () => {
-    if (isLoading) {
-      return;
-    }
-
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
-    if (isSuperAdmin) {
-      navigate('/analysis');
-      return;
-    }
-
-    if (!isApproved) {
-      toast.info('Your account is pending approval');
-      navigate('/pending-approval');
-      return;
-    }
-
-    if (!isOrgApproved) {
-      toast.info('Your organization is pending approval');
-      navigate('/org-pending');
-      return;
-    }
-
     navigate('/analysis');
   };
 
+  // Cards data for the scrollable section
   const featureCards = [
     {
       id: 1,
@@ -103,7 +76,6 @@ const Index = () => {
               onClick={navigateToAnalysis}
               size="lg"
               className="flex items-center gap-3"
-              disabled={isLoading}
             >
               <Zap className="w-5 h-5" />
               Start Analysis

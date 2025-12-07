@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, LogIn, LogOut, Shield, Users } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { SleepLogo } from './SleepLogo';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut, isSuperAdmin, isOrgAdmin, isLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,8 +19,10 @@ export const Header = () => {
 
   const handleNavigation = (link: any) => {
     if (link.path) {
+      // Navigate to different page
       navigate(link.path);
     } else if (location.pathname === '/' && link.id) {
+      // Scroll to section on home page
       const element = document.getElementById(link.id);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
@@ -31,13 +30,9 @@ export const Header = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } else if (link.id) {
+      // Navigate to home page and scroll to section
       navigate('/', { state: { scrollTo: link.id } });
     }
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
   };
 
   const navLinks = [
@@ -48,7 +43,6 @@ export const Header = () => {
   ];
 
   const isAnalysisPage = location.pathname === '/analysis';
-  const isAdminPage = location.pathname === '/admin' || location.pathname === '/super-admin';
 
   return (
     <header 
@@ -76,10 +70,10 @@ export const Header = () => {
             </span>
           </button>
 
-          {/* Navigation and Auth */}
-          <div className="flex items-center space-x-6">
+          {/* Navigation and Back Arrow */}
+          <div className="flex items-center space-x-8">
             {/* Navigation Links */}
-            {!isAnalysisPage && !isAdminPage && navLinks.map((link) => (
+            {!isAnalysisPage && navLinks.map((link) => (
               <button
                 key={link.id || link.path}
                 onClick={() => handleNavigation(link)}
@@ -92,67 +86,14 @@ export const Header = () => {
               </button>
             ))}
             
-            {/* Back Arrow for Analysis/Admin Pages */}
-            {(isAnalysisPage || isAdminPage) && (
+            {/* Back Arrow for Analysis Page */}
+            {isAnalysisPage && (
               <button
                 onClick={() => navigate('/')}
                 className="text-white/90 hover:text-white transition-colors duration-300 p-2 hover:bg-white/10 rounded-lg"
               >
                 <ArrowRight className="w-6 h-6" />
               </button>
-            )}
-
-            {/* Auth Buttons */}
-            {!isLoading && (
-              <div className="flex items-center space-x-3">
-                {user ? (
-                  <>
-                    {/* Admin Links */}
-                    {isSuperAdmin && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate('/super-admin')}
-                        className="text-white/90 hover:text-white hover:bg-white/10"
-                      >
-                        <Shield className="w-4 h-4 mr-2" />
-                        Super Admin
-                      </Button>
-                    )}
-                    {isOrgAdmin && !isSuperAdmin && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate('/admin')}
-                        className="text-white/90 hover:text-white hover:bg-white/10"
-                      >
-                        <Users className="w-4 h-4 mr-2" />
-                        Admin
-                      </Button>
-                    )}
-                    {/* Sign Out */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSignOut}
-                      className="text-white/90 hover:text-white hover:bg-white/10"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/auth')}
-                    className="text-white/90 hover:text-white hover:bg-white/10"
-                  >
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Sign In
-                  </Button>
-                )}
-              </div>
             )}
           </div>
         </div>
