@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_approved: boolean | null
           logo_url: string | null
           name: string
           updated_at: string
@@ -25,6 +26,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_approved?: boolean | null
           logo_url?: string | null
           name: string
           updated_at?: string
@@ -32,6 +34,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_approved?: boolean | null
           logo_url?: string | null
           name?: string
           updated_at?: string
@@ -44,6 +47,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          is_approved: boolean | null
           organization_id: string | null
           updated_at: string
         }
@@ -52,6 +56,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          is_approved?: boolean | null
           organization_id?: string | null
           updated_at?: string
         }
@@ -60,6 +65,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_approved?: boolean | null
           organization_id?: string | null
           updated_at?: string
         }
@@ -167,9 +173,10 @@ export type Database = {
         Returns: boolean
       }
       is_org_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "member"
+      app_role: "admin" | "member" | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -297,7 +304,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "member"],
+      app_role: ["admin", "member", "super_admin"],
     },
   },
 } as const
