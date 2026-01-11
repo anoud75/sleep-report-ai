@@ -134,11 +134,25 @@ interface EditableFieldProps {
   onChange: (field: string, value: string) => void;
   type?: 'text' | 'number';
   className?: string;
+  isHeartField?: boolean;
 }
 
-const EditableField = ({ value, field, isEditMode, onChange, type = 'text', className = '' }: EditableFieldProps) => {
+const EditableField = ({ value, field, isEditMode, onChange, type = 'text', className = '', isHeartField = false }: EditableFieldProps) => {
+  // Smart display logic for zero values:
+  // - Heart fields: 0 is invalid (dead patient), show '---'
+  // - All other fields: 0 is a valid clinical value, show '0'
+  const getDisplayValue = () => {
+    if (value === null || value === undefined || value === '') {
+      return '---';
+    }
+    if (isHeartField && (value === 0 || value === '0')) {
+      return '---';
+    }
+    return value;
+  };
+
   if (!isEditMode) {
-    return <span className={className}>{value || '---'}</span>;
+    return <span className={className}>{getDisplayValue()}</span>;
   }
   
   return (
@@ -1540,6 +1554,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
                   onChange={handleFieldChange}
                   type="number"
                   className="font-medium text-foreground font-inter inline-block w-16"
+                  isHeartField={true}
                 /> / <EditableField
                   value={editableData.meanHeartRateRem}
                   field="meanHeartRateRem"
@@ -1547,6 +1562,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
                   onChange={handleFieldChange}
                   type="number"
                   className="font-medium text-foreground font-inter inline-block w-16"
+                  isHeartField={true}
                 />
               </span>
             </div>
