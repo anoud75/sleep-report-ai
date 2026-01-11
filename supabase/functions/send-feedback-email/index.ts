@@ -19,6 +19,26 @@ interface FeedbackRequest {
   };
 }
 
+// HTML escape function to prevent XSS in email clients
+const escapeHtml = (str: string): string => {
+  const htmlEscapes: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return str.replace(/[&<>"']/g, (match) => htmlEscapes[match] || match);
+};
+
+// Sanitize input to remove all HTML tags and dangerous content
+const sanitizeInput = (str: string): string => {
+  return str
+    .replace(/<[^>]*>/g, '') // Remove all HTML tags
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+    .trim();
+};
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -43,13 +63,38 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Sanitize feedback
-    const sanitizedFeedback = feedback ? feedback.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').trim() : '';
+    // Length limit for feedback
+    if (feedback && feedback.length > 5000) {
+      return new Response(JSON.stringify({ error: 'Feedback too long' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Sanitize feedback - remove all HTML tags and control characters
+    const sanitizedFeedback = feedback ? sanitizeInput(feedback) : '';
     
     const recipientEmail = Deno.env.get('FEEDBACK_EMAIL') || 'alanoudsaud75@gmail.com';
 
     const stars = "⭐".repeat(rating);
-    const formattedDate = new Date(reportData.timestamp).toLocaleString();
+    
+    // Safely handle reportData with validation
+    const patientName = reportData?.patientName && typeof reportData.patientName === 'string' 
+      ? sanitizeInput(reportData.patientName) 
+      : 'Unknown Patient';
+    const studyType = reportData?.studyType && typeof reportData.studyType === 'string'
+      ? sanitizeInput(reportData.studyType)
+      : 'Unknown Study';
+    const timestamp = reportData?.timestamp && typeof reportData.timestamp === 'string'
+      ? reportData.timestamp
+      : new Date().toISOString();
+    
+    const formattedDate = new Date(timestamp).toLocaleString();
+
+    // Escape HTML for safe embedding
+    const escapedFeedback = escapeHtml(sanitizedFeedback);
+    const escapedPatientName = escapeHtml(patientName);
+    const escapedStudyType = escapeHtml(studyType);
 
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -63,17 +108,17 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="margin-bottom: 15px;">
             <strong>Report Details:</strong>
             <ul style="margin: 10px 0; padding-left: 20px;">
-              <li>Patient: ${reportData.patientName}</li>
-              <li>Study Type: ${reportData.studyType}</li>
-              <li>Generated: ${formattedDate}</li>
+              <li>Patient: ${escapedPatientName}</li>
+              <li>Study Type: ${escapedStudyType}</li>
+              <li>Generated: ${escapeHtml(formattedDate)}</li>
             </ul>
           </div>
           
-          ${sanitizedFeedback ? `
+          ${escapedFeedback ? `
             <div>
               <strong>User Feedback:</strong>
               <div style="background: white; padding: 15px; border-radius: 4px; margin-top: 10px; border-left: 4px solid #1e40af;">
-                "${sanitizedFeedback}"
+                "${escapedFeedback}"
               </div>
             </div>
           ` : ''}
@@ -104,7 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error sending feedback email:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Failed to send feedback' }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
