@@ -939,7 +939,7 @@ You must extract TWO complete sets of data, one for each period.
 - Total Sleep Time (minutes)
 - Sleep Latency & REM Latency
 - Sleep Efficiency (%)
-- Sleep Architecture: S1%, S2%, S3%, REM%, REM Cycles
+- Sleep Architecture: S1%, S2%, S3%, REM% (from TST% column), REM Cycles (from "REM" row → "Episodes (# of)" column - count of times patient entered REM stage)
 - AHI Overall, AHI NREM/REM, AHI Supine/Lateral
 - Central/Obstructive/Mixed Apnea Index
 - Hypopnea Index & Mean Duration
@@ -1099,7 +1099,7 @@ REM           2         20.5      5.3    5.8    6.8 ← Extract 6.8
 - **Stage 2 %**: "S2" row → **TST (%)** column (5th column)
 - **Stage 3 %**: "S3" row → **TST (%)** column (5th column)
 - **REM %**: "REM" row → **TST (%)** column (5th column)
-- **REM Cycles**: Count of REM episodes in "SLEEP DATA 3" section
+- **REM Cycles**: "REM" row → "Episodes (# of)" column (1st column) - This is the number of times the patient entered REM sleep stage during the study
 
 ### PAGE 4: Respiratory Events
 - **CA Index**: "Index (#/h TST)" row → "CA" column
