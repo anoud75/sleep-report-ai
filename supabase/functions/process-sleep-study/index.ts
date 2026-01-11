@@ -88,7 +88,8 @@ const VALIDATION_RANGES = {
   totalSleepTime: { min: 0, max: 600, label: 'Total Sleep Time' },
   timeInBed: { min: 0, max: 720, label: 'Time in Bed' },
   meanHeartRateNrem: { min: 30, max: 200, label: 'Heart Rate NREM', isHeartField: true },
-  meanHeartRateRem: { min: 30, max: 200, label: 'Heart Rate REM', isHeartField: true }
+  meanHeartRateRem: { min: 30, max: 200, label: 'Heart Rate REM', isHeartField: true },
+  remCycles: { min: 0, max: 10, label: 'REM Cycles' }
 };
 
 // Critical fields that must be present

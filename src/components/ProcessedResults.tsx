@@ -332,6 +332,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       stage2Percent: data.sleepArchitecture?.stage2Percent ?? '',
       slowWaveSleepPercent: data.sleepArchitecture?.slowWaveSleepPercent ?? data.sleepArchitecture?.stage3Percent ?? '',
       remPercent: data.sleepArchitecture?.remPercent ?? '',
+      remCycles: data.sleepArchitecture?.remCycles ?? '',
       // Additional Metrics
       snoringPercent: data.additionalMetrics?.snoringPercent ?? '',
       legMovementIndex: data.additionalMetrics?.legMovementIndex ?? '',
@@ -707,6 +708,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         ['Sleep Stage 2 (%)', safeString(editableData.stage2Percent)],
         ['Slow Wave Sleep (%)', safeString(editableData.slowWaveSleepPercent)],
         ['REM Sleep (%)', safeString(editableData.remPercent)],
+        ['REM Cycle (No. of cycles)', safeString(editableData.remCycles)],
         ['AHI Overall (/hr)', safeString(editableData.ahiOverall)],
         ['AHI NREM (/hr)', safeString(editableData.ahiNrem)],
         ['AHI REM (/hr)', safeString(editableData.ahiRem)],
@@ -1433,6 +1435,17 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
               <EditableField
                 value={editableData.remPercent}
                 field="remPercent"
+                isEditMode={isEditMode}
+                onChange={handleFieldChange}
+                type="number"
+                className="font-medium text-foreground font-inter"
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground font-inter">REM Cycle (No. of cycles)</span>
+              <EditableField
+                value={editableData.remCycles}
+                field="remCycles"
                 isEditMode={isEditMode}
                 onChange={handleFieldChange}
                 type="number"
