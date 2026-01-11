@@ -106,6 +106,8 @@ const Analysis = () => {
       recommendations: data.recommendations || [],
       patientComments: data.patientComments || [],
       studyType: data.studyInfo?.studyType || data.extractedData?.studyType || selectedStudyType,
+      qualityAssurance: data.qualityAssurance || null,
+      clinicalInterpretation: data.clinicalInterpretation || null,
       extractionMethod: data.extractionMethod || "unknown"
     };
 
