@@ -264,8 +264,12 @@ export const SplitNightDisplay = ({
           </div>
           <div className="grid grid-cols-3 gap-4 py-2 border-b border-border">
             <span className="text-sm text-muted-foreground font-inter">Heart Rate (NREM/REM)</span>
-            <div className="text-center font-medium text-foreground">{editableData.offCpap.heartRateNremRem}</div>
-            <div className="text-center font-medium text-foreground">{editableData.onCpap.heartRateNremRem}</div>
+            <div className="text-center font-medium text-foreground">
+              {editableData.offCpap.heartRateNremRem === 0 || editableData.offCpap.heartRateNremRem === '0' ? '---' : (editableData.offCpap.heartRateNremRem || '---')}
+            </div>
+            <div className="text-center font-medium text-foreground">
+              {editableData.onCpap.heartRateNremRem === 0 || editableData.onCpap.heartRateNremRem === '0' ? '---' : (editableData.onCpap.heartRateNremRem || '---')}
+            </div>
           </div>
         </div>
       </div>
