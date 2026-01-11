@@ -13,6 +13,7 @@ import { FeedbackDialog } from "@/components/FeedbackDialog";
 import { SplitNightDisplay } from "@/components/SplitNightDisplay";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { QualityAssuranceCard, QualityAssuranceData, ConfidenceBadge } from "@/components/QualityAssurance";
 
 interface ProcessedResultsProps {
   data: any;
@@ -895,6 +896,14 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           </div>
         </div>
       </div>
+
+      {/* Quality Assurance Card */}
+      {data.qualityAssurance && (
+        <QualityAssuranceCard 
+          qa={data.qualityAssurance as QualityAssuranceData} 
+          showDetails={true} 
+        />
+      )}
 
       {/* Patient Information Section - Editable for PDF */}
       <div className="bg-background rounded-2xl border p-6">

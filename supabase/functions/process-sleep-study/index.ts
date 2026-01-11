@@ -58,6 +58,481 @@ const AASM_GUIDELINES = {
   SIGNIFICANT_CAI: 5 // Central Apnea Index > 5
 };
 
+// ========== QUALITY ASSURANCE SYSTEM ==========
+
+// Clinical range validation rules
+const VALIDATION_RANGES = {
+  ahiOverall: { min: 0, max: 150, label: 'AHI Overall' },
+  ahiSupine: { min: 0, max: 200, label: 'AHI Supine' },
+  ahiLateral: { min: 0, max: 200, label: 'AHI Lateral' },
+  ahiNrem: { min: 0, max: 200, label: 'AHI NREM' },
+  ahiRem: { min: 0, max: 200, label: 'AHI REM' },
+  centralApneaIndex: { min: 0, max: 100, label: 'Central Apnea Index' },
+  obstructiveApneaIndex: { min: 0, max: 150, label: 'Obstructive Apnea Index' },
+  mixedApneaIndex: { min: 0, max: 100, label: 'Mixed Apnea Index' },
+  hypopneaIndex: { min: 0, max: 150, label: 'Hypopnea Index' },
+  desaturationIndex: { min: 0, max: 200, label: 'Desaturation Index' },
+  lowestSpO2: { min: 0, max: 100, label: 'Lowest SpO2' },
+  averageSpO2: { min: 0, max: 100, label: 'Average SpO2' },
+  timeBelow90Percent: { min: 0, max: 100, label: 'Time Below 90%' },
+  timeBelow95Percent: { min: 0, max: 100, label: 'Time Below 95%' },
+  sleepEfficiency: { min: 0, max: 100, label: 'Sleep Efficiency' },
+  stage1Percent: { min: 0, max: 100, label: 'Stage 1%' },
+  stage2Percent: { min: 0, max: 100, label: 'Stage 2%' },
+  stage3Percent: { min: 0, max: 100, label: 'Stage 3%' },
+  slowWaveSleepPercent: { min: 0, max: 100, label: 'Slow Wave Sleep%' },
+  remPercent: { min: 0, max: 100, label: 'REM%' },
+  arousalIndex: { min: 0, max: 150, label: 'Arousal Index' },
+  legMovementIndex: { min: 0, max: 200, label: 'Leg Movement Index' },
+  snoringPercent: { min: 0, max: 100, label: 'Snoring%' },
+  totalSleepTime: { min: 0, max: 600, label: 'Total Sleep Time' },
+  timeInBed: { min: 0, max: 720, label: 'Time in Bed' },
+  meanHeartRateNrem: { min: 30, max: 200, label: 'Heart Rate NREM', isHeartField: true },
+  meanHeartRateRem: { min: 30, max: 200, label: 'Heart Rate REM', isHeartField: true }
+};
+
+// Critical fields that must be present
+const CRITICAL_FIELDS = ['ahiOverall', 'totalSleepTime', 'lowestSpO2', 'sleepEfficiency'];
+const IMPORTANT_FIELDS = ['ahiSupine', 'ahiLateral', 'desaturationIndex', 'stage1Percent', 'stage2Percent', 'remPercent', 'meanHeartRateNrem'];
+
+interface ValidationIssue {
+  field: string;
+  value: any;
+  message: string;
+  severity: 'error' | 'warning' | 'info';
+}
+
+interface ConfidenceScore {
+  level: 'high' | 'medium' | 'low';
+  score: number;
+  reason: string;
+}
+
+interface MissingDataReport {
+  critical: string[];
+  important: string[];
+  completenessPercent: number;
+}
+
+interface CrossValidationResult {
+  check: string;
+  expected: string;
+  actual: string;
+  status: 'passed' | 'warning' | 'error';
+  message?: string;
+}
+
+interface QualityAssuranceData {
+  overallScore: number;
+  dataValidation: {
+    passed: number;
+    failed: number;
+    issues: ValidationIssue[];
+  };
+  confidenceScores: Record<string, ConfidenceScore>;
+  missingData: MissingDataReport;
+  crossValidation: {
+    passed: number;
+    failed: number;
+    checks: CrossValidationResult[];
+  };
+}
+
+// Helper to get nested value from data object
+function getNestedValue(data: any, path: string): any {
+  const parts = path.split('.');
+  let value = data;
+  for (const part of parts) {
+    if (value === null || value === undefined) return null;
+    value = value[part];
+  }
+  return value;
+}
+
+// Data Validation Function
+function validateExtractedData(data: any, isSplitNight: boolean = false): { passed: number; failed: number; issues: ValidationIssue[] } {
+  const issues: ValidationIssue[] = [];
+  let passed = 0;
+  let failed = 0;
+
+  const validateField = (value: any, fieldKey: string, range: typeof VALIDATION_RANGES[keyof typeof VALIDATION_RANGES]) => {
+    if (value === null || value === undefined || value === '') {
+      return; // Missing values handled by missing data check
+    }
+    
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    
+    if (isNaN(numValue)) {
+      issues.push({
+        field: range.label,
+        value,
+        message: `Invalid non-numeric value`,
+        severity: 'error'
+      });
+      failed++;
+      return;
+    }
+
+    // Heart field special case: 0 is invalid
+    if ((range as any).isHeartField && numValue === 0) {
+      issues.push({
+        field: range.label,
+        value: 0,
+        message: `Heart rate cannot be 0 - extraction likely failed`,
+        severity: 'warning'
+      });
+      failed++;
+      return;
+    }
+
+    if (numValue < range.min || numValue > range.max) {
+      issues.push({
+        field: range.label,
+        value: numValue,
+        message: `Value ${numValue} is outside valid range (${range.min}-${range.max})`,
+        severity: numValue < 0 ? 'error' : 'warning'
+      });
+      failed++;
+      return;
+    }
+
+    passed++;
+  };
+
+  // Map field paths based on data structure
+  const fieldMappings: Record<string, string> = {
+    ahiOverall: 'respiratoryEvents.ahiOverall',
+    ahiSupine: 'respiratoryEvents.ahiSupine',
+    ahiLateral: 'respiratoryEvents.ahiLateral',
+    ahiNrem: 'respiratoryEvents.ahiNrem',
+    ahiRem: 'respiratoryEvents.ahiRem',
+    centralApneaIndex: 'respiratoryEvents.centralApneaIndex',
+    obstructiveApneaIndex: 'respiratoryEvents.obstructiveApneaIndex',
+    mixedApneaIndex: 'respiratoryEvents.mixedApneaIndex',
+    hypopneaIndex: 'respiratoryEvents.hypopneaIndex',
+    desaturationIndex: 'oxygenation.desaturationIndex',
+    lowestSpO2: 'oxygenation.lowestSpO2',
+    averageSpO2: 'oxygenation.averageSpO2',
+    timeBelow90Percent: 'oxygenation.timeBelow90Percent',
+    timeBelow95Percent: 'oxygenation.timeBelow95Percent',
+    sleepEfficiency: 'sleepArchitecture.sleepEfficiency',
+    stage1Percent: 'sleepArchitecture.stage1Percent',
+    stage2Percent: 'sleepArchitecture.stage2Percent',
+    stage3Percent: 'sleepArchitecture.stage3Percent',
+    slowWaveSleepPercent: 'sleepArchitecture.slowWaveSleepPercent',
+    remPercent: 'sleepArchitecture.remPercent',
+    arousalIndex: 'additionalMetrics.arousalIndex',
+    legMovementIndex: 'additionalMetrics.legMovementIndex',
+    snoringPercent: 'additionalMetrics.snoringPercent',
+    totalSleepTime: 'studyInfo.totalSleepTime',
+    timeInBed: 'studyInfo.timeInBed',
+    meanHeartRateNrem: 'cardiacData.meanHeartRateNrem',
+    meanHeartRateRem: 'cardiacData.meanHeartRateRem'
+  };
+
+  for (const [fieldKey, range] of Object.entries(VALIDATION_RANGES)) {
+    const path = fieldMappings[fieldKey];
+    if (path) {
+      const value = getNestedValue(data, path);
+      validateField(value, fieldKey, range);
+    }
+  }
+
+  return { passed, failed, issues };
+}
+
+// Confidence Scoring Function
+function calculateConfidenceScores(data: any, rawText: string): Record<string, ConfidenceScore> {
+  const scores: Record<string, ConfidenceScore> = {};
+  
+  const calculateFieldConfidence = (value: any, fieldKey: string, range: typeof VALIDATION_RANGES[keyof typeof VALIDATION_RANGES]): ConfidenceScore => {
+    if (value === null || value === undefined || value === '') {
+      return { level: 'low', score: 0, reason: 'Value not found in document' };
+    }
+    
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    
+    if (isNaN(numValue)) {
+      return { level: 'low', score: 10, reason: 'Invalid non-numeric value' };
+    }
+
+    // Check if value appears in raw text (exact match indicator)
+    const valueStr = String(numValue);
+    const exactMatch = rawText.includes(valueStr);
+    
+    // Check if value is within expected range
+    const inRange = numValue >= range.min && numValue <= range.max;
+
+    if (exactMatch && inRange) {
+      return { level: 'high', score: 95, reason: 'Exact match found in document, within clinical range' };
+    } else if (inRange) {
+      return { level: 'medium', score: 70, reason: 'Value within clinical range but no exact match verified' };
+    } else if (exactMatch) {
+      return { level: 'medium', score: 60, reason: 'Exact match found but outside expected clinical range' };
+    } else {
+      return { level: 'low', score: 30, reason: 'Value outside expected range and no match verified' };
+    }
+  };
+
+  const fieldMappings: Record<string, string> = {
+    ahiOverall: 'respiratoryEvents.ahiOverall',
+    lowestSpO2: 'oxygenation.lowestSpO2',
+    sleepEfficiency: 'sleepArchitecture.sleepEfficiency',
+    totalSleepTime: 'studyInfo.totalSleepTime',
+    desaturationIndex: 'oxygenation.desaturationIndex',
+    meanHeartRateNrem: 'cardiacData.meanHeartRateNrem'
+  };
+
+  for (const [fieldKey, path] of Object.entries(fieldMappings)) {
+    const value = getNestedValue(data, path);
+    const range = VALIDATION_RANGES[fieldKey as keyof typeof VALIDATION_RANGES];
+    if (range) {
+      scores[fieldKey] = calculateFieldConfidence(value, fieldKey, range);
+    }
+  }
+
+  return scores;
+}
+
+// Missing Data Check Function
+function checkMissingData(data: any): MissingDataReport {
+  const critical: string[] = [];
+  const important: string[] = [];
+  let totalFields = 0;
+  let foundFields = 0;
+
+  const fieldMappings: Record<string, string> = {
+    ahiOverall: 'respiratoryEvents.ahiOverall',
+    totalSleepTime: 'studyInfo.totalSleepTime',
+    lowestSpO2: 'oxygenation.lowestSpO2',
+    sleepEfficiency: 'sleepArchitecture.sleepEfficiency',
+    ahiSupine: 'respiratoryEvents.ahiSupine',
+    ahiLateral: 'respiratoryEvents.ahiLateral',
+    desaturationIndex: 'oxygenation.desaturationIndex',
+    stage1Percent: 'sleepArchitecture.stage1Percent',
+    stage2Percent: 'sleepArchitecture.stage2Percent',
+    remPercent: 'sleepArchitecture.remPercent',
+    meanHeartRateNrem: 'cardiacData.meanHeartRateNrem'
+  };
+
+  const fieldLabels: Record<string, string> = {
+    ahiOverall: 'AHI Overall',
+    totalSleepTime: 'Total Sleep Time',
+    lowestSpO2: 'Lowest SpO2',
+    sleepEfficiency: 'Sleep Efficiency',
+    ahiSupine: 'AHI Supine',
+    ahiLateral: 'AHI Lateral',
+    desaturationIndex: 'Desaturation Index',
+    stage1Percent: 'Stage 1%',
+    stage2Percent: 'Stage 2%',
+    remPercent: 'REM%',
+    meanHeartRateNrem: 'Heart Rate NREM'
+  };
+
+  // Check critical fields
+  for (const field of CRITICAL_FIELDS) {
+    totalFields++;
+    const path = fieldMappings[field];
+    const value = getNestedValue(data, path);
+    if (value === null || value === undefined || value === '') {
+      critical.push(fieldLabels[field] || field);
+    } else {
+      foundFields++;
+    }
+  }
+
+  // Check important fields
+  for (const field of IMPORTANT_FIELDS) {
+    totalFields++;
+    const path = fieldMappings[field];
+    const value = getNestedValue(data, path);
+    if (value === null || value === undefined || value === '') {
+      important.push(fieldLabels[field] || field);
+    } else {
+      foundFields++;
+    }
+  }
+
+  const completenessPercent = totalFields > 0 ? Math.round((foundFields / totalFields) * 100) : 0;
+
+  return { critical, important, completenessPercent };
+}
+
+// Cross-Validation Function
+function crossValidateData(data: any): { passed: number; failed: number; checks: CrossValidationResult[] } {
+  const checks: CrossValidationResult[] = [];
+  let passed = 0;
+  let failed = 0;
+
+  // 1. Sleep Stage Sum Check (~100%)
+  const stage1 = parseFloat(getNestedValue(data, 'sleepArchitecture.stage1Percent')) || 0;
+  const stage2 = parseFloat(getNestedValue(data, 'sleepArchitecture.stage2Percent')) || 0;
+  const stage3 = parseFloat(getNestedValue(data, 'sleepArchitecture.stage3Percent')) || 
+                 parseFloat(getNestedValue(data, 'sleepArchitecture.slowWaveSleepPercent')) || 0;
+  const rem = parseFloat(getNestedValue(data, 'sleepArchitecture.remPercent')) || 0;
+  const stageSum = stage1 + stage2 + stage3 + rem;
+
+  if (stageSum > 0) {
+    if (stageSum >= 95 && stageSum <= 105) {
+      checks.push({
+        check: 'Sleep Stage Sum',
+        expected: '95-105%',
+        actual: `${stageSum.toFixed(1)}%`,
+        status: 'passed',
+        message: 'Sleep stage percentages sum correctly'
+      });
+      passed++;
+    } else {
+      checks.push({
+        check: 'Sleep Stage Sum',
+        expected: '95-105%',
+        actual: `${stageSum.toFixed(1)}%`,
+        status: 'warning',
+        message: 'Sleep stage percentages do not sum to ~100%'
+      });
+      failed++;
+    }
+  }
+
+  // 2. Oxygen Logic Check (Lowest <= Average)
+  const lowestO2 = parseFloat(getNestedValue(data, 'oxygenation.lowestSpO2'));
+  const avgO2 = parseFloat(getNestedValue(data, 'oxygenation.averageSpO2'));
+
+  if (!isNaN(lowestO2) && !isNaN(avgO2)) {
+    if (lowestO2 <= avgO2) {
+      checks.push({
+        check: 'Oxygen Logic',
+        expected: 'Lowest ≤ Average',
+        actual: `${lowestO2}% ≤ ${avgO2}%`,
+        status: 'passed',
+        message: 'Oxygen saturation values are logically consistent'
+      });
+      passed++;
+    } else {
+      checks.push({
+        check: 'Oxygen Logic',
+        expected: 'Lowest ≤ Average',
+        actual: `${lowestO2}% > ${avgO2}%`,
+        status: 'error',
+        message: 'Lowest O2 cannot be higher than Average O2'
+      });
+      failed++;
+    }
+  }
+
+  // 3. TST vs TIB Check (TST should be <= TIB)
+  const tst = parseFloat(getNestedValue(data, 'studyInfo.totalSleepTime'));
+  const tib = parseFloat(getNestedValue(data, 'studyInfo.timeInBed'));
+
+  if (!isNaN(tst) && !isNaN(tib)) {
+    if (tst <= tib) {
+      checks.push({
+        check: 'Sleep Time Logic',
+        expected: 'TST ≤ TIB',
+        actual: `${tst} ≤ ${tib} min`,
+        status: 'passed',
+        message: 'Total sleep time is within time in bed'
+      });
+      passed++;
+    } else {
+      checks.push({
+        check: 'Sleep Time Logic',
+        expected: 'TST ≤ TIB',
+        actual: `${tst} > ${tib} min`,
+        status: 'error',
+        message: 'Total sleep time cannot exceed time in bed'
+      });
+      failed++;
+    }
+  }
+
+  // 4. AHI Positional Consistency
+  const ahiOverall = parseFloat(getNestedValue(data, 'respiratoryEvents.ahiOverall'));
+  const ahiSupine = parseFloat(getNestedValue(data, 'respiratoryEvents.ahiSupine'));
+  const ahiLateral = parseFloat(getNestedValue(data, 'respiratoryEvents.ahiLateral'));
+
+  if (!isNaN(ahiOverall) && !isNaN(ahiSupine) && !isNaN(ahiLateral)) {
+    // Neither positional AHI should dramatically exceed overall (allow 20% tolerance)
+    const maxPositional = Math.max(ahiSupine, ahiLateral);
+    if (maxPositional <= ahiOverall * 1.5) {
+      checks.push({
+        check: 'AHI Positional Consistency',
+        expected: 'Positional ≤ 1.5x Overall',
+        actual: `Max: ${maxPositional.toFixed(1)}, Overall: ${ahiOverall.toFixed(1)}`,
+        status: 'passed',
+        message: 'Positional AHI values are consistent with overall'
+      });
+      passed++;
+    } else {
+      checks.push({
+        check: 'AHI Positional Consistency',
+        expected: 'Positional ≤ 1.5x Overall',
+        actual: `Max: ${maxPositional.toFixed(1)}, Overall: ${ahiOverall.toFixed(1)}`,
+        status: 'warning',
+        message: 'Positional AHI significantly exceeds overall AHI - verify data'
+      });
+      failed++;
+    }
+  }
+
+  // 5. Sleep Efficiency Consistency
+  const sleepEff = parseFloat(getNestedValue(data, 'sleepArchitecture.sleepEfficiency'));
+
+  if (!isNaN(tst) && !isNaN(tib) && !isNaN(sleepEff)) {
+    const calculatedEff = (tst / tib) * 100;
+    const diff = Math.abs(calculatedEff - sleepEff);
+    
+    if (diff <= 5) {
+      checks.push({
+        check: 'Sleep Efficiency Calculation',
+        expected: `~${calculatedEff.toFixed(1)}%`,
+        actual: `${sleepEff}%`,
+        status: 'passed',
+        message: 'Sleep efficiency matches TST/TIB calculation'
+      });
+      passed++;
+    } else {
+      checks.push({
+        check: 'Sleep Efficiency Calculation',
+        expected: `~${calculatedEff.toFixed(1)}%`,
+        actual: `${sleepEff}%`,
+        status: 'warning',
+        message: `Sleep efficiency differs from calculated value by ${diff.toFixed(1)}%`
+      });
+      failed++;
+    }
+  }
+
+  return { passed, failed, checks };
+}
+
+// Main QA Function - Combines all checks
+function runQualityAssurance(data: any, rawText: string, isSplitNight: boolean = false): QualityAssuranceData {
+  const dataToValidate = isSplitNight ? data.offCpap : data;
+  
+  const dataValidation = validateExtractedData(dataToValidate, isSplitNight);
+  const confidenceScores = calculateConfidenceScores(dataToValidate, rawText);
+  const missingData = checkMissingData(dataToValidate);
+  const crossValidation = crossValidateData(dataToValidate);
+
+  // Calculate overall score
+  const validationScore = dataValidation.passed / (dataValidation.passed + dataValidation.failed + 1) * 30;
+  const completenessScore = missingData.completenessPercent * 0.4;
+  const crossValScore = crossValidation.passed / (crossValidation.passed + crossValidation.failed + 1) * 30;
+  
+  const overallScore = Math.round(validationScore + completenessScore + crossValScore);
+
+  return {
+    overallScore,
+    dataValidation,
+    confidenceScores,
+    missingData,
+    crossValidation
+  };
+}
+
+// ========== END QUALITY ASSURANCE SYSTEM ==========
+
 // Generate Clinical Summary with comprehensive clinical data integration
 function generateClinicalSummary(data: any, studyType: string, clinicalData: any): string {
   const summaryParts: string[] = [];
@@ -1048,6 +1523,13 @@ serve(async (req) => {
       else if (offAhi >= 15) severity = 'Moderate';
       else if (offAhi >= 5) severity = 'Mild';
       
+      // Run Quality Assurance
+      const qualityAssurance = runQualityAssurance(extractedData, rawText, true);
+      console.log("=== QA RESULTS (Split-Night) ===");
+      console.log("Overall Score:", qualityAssurance.overallScore);
+      console.log("Validation Issues:", qualityAssurance.dataValidation.issues.length);
+      console.log("Missing Critical:", qualityAssurance.missingData.critical.length);
+
       const response = {
         isSplitNight: true,
         studyType,
@@ -1067,6 +1549,7 @@ serve(async (req) => {
           positionalRatio: ahiLateral > 0 ? (ahiSupine / ahiLateral).toFixed(1) : null,
           remRatio: ahiNrem > 0 ? (ahiRem / ahiNrem).toFixed(1) : null
         },
+        qualityAssurance,
         extractionMethod: "split-night-comprehensive",
         timestamp: new Date().toISOString()
       };
@@ -1098,6 +1581,13 @@ serve(async (req) => {
     const cai = extractedData.respiratoryEvents?.centralApneaIndex || 0;
     const timeBelow90 = parseFloat(extractedData.oxygenation?.timeBelow90Percent) || 0;
     const plmIndex = extractedData.additionalMetrics?.legMovementIndex || 0;
+
+    // Run Quality Assurance
+    const qualityAssurance = runQualityAssurance(extractedData, rawText, false);
+    console.log("=== QA RESULTS ===");
+    console.log("Overall Score:", qualityAssurance.overallScore);
+    console.log("Validation Issues:", qualityAssurance.dataValidation.issues.length);
+    console.log("Missing Critical:", qualityAssurance.missingData.critical.length);
 
     // Format comprehensive response with ALL extracted data
     const response = {
@@ -1185,6 +1675,7 @@ serve(async (req) => {
         positionalRatio: ahiLateral > 0 ? (ahiSupine / ahiLateral).toFixed(1) : null,
         remRatio: ahiNrem > 0 ? (ahiRem / ahiNrem).toFixed(1) : null
       },
+      qualityAssurance,
       extractionMethod: "comprehensive-medical-grade",
       timestamp: new Date().toISOString()
     };
