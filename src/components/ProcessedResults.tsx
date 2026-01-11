@@ -234,19 +234,19 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         offCpap: {
           lightsOff: data.offCpap?.studyInfo?.lightsOff || '',
           lightsOn: data.offCpap?.studyInfo?.lightsOn || '',
-          timeInBed: data.offCpap?.studyInfo?.timeInBed || '',
-          totalSleepTime: data.offCpap?.studyInfo?.totalSleepTime || '',
-          sleepLatency: data.offCpap?.studyInfo?.sleepLatency || '',
-          remLatency: data.offCpap?.studyInfo?.remLatency || '',
-          sleepEfficiency: data.offCpap?.sleepArchitecture?.sleepEfficiency || '',
-          stage1Percent: data.offCpap?.sleepArchitecture?.stage1Percent || '',
-          stage2Percent: data.offCpap?.sleepArchitecture?.stage2Percent || '',
-          slowWaveSleepPercent: data.offCpap?.sleepArchitecture?.slowWaveSleepPercent || '',
-          remPercent: data.offCpap?.sleepArchitecture?.remPercent || '',
-          remCycles: data.offCpap?.sleepArchitecture?.remCycles || '',
-          ahiOverall: data.offCpap?.respiratoryEvents?.ahiOverall || '',
-          ahiNremRem: `${data.offCpap?.respiratoryEvents?.ahiNrem || '---'}/${data.offCpap?.respiratoryEvents?.ahiRem || '---'}`,
-          ahiSupineLateral: `${data.offCpap?.respiratoryEvents?.ahiSupine || '---'}/${data.offCpap?.respiratoryEvents?.ahiLateral || '---'}`,
+          timeInBed: data.offCpap?.studyInfo?.timeInBed ?? '',
+          totalSleepTime: data.offCpap?.studyInfo?.totalSleepTime ?? '',
+          sleepLatency: data.offCpap?.studyInfo?.sleepLatency ?? '',
+          remLatency: data.offCpap?.studyInfo?.remLatency ?? '',
+          sleepEfficiency: data.offCpap?.sleepArchitecture?.sleepEfficiency ?? '',
+          stage1Percent: data.offCpap?.sleepArchitecture?.stage1Percent ?? '',
+          stage2Percent: data.offCpap?.sleepArchitecture?.stage2Percent ?? '',
+          slowWaveSleepPercent: data.offCpap?.sleepArchitecture?.slowWaveSleepPercent ?? '',
+          remPercent: data.offCpap?.sleepArchitecture?.remPercent ?? '',
+          remCycles: data.offCpap?.sleepArchitecture?.remCycles ?? '',
+          ahiOverall: data.offCpap?.respiratoryEvents?.ahiOverall ?? '',
+          ahiNremRem: `${data.offCpap?.respiratoryEvents?.ahiNrem ?? '---'}/${data.offCpap?.respiratoryEvents?.ahiRem ?? '---'}`,
+          ahiSupineLateral: `${data.offCpap?.respiratoryEvents?.ahiSupine ?? '---'}/${data.offCpap?.respiratoryEvents?.ahiLateral ?? '---'}`,
           centralApneaIndex: data.offCpap?.respiratoryEvents?.centralApneaIndex ?? '',
           obstructiveApneaIndex: data.offCpap?.respiratoryEvents?.obstructiveApneaIndex ?? '',
           mixedApneaIndex: data.offCpap?.respiratoryEvents?.mixedApneaIndex ?? '',
@@ -256,29 +256,29 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           desaturationIndex: data.offCpap?.oxygenation?.desaturationIndex ?? '',
           timeBelow90: data.offCpap?.oxygenation?.timeBelow90Percent ?? '',
           timeBelow95: data.offCpap?.oxygenation?.timeBelow95Percent ?? '',
-          lowestO2Average: `${data.offCpap?.oxygenation?.lowestSpO2 || '---'}%/${data.offCpap?.oxygenation?.averageSpO2 || '---'}%`,
-          arousalIndex: data.offCpap?.additionalMetrics?.arousalIndex || '',
-          snoring: data.offCpap?.additionalMetrics?.snoringPercent || '',
-          legMovementIndex: data.offCpap?.additionalMetrics?.legMovementIndex || ''
+          lowestO2Average: `${data.offCpap?.oxygenation?.lowestSpO2 ?? '---'}%/${data.offCpap?.oxygenation?.averageSpO2 ?? '---'}%`,
+          arousalIndex: data.offCpap?.additionalMetrics?.arousalIndex ?? '',
+          snoring: data.offCpap?.additionalMetrics?.snoringPercent ?? '',
+          legMovementIndex: data.offCpap?.additionalMetrics?.legMovementIndex ?? ''
         },
         // Split Night Data - ON CPAP
         onCpap: {
           cpapPressure: data.clinicalData?.cpapPressure || data.onCpap?.cpapPressure || '',
           lightsOff: data.onCpap?.studyInfo?.lightsOff || '',
           lightsOn: data.onCpap?.studyInfo?.lightsOn || '',
-          timeInBed: data.onCpap?.studyInfo?.timeInBed || '',
-          totalSleepTime: data.onCpap?.studyInfo?.totalSleepTime || '',
-          sleepLatency: data.onCpap?.studyInfo?.sleepLatency || '',
-          remLatency: data.onCpap?.studyInfo?.remLatency || '',
-          sleepEfficiency: data.onCpap?.sleepArchitecture?.sleepEfficiency || '',
-          stage1Percent: data.onCpap?.sleepArchitecture?.stage1Percent || '',
-          stage2Percent: data.onCpap?.sleepArchitecture?.stage2Percent || '',
-          slowWaveSleepPercent: data.onCpap?.sleepArchitecture?.slowWaveSleepPercent || '',
-          remPercent: data.onCpap?.sleepArchitecture?.remPercent || '',
-          remCycles: data.onCpap?.sleepArchitecture?.remCycles || '',
-          ahiOverall: data.onCpap?.respiratoryEvents?.ahiOverall || '',
-          ahiNremRem: `${data.onCpap?.respiratoryEvents?.ahiNrem || '---'}/${data.onCpap?.respiratoryEvents?.ahiRem || '---'}`,
-          ahiSupineLateral: `${data.onCpap?.respiratoryEvents?.ahiSupine || '---'}/${data.onCpap?.respiratoryEvents?.ahiLateral || '---'}`,
+          timeInBed: data.onCpap?.studyInfo?.timeInBed ?? '',
+          totalSleepTime: data.onCpap?.studyInfo?.totalSleepTime ?? '',
+          sleepLatency: data.onCpap?.studyInfo?.sleepLatency ?? '',
+          remLatency: data.onCpap?.studyInfo?.remLatency ?? '',
+          sleepEfficiency: data.onCpap?.sleepArchitecture?.sleepEfficiency ?? '',
+          stage1Percent: data.onCpap?.sleepArchitecture?.stage1Percent ?? '',
+          stage2Percent: data.onCpap?.sleepArchitecture?.stage2Percent ?? '',
+          slowWaveSleepPercent: data.onCpap?.sleepArchitecture?.slowWaveSleepPercent ?? '',
+          remPercent: data.onCpap?.sleepArchitecture?.remPercent ?? '',
+          remCycles: data.onCpap?.sleepArchitecture?.remCycles ?? '',
+          ahiOverall: data.onCpap?.respiratoryEvents?.ahiOverall ?? '',
+          ahiNremRem: `${data.onCpap?.respiratoryEvents?.ahiNrem ?? '---'}/${data.onCpap?.respiratoryEvents?.ahiRem ?? '---'}`,
+          ahiSupineLateral: `${data.onCpap?.respiratoryEvents?.ahiSupine ?? '---'}/${data.onCpap?.respiratoryEvents?.ahiLateral ?? '---'}`,
           centralApneaIndex: data.onCpap?.respiratoryEvents?.centralApneaIndex ?? '',
           obstructiveApneaIndex: data.onCpap?.respiratoryEvents?.obstructiveApneaIndex ?? '',
           mixedApneaIndex: data.onCpap?.respiratoryEvents?.mixedApneaIndex ?? '',
@@ -288,10 +288,10 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
           desaturationIndex: data.onCpap?.oxygenation?.desaturationIndex ?? '',
           timeBelow90: data.onCpap?.oxygenation?.timeBelow90Percent ?? '',
           timeBelow95: data.onCpap?.oxygenation?.timeBelow95Percent ?? '',
-          lowestO2Average: `${data.onCpap?.oxygenation?.lowestSpO2 || '---'}%/${data.onCpap?.oxygenation?.averageSpO2 || '---'}%`,
-          arousalIndex: data.onCpap?.additionalMetrics?.arousalIndex || '',
-          snoring: data.onCpap?.additionalMetrics?.snoringPercent || '',
-          legMovementIndex: data.onCpap?.additionalMetrics?.legMovementIndex || ''
+          lowestO2Average: `${data.onCpap?.oxygenation?.lowestSpO2 ?? '---'}%/${data.onCpap?.oxygenation?.averageSpO2 ?? '---'}%`,
+          arousalIndex: data.onCpap?.additionalMetrics?.arousalIndex ?? '',
+          snoring: data.onCpap?.additionalMetrics?.snoringPercent ?? '',
+          legMovementIndex: data.onCpap?.additionalMetrics?.legMovementIndex ?? ''
         },
         clinicalSummary: data.clinicalSummary || '',
         recommendations: data.recommendations || []
@@ -314,33 +314,33 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
       doneBy: '',
       scoredBy: '',
       studyNote: 'Overnight sleep study was done.',
-      // Respiratory Events
-      ahiOverall: data.respiratoryEvents?.ahiOverall || '',
-      ahiSupine: data.respiratoryEvents?.ahiSupine || '',
-      ahiLateral: data.respiratoryEvents?.ahiLateral || '',
-      ahiNrem: data.respiratoryEvents?.ahiNrem || '',
-      ahiRem: data.respiratoryEvents?.ahiRem || '',
       centralApneaIndex: data.respiratoryEvents?.centralApneaIndex ?? '',
       obstructiveApneaIndex: data.respiratoryEvents?.obstructiveApneaIndex ?? '',
       mixedApneaIndex: data.respiratoryEvents?.mixedApneaIndex ?? '',
       hypopneaIndex: data.respiratoryEvents?.hypopneaIndex ?? '',
       meanHypopneaDuration: data.respiratoryEvents?.meanHypopneaDuration ?? '',
+      // Respiratory Events
+      ahiOverall: data.respiratoryEvents?.ahiOverall ?? '',
+      ahiSupine: data.respiratoryEvents?.ahiSupine ?? '',
+      ahiLateral: data.respiratoryEvents?.ahiLateral ?? '',
+      ahiNrem: data.respiratoryEvents?.ahiNrem ?? '',
+      ahiRem: data.respiratoryEvents?.ahiRem ?? '',
       // Sleep Architecture
-      sleepEfficiency: data.sleepArchitecture?.sleepEfficiency || '',
-      stage1Percent: data.sleepArchitecture?.stage1Percent || '',
-      stage2Percent: data.sleepArchitecture?.stage2Percent || '',
-      slowWaveSleepPercent: data.sleepArchitecture?.slowWaveSleepPercent || data.sleepArchitecture?.stage3Percent || '',
-      remPercent: data.sleepArchitecture?.remPercent || '',
+      sleepEfficiency: data.sleepArchitecture?.sleepEfficiency ?? '',
+      stage1Percent: data.sleepArchitecture?.stage1Percent ?? '',
+      stage2Percent: data.sleepArchitecture?.stage2Percent ?? '',
+      slowWaveSleepPercent: data.sleepArchitecture?.slowWaveSleepPercent ?? data.sleepArchitecture?.stage3Percent ?? '',
+      remPercent: data.sleepArchitecture?.remPercent ?? '',
       // Additional Metrics
-      snoringPercent: data.additionalMetrics?.snoringPercent || '',
-      legMovementIndex: data.additionalMetrics?.legMovementIndex || '',
-      arousalIndex: data.additionalMetrics?.arousalIndex || '',
+      snoringPercent: data.additionalMetrics?.snoringPercent ?? '',
+      legMovementIndex: data.additionalMetrics?.legMovementIndex ?? '',
+      arousalIndex: data.additionalMetrics?.arousalIndex ?? '',
       // Oxygenation
-      desaturationIndex: data.oxygenation?.desaturationIndex || '',
+      desaturationIndex: data.oxygenation?.desaturationIndex ?? '',
       timeBelow90: data.oxygenation?.timeBelow90Percent ?? '',
       timeBelow95: data.oxygenation?.timeBelow95Percent ?? '',
-      lowestSpO2: data.oxygenation?.lowestSpO2 || '',
-      averageSpO2: data.oxygenation?.averageSpO2 || '',
+      lowestSpO2: data.oxygenation?.lowestSpO2 ?? '',
+      averageSpO2: data.oxygenation?.averageSpO2 ?? '',
       // Cardiac
       meanHeartRateNrem: data.cardiacData?.meanHeartRateNrem || '',
       meanHeartRateRem: data.cardiacData?.meanHeartRateRem || '',
@@ -457,10 +457,14 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
     const textDark = [51, 51, 51] as const;
     
     // Helper: Safely convert values to strings for PDF
-    const safeString = (value: any): string => {
+    // Shows 0 as "0" for most metrics, but shows "---" for heart fields when 0
+    const safeString = (value: any, isHeartField: boolean = false): string => {
       if (value === null || value === undefined) return '---';
-      if (typeof value === 'number') return String(value);
       if (typeof value === 'string' && value.trim() === '') return '---';
+      // For heart fields, 0 is invalid (dead patient), show '---'
+      if (isHeartField && (value === 0 || value === '0')) return '---';
+      // For all other fields, 0 is a valid clinical value
+      if (typeof value === 'number') return String(value);
       return String(value);
     };
     
@@ -666,7 +670,7 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         ['Mixed Apnea Index', safeString(editableData.offCpap?.mixedApneaIndex), safeString(editableData.onCpap?.mixedApneaIndex)],
         ['Hypopnea Index (/hr)', safeString(editableData.offCpap?.hypopneaIndex), safeString(editableData.onCpap?.hypopneaIndex)],
         ['Hypopnea Mean Duration (sec)', safeString(editableData.offCpap?.meanHypopneaDuration), safeString(editableData.onCpap?.meanHypopneaDuration)],
-        ['Heart Rate (NREM/REM)', safeString(editableData.offCpap?.heartRateNremRem), safeString(editableData.onCpap?.heartRateNremRem)],
+        ['Heart Rate (NREM/REM)', safeString(editableData.offCpap?.heartRateNremRem, true), safeString(editableData.onCpap?.heartRateNremRem, true)],
         ['Desaturation Index (/hr)', safeString(editableData.offCpap?.desaturationIndex), safeString(editableData.onCpap?.desaturationIndex)],
         ['% Time with O2 < 90% (%)', safeString(editableData.offCpap?.timeBelow90), safeString(editableData.onCpap?.timeBelow90)],
         ['% Time with O2 < 95% (%)', safeString(editableData.offCpap?.timeBelow95), safeString(editableData.onCpap?.timeBelow95)],
@@ -717,8 +721,8 @@ export const ProcessedResults = ({ data, onNewReport }: ProcessedResultsProps) =
         ['% Time with O2 < 95%', safeString(editableData.timeBelow95)],
         ['Lowest O2 (%)', safeString(editableData.lowestSpO2)],
         ['Average O2 (%)', safeString(editableData.averageSpO2)],
-        ['Heart Rate NREM (bpm)', safeString(editableData.meanHeartRateNrem)],
-        ['Heart Rate REM (bpm)', safeString(editableData.meanHeartRateRem)],
+        ['Heart Rate NREM (bpm)', safeString(editableData.meanHeartRateNrem, true)],
+        ['Heart Rate REM (bpm)', safeString(editableData.meanHeartRateRem, true)],
         ['Arousal Index (/hr)', safeString(editableData.arousalIndex)],
         ['Snoring (%)', safeString(editableData.snoringPercent)],
         ['Leg Movement Index (/hr)', safeString(editableData.legMovementIndex)],
