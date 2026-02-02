@@ -50,20 +50,21 @@ export const EnhancedFileUpload = ({
   }, []);
   const validateFile = (file: File): string | null => {
     const maxSize = 50 * 1024 * 1024; // 50MB
-    const allowedTypes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    // .docx
-    'application/msword',
-    // .doc
-    'application/pdf',
-    // .pdf
-    'application/rtf',
-    // .rtf
-    'text/rtf' // .rtf alternative
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+      'application/pdf' // .pdf
     ];
-    const allowedExtensions = ['.docx', '.doc', '.pdf', '.rtf'];
-    const hasValidExtension = allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+    const allowedExtensions = ['.docx', '.pdf'];
+    const fileNameLower = file.name.toLowerCase();
+    const hasValidExtension = allowedExtensions.some(ext => fileNameLower.endsWith(ext));
+    
+    // Check for RTF or DOC files and provide specific guidance
+    if (fileNameLower.endsWith('.rtf') || fileNameLower.endsWith('.doc')) {
+      return 'RTF and DOC files are not supported. Please save your file as DOCX format in Microsoft Word and try again.';
+    }
+    
     if (!allowedTypes.includes(file.type) && !hasValidExtension) {
-      return 'Please upload a .pdf, .doc, .docx, or .rtf file only.';
+      return 'Please upload a .docx or .pdf file only. RTF files must be converted to DOCX format.';
     }
     if (file.size > maxSize) {
       return 'File size must be less than 50MB.';
