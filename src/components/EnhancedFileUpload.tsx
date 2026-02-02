@@ -106,28 +106,130 @@ export const EnhancedFileUpload = ({
     }
     return preservedContent.substring(0, maxLength);
   };
+  const extractRtfText = (rtfContent: string): string => {
+    // Enhanced RTF to plain text converter
+    let text = rtfContent;
+    
+    // Remove RTF header/font tables/color tables (enclosed in groups at start)
+    text = text.replace(/^\{\\rtf1[\s\S]*?(?=\\pard|\\par\s)/i, '');
+    
+    // Handle special characters first (hex codes like \'xx)
+    text = text.replace(/\\'([0-9a-fA-F]{2})/g, (match, hex) => {
+      const code = parseInt(hex, 16);
+      return String.fromCharCode(code);
+    });
+    
+    // Handle Unicode characters \uN?
+    text = text.replace(/\\u([0-9]+)\??/g, (match, code) => {
+      return String.fromCharCode(parseInt(code));
+    });
+    
+    // Handle common RTF escape sequences
+    text = text.replace(/\\par\b/g, '\n');
+    text = text.replace(/\\line\b/g, '\n');
+    text = text.replace(/\\tab\b/g, '\t');
+    text = text.replace(/\\\n/g, '\n');
+    text = text.replace(/\\~/g, ' '); // Non-breaking space
+    text = text.replace(/\\_/g, '-'); // Non-breaking hyphen
+    text = text.replace(/\\-/g, ''); // Optional hyphen
+    text = text.replace(/\\\\/g, '\\');
+    text = text.replace(/\\{/g, '{');
+    text = text.replace(/\\}/g, '}');
+    
+    // Remove font/style commands but preserve text
+    text = text.replace(/\\f\d+\s?/g, '');
+    text = text.replace(/\\fs\d+\s?/g, '');
+    text = text.replace(/\\cf\d+\s?/g, '');
+    text = text.replace(/\\cb\d+\s?/g, '');
+    text = text.replace(/\\b\d?\s?/g, '');
+    text = text.replace(/\\i\d?\s?/g, '');
+    text = text.replace(/\\ul\d?\s?/g, '');
+    text = text.replace(/\\strike\d?\s?/g, '');
+    
+    // Remove other common RTF commands
+    text = text.replace(/\\[a-z]+\d*\s?/gi, '');
+    
+    // Remove remaining control groups but try to preserve content
+    let depth = 0;
+    let result = '';
+    let inGroup = false;
+    
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (char === '{') {
+        depth++;
+        inGroup = true;
+      } else if (char === '}') {
+        depth--;
+        if (depth === 0) inGroup = false;
+      } else if (depth <= 1) {
+        // Only include text from the main body (depth 0 or 1)
+        result += char;
+      }
+    }
+    
+    // If our parsing failed to extract much, fallback to simpler approach
+    if (result.trim().length < 100 && rtfContent.length > 500) {
+      result = rtfContent
+        .replace(/\{[^{}]*\}/g, '') // Remove simple groups
+        .replace(/\\[a-z]+\d*\s?/gi, '') // Remove commands
+        .replace(/[{}]/g, ''); // Remove remaining braces
+    }
+    
+    // Clean up whitespace
+    result = result
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/[ \t]+/g, ' ')
+      .trim();
+    
+    return result;
+  };
+
   const extractFileContent = async (file: File): Promise<string> => {
     const fileExtension = file.name.toLowerCase().split('.').pop();
-    switch (fileExtension) {
-      case 'docx':
-        const arrayBuffer = await file.arrayBuffer();
-        const result = await mammoth.extractRawText({
-          arrayBuffer
-        });
-        return result.value;
-      case 'pdf':
-        // For PDF files, we'll pass the file directly and let the backend handle extraction
-        return `[PDF FILE: ${file.name}]`;
-      case 'doc':
-        // For .doc files, attempt basic extraction (limited support)
-        const text = await file.text();
-        return text;
-      case 'rtf':
-        // For RTF files, extract plain text
-        const rtfText = await file.text();
-        return rtfText.replace(/\\[a-z]+\d*\s?/gi, '').replace(/[{}]/g, '');
-      default:
-        throw new Error('Unsupported file format');
+    
+    try {
+      switch (fileExtension) {
+        case 'docx':
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({
+            arrayBuffer
+          });
+          if (!result.value || result.value.trim().length === 0) {
+            throw new Error('No text content could be extracted from DOCX file');
+          }
+          return result.value;
+        case 'pdf':
+          // For PDF files, we'll pass the file directly and let the backend handle extraction
+          return `[PDF FILE: ${file.name}]`;
+        case 'doc':
+          // For .doc files, attempt basic extraction (limited support)
+          const docText = await file.text();
+          if (!docText || docText.trim().length === 0) {
+            throw new Error('No text content could be extracted from DOC file');
+          }
+          return docText;
+        case 'rtf':
+          // For RTF files, use enhanced extraction
+          const rtfContent = await file.text();
+          const extractedText = extractRtfText(rtfContent);
+          if (!extractedText || extractedText.trim().length < 50) {
+            throw new Error('RTF file appears to be empty or could not be parsed. Please try converting to DOCX format.');
+          }
+          console.log('RTF extraction result:', {
+            originalLength: rtfContent.length,
+            extractedLength: extractedText.length,
+            preview: extractedText.substring(0, 200)
+          });
+          return extractedText;
+        default:
+          throw new Error(`Unsupported file format: .${fileExtension}`);
+      }
+    } catch (err) {
+      console.error('File extraction error:', err);
+      throw err;
     }
   };
   const processFiles = async () => {
@@ -206,10 +308,12 @@ export const EnhancedFileUpload = ({
         });
       }, 500);
     } catch (err) {
-      setError('Failed to process file. Please try again.');
+      console.error('Processing error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
       toast({
         title: "Processing Error",
-        description: "There was an error processing your file.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
