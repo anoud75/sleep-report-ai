@@ -1441,10 +1441,10 @@ serve(async (req) => {
       );
     }
     
-    // Limit payload size to 500KB to prevent abuse
-    if (rawText.length > 500000) {
+    // Limit payload size to 10MB to handle large medical documents
+    if (rawText.length > 10000000) {
       return new Response(
-        JSON.stringify({ error: 'rawText exceeds maximum allowed size (500KB)' }), 
+        JSON.stringify({ error: 'rawText exceeds maximum allowed size (10MB)' }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
