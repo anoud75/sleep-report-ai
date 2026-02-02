@@ -173,42 +173,55 @@ export const EnhancedFileUpload = ({
     const fileExtension = file.name.toLowerCase().split('.').pop();
     
     try {
-      switch (fileExtension) {
-        case 'docx':
-          const arrayBuffer = await file.arrayBuffer();
-          const result = await mammoth.extractRawText({
-            arrayBuffer
-          });
-          if (!result.value || result.value.trim().length === 0) {
-            throw new Error('No text content could be extracted from DOCX file');
-          }
-          return result.value;
-        case 'pdf':
-          // For PDF files, we'll pass the file directly and let the backend handle extraction
-          return `[PDF FILE: ${file.name}]`;
-        case 'doc':
-          // For .doc files, attempt basic extraction (limited support)
-          const docText = await file.text();
-          if (!docText || docText.trim().length === 0) {
-            throw new Error('No text content could be extracted from DOC file');
-          }
-          return docText;
-        case 'rtf':
-          // For RTF files, use enhanced extraction
-          const rtfContent = await file.text();
-          const extractedText = extractRtfText(rtfContent);
+      // For DOCX files, use mammoth
+      if (fileExtension === 'docx') {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({
+          arrayBuffer
+        });
+        if (!result.value || result.value.trim().length === 0) {
+          throw new Error('No text content could be extracted from DOCX file');
+        }
+        return result.value;
+      }
+      
+      // For PDF files, pass to backend
+      if (fileExtension === 'pdf') {
+        return `[PDF FILE: ${file.name}]`;
+      }
+      
+      // For RTF and DOC files, read content and check if it's RTF format
+      if (fileExtension === 'rtf' || fileExtension === 'doc') {
+        const textContent = await file.text();
+        
+        // Check if content starts with RTF signature (handles .doc files that are actually RTF)
+        const isRtfContent = textContent.trim().startsWith('{\\rtf');
+        
+        if (isRtfContent) {
+          console.log('Detected RTF content, applying RTF extraction...');
+          const extractedText = extractRtfText(textContent);
+          
           if (!extractedText || extractedText.trim().length < 50) {
             throw new Error('RTF file appears to be empty or could not be parsed. Please try converting to DOCX format.');
           }
+          
           console.log('RTF extraction result:', {
-            originalLength: rtfContent.length,
+            originalLength: textContent.length,
             extractedLength: extractedText.length,
-            preview: extractedText.substring(0, 200)
+            preview: extractedText.substring(0, 500)
           });
+          
           return extractedText;
-        default:
-          throw new Error(`Unsupported file format: .${fileExtension}`);
+        } else {
+          // Regular DOC file (binary format) - limited support
+          if (!textContent || textContent.trim().length === 0) {
+            throw new Error('No text content could be extracted from DOC file. Please convert to DOCX format.');
+          }
+          return textContent;
+        }
       }
+      
+      throw new Error(`Unsupported file format: .${fileExtension}`);
     } catch (err) {
       console.error('File extraction error:', err);
       throw err;
