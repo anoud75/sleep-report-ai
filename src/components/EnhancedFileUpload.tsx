@@ -52,19 +52,17 @@ export const EnhancedFileUpload = ({
     const maxSize = 50 * 1024 * 1024; // 50MB
     const allowedTypes = [
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-      'application/pdf' // .pdf
+      'application/msword', // .doc
+      'application/pdf', // .pdf
+      'application/rtf', // .rtf
+      'text/rtf' // .rtf alternative
     ];
-    const allowedExtensions = ['.docx', '.pdf'];
+    const allowedExtensions = ['.docx', '.doc', '.pdf', '.rtf'];
     const fileNameLower = file.name.toLowerCase();
     const hasValidExtension = allowedExtensions.some(ext => fileNameLower.endsWith(ext));
     
-    // Check for RTF or DOC files and provide specific guidance
-    if (fileNameLower.endsWith('.rtf') || fileNameLower.endsWith('.doc')) {
-      return 'RTF and DOC files are not supported. Please save your file as DOCX format in Microsoft Word and try again.';
-    }
-    
     if (!allowedTypes.includes(file.type) && !hasValidExtension) {
-      return 'Please upload a .docx or .pdf file only. RTF files must be converted to DOCX format.';
+      return 'Please upload a .pdf, .doc, .docx, or .rtf file only.';
     }
     if (file.size > maxSize) {
       return 'File size must be less than 50MB.';
