@@ -107,84 +107,67 @@ export const EnhancedFileUpload = ({
     return preservedContent.substring(0, maxLength);
   };
   const extractRtfText = (rtfContent: string): string => {
-    // Enhanced RTF to plain text converter
+    // More robust RTF to plain text converter for medical documents
     let text = rtfContent;
     
-    // Remove RTF header/font tables/color tables (enclosed in groups at start)
-    text = text.replace(/^\{\\rtf1[\s\S]*?(?=\\pard|\\par\s)/i, '');
+    // Step 1: Handle Unicode characters first (\uN followed by optional replacement char)
+    text = text.replace(/\\u(-?\d+)[?]?/g, (match, codeStr) => {
+      const code = parseInt(codeStr, 10);
+      // Handle negative codes (for chars > 32767)
+      const actualCode = code < 0 ? code + 65536 : code;
+      if (actualCode >= 0 && actualCode <= 0x10FFFF) {
+        return String.fromCodePoint(actualCode);
+      }
+      return '';
+    });
     
-    // Handle special characters first (hex codes like \'xx)
+    // Step 2: Handle hex-encoded characters (\'xx)
     text = text.replace(/\\'([0-9a-fA-F]{2})/g, (match, hex) => {
-      const code = parseInt(hex, 16);
-      return String.fromCharCode(code);
+      return String.fromCharCode(parseInt(hex, 16));
     });
     
-    // Handle Unicode characters \uN?
-    text = text.replace(/\\u([0-9]+)\??/g, (match, code) => {
-      return String.fromCharCode(parseInt(code));
-    });
-    
-    // Handle common RTF escape sequences
-    text = text.replace(/\\par\b/g, '\n');
+    // Step 3: Handle RTF escape sequences for whitespace
+    text = text.replace(/\\par[d]?\b/g, '\n');
     text = text.replace(/\\line\b/g, '\n');
     text = text.replace(/\\tab\b/g, '\t');
-    text = text.replace(/\\\n/g, '\n');
-    text = text.replace(/\\~/g, ' '); // Non-breaking space
-    text = text.replace(/\\_/g, '-'); // Non-breaking hyphen
-    text = text.replace(/\\-/g, ''); // Optional hyphen
+    text = text.replace(/\\cell\b/g, '\t'); // Table cells
+    text = text.replace(/\\row\b/g, '\n'); // Table rows
+    text = text.replace(/\\~/g, ' ');
+    text = text.replace(/\\_/g, '-');
+    text = text.replace(/\\-/g, '');
     text = text.replace(/\\\\/g, '\\');
     text = text.replace(/\\{/g, '{');
     text = text.replace(/\\}/g, '}');
+    text = text.replace(/\\\r?\n/g, '\n');
     
-    // Remove font/style commands but preserve text
-    text = text.replace(/\\f\d+\s?/g, '');
-    text = text.replace(/\\fs\d+\s?/g, '');
-    text = text.replace(/\\cf\d+\s?/g, '');
-    text = text.replace(/\\cb\d+\s?/g, '');
-    text = text.replace(/\\b\d?\s?/g, '');
-    text = text.replace(/\\i\d?\s?/g, '');
-    text = text.replace(/\\ul\d?\s?/g, '');
-    text = text.replace(/\\strike\d?\s?/g, '');
+    // Step 4: Remove control groups we don't need (font tables, color tables, etc.)
+    // These are typically at the start and wrapped in { }
+    text = text.replace(/\{\\fonttbl[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/gi, '');
+    text = text.replace(/\{\\colortbl[^{}]*\}/gi, '');
+    text = text.replace(/\{\\stylesheet[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/gi, '');
+    text = text.replace(/\{\\info[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/gi, '');
+    text = text.replace(/\{\\\*\\[a-z]+[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/gi, '');
     
-    // Remove other common RTF commands
-    text = text.replace(/\\[a-z]+\d*\s?/gi, '');
+    // Step 5: Remove RTF formatting commands but keep text
+    // Remove commands with optional numeric parameters
+    text = text.replace(/\\[a-z]+(-?\d+)?[ ]?/gi, '');
     
-    // Remove remaining control groups but try to preserve content
-    let depth = 0;
-    let result = '';
-    let inGroup = false;
+    // Step 6: Remove remaining braces (hierarchical structure)
+    text = text.replace(/[{}]/g, '');
     
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      if (char === '{') {
-        depth++;
-        inGroup = true;
-      } else if (char === '}') {
-        depth--;
-        if (depth === 0) inGroup = false;
-      } else if (depth <= 1) {
-        // Only include text from the main body (depth 0 or 1)
-        result += char;
-      }
-    }
-    
-    // If our parsing failed to extract much, fallback to simpler approach
-    if (result.trim().length < 100 && rtfContent.length > 500) {
-      result = rtfContent
-        .replace(/\{[^{}]*\}/g, '') // Remove simple groups
-        .replace(/\\[a-z]+\d*\s?/gi, '') // Remove commands
-        .replace(/[{}]/g, ''); // Remove remaining braces
-    }
-    
-    // Clean up whitespace
-    result = result
+    // Step 7: Clean up whitespace
+    text = text
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n')
       .replace(/\n{3,}/g, '\n\n')
-      .replace(/[ \t]+/g, ' ')
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/^\s+|\s+$/gm, '') // Trim each line
+      .split('\n')
+      .filter(line => line.trim().length > 0) // Remove empty lines
+      .join('\n')
       .trim();
     
-    return result;
+    return text;
   };
 
   const extractFileContent = async (file: File): Promise<string> => {
@@ -294,11 +277,17 @@ export const EnhancedFileUpload = ({
         })
       });
       setProgress(70);
+      
       if (!response.ok) {
-        throw new Error(`Processing failed: ${response.statusText}`);
+        const errorText = await response.text().catch(() => response.statusText);
+        console.error('Edge function error:', response.status, errorText);
+        throw new Error(`Server error (${response.status}): ${errorText || response.statusText}`);
       }
+      
       const processedData = await response.json();
+      console.log('Processing successful:', { studyType: selectedStudyType, hasData: !!processedData });
       setProgress(100);
+      
       setTimeout(() => {
         setSuccess(true);
         onFileProcessed(processedData);
@@ -309,7 +298,15 @@ export const EnhancedFileUpload = ({
       }, 500);
     } catch (err) {
       console.error('Processing error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      let errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      // Add helpful suggestions based on error type
+      if (errorMessage.includes('RTF') || errorMessage.includes('could not be parsed')) {
+        errorMessage = 'RTF file could not be processed. Please save the file as DOCX format and try again.';
+      } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      }
+      
       setError(errorMessage);
       toast({
         title: "Processing Error",
@@ -361,7 +358,18 @@ export const EnhancedFileUpload = ({
         setError(validationError);
         return;
       }
+      
+      // Warn about RTF files
+      const extension = file.name.toLowerCase().split('.').pop();
+      if (extension === 'rtf') {
+        toast({
+          title: "RTF File Detected",
+          description: "For best results, we recommend using DOCX format. If processing fails, please convert the file to DOCX.",
+          duration: 6000
+        });
+      }
     }
+    
     if (isSplitNight && fileType) {
       // Replace existing file of the same type or add new one
       const existingFiles = files.filter(f => f.type !== fileType);
