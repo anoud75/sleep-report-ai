@@ -942,7 +942,8 @@ You must extract TWO complete sets of data, one for each period.
 - Sleep Architecture: S1%, S2%, S3%, REM% (from TST% column), REM Cycles (from "REM" row → "Episodes (# of)" column - count of times patient entered REM stage)
 - AHI Overall, AHI NREM/REM, AHI Supine/Lateral
 - Central/Obstructive/Mixed Apnea Index
-- Hypopnea Index & Mean Duration
+- Hypopnea Index
+- Mean Duration for each event type (CA, OA, MA, HYP) from "Mean (seconds)" row
 - Heart Rate NREM/REM
 - Desaturation Index
 - O2 < 90%, O2 < 95%
@@ -985,7 +986,10 @@ You must extract TWO complete sets of data, one for each period.
       "obstructiveApneaIndex": "number or null",
       "mixedApneaIndex": "number or null",
       "hypopneaIndex": "number or null",
-      "meanHypopneaDuration": "number or null"
+      "caMeanDuration": "number (seconds from Mean row CA column) or null",
+      "oaMeanDuration": "number (seconds from Mean row OA column) or null",
+      "maMeanDuration": "number (seconds from Mean row MA column) or null",
+      "hypMeanDuration": "number (seconds from Mean row HYP column) or null"
     },
     "oxygenation": {
       "lowestSpO2": "number or null",
@@ -1054,6 +1058,38 @@ ${therapeuticText.substring(0, 25000)}`;
       result = result.replace(/```json\s*/g, '').replace(/```\s*/g, '');
       
       const parsed = JSON.parse(result);
+      
+      // Calculate Mean Hypopnea Duration for both OFF CPAP and ON CPAP phases
+      // Formula: Average of non-zero values from (OA + CA + MA + HYP Mean Durations)
+      const calculateMeanHypopneaDuration = (respiratoryEvents: any) => {
+        if (!respiratoryEvents) return null;
+        const durations: number[] = [];
+        const durationFields = ['oaMeanDuration', 'caMeanDuration', 'maMeanDuration', 'hypMeanDuration'];
+        
+        for (const field of durationFields) {
+          const val = respiratoryEvents[field];
+          if (typeof val === 'number' && val > 0) {
+            durations.push(val);
+          }
+        }
+        
+        if (durations.length > 0) {
+          const sum = durations.reduce((a, b) => a + b, 0);
+          return parseFloat((sum / durations.length).toFixed(1));
+        }
+        return null;
+      };
+      
+      if (parsed.offCpap?.respiratoryEvents) {
+        parsed.offCpap.respiratoryEvents.meanHypopneaDuration = calculateMeanHypopneaDuration(parsed.offCpap.respiratoryEvents);
+        console.log(`✅ OFF CPAP Mean Hypopnea Duration: ${parsed.offCpap.respiratoryEvents.meanHypopneaDuration} sec`);
+      }
+      
+      if (parsed.onCpap?.respiratoryEvents) {
+        parsed.onCpap.respiratoryEvents.meanHypopneaDuration = calculateMeanHypopneaDuration(parsed.onCpap.respiratoryEvents);
+        console.log(`✅ ON CPAP Mean Hypopnea Duration: ${parsed.onCpap.respiratoryEvents.meanHypopneaDuration} sec`);
+      }
+      
       console.log("✅ Split-Night extraction successful");
       
       return parsed;
@@ -1106,7 +1142,10 @@ REM           2         20.5      5.3    5.8    6.8 ← Extract 6.8
 - **OA Index**: Same row → "OA" column
 - **MA Index**: Same row → "MA" column
 - **HYP Index**: Same row → "HYP" column
-- **Hypopnea Mean Duration**: "Mean (seconds)" row → "HYP" column
+- **CA Mean Duration**: "Mean (seconds)" row → "CA" column
+- **OA Mean Duration**: "Mean (seconds)" row → "OA" column
+- **MA Mean Duration**: "Mean (seconds)" row → "MA" column
+- **HYP Mean Duration**: "Mean (seconds)" row → "HYP" column
 - **AHI REM**: RDI row → "REM #/h (REM)" column
 - **AHI NREM**: RDI row → "NREM #/h (NREM)" column
 - **AHI Overall**: RDI row → "TST #/h (sleep)" column
@@ -1172,7 +1211,11 @@ REM           2         20.5      5.3    5.8    6.8 ← Extract 6.8
     "obstructiveApneaIndex": "number or null",
     "mixedApneaIndex": "number or null",
     "hypopneaIndex": "number or null",
-    "meanHypopneaDuration": "number (seconds) or null"
+    "caMeanDuration": "number (seconds from Mean row CA column) or null",
+    "oaMeanDuration": "number (seconds from Mean row OA column) or null",
+    "maMeanDuration": "number (seconds from Mean row MA column) or null",
+    "hypMeanDuration": "number (seconds from Mean row HYP column) or null",
+    "meanHypopneaDuration": "CALCULATED - do not extract"
   },
   "oxygenation": {
     "lowestSpO2": "number or null (from Oximetry Minimum %)",
@@ -1294,6 +1337,28 @@ ${rawText.substring(0, 20000)}`;
       const sum95 = parsed.oxygenation.calculations.under95REM + parsed.oxygenation.calculations.under95NREM;
       parsed.oxygenation.timeBelow95Percent = parseFloat(((sum95 / tst) * 100).toFixed(2));
       console.log(`✅ Calculated O2 <95%: (${parsed.oxygenation.calculations.under95REM} + ${parsed.oxygenation.calculations.under95NREM}) / ${tst} * 100 = ${parsed.oxygenation.timeBelow95Percent}%`);
+    }
+    
+    // Calculate Mean Hypopnea Duration = Average of non-zero durations (OA + CA + MA + HYP)
+    if (parsed.respiratoryEvents) {
+      const durations: number[] = [];
+      const durationFields = ['oaMeanDuration', 'caMeanDuration', 'maMeanDuration', 'hypMeanDuration'];
+      
+      for (const field of durationFields) {
+        const val = parsed.respiratoryEvents[field];
+        if (typeof val === 'number' && val > 0) {
+          durations.push(val);
+        }
+      }
+      
+      if (durations.length > 0) {
+        const sum = durations.reduce((a, b) => a + b, 0);
+        parsed.respiratoryEvents.meanHypopneaDuration = parseFloat((sum / durations.length).toFixed(1));
+        console.log(`✅ Calculated Mean Hypopnea Duration: (${durations.join(' + ')}) / ${durations.length} = ${parsed.respiratoryEvents.meanHypopneaDuration} sec`);
+      } else {
+        parsed.respiratoryEvents.meanHypopneaDuration = null;
+        console.log(`⚠️ No non-zero duration values found for Mean Hypopnea Duration calculation`);
+      }
     }
     
     console.log("✅ Comprehensive extraction successful");
