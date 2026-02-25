@@ -575,11 +575,15 @@ function generateClinicalSummary(data: any, studyType: string, clinicalData: any
   const desatLevel = timeBelow90 > 5 ? 'significant' : 'minimal';
   
   // Check sleep stage progression
-  const hasAllStages = (data.sleepArchitecture?.remPercent || 0) > 0 && 
-                       (data.sleepArchitecture?.slowWaveSleepPercent || 0) > 0;
+  const remPercent = data.sleepArchitecture?.remPercent;
+  const swsPercent = data.sleepArchitecture?.slowWaveSleepPercent;
+  const hasAllStages = typeof remPercent === 'number' && remPercent > 0 && 
+                       typeof swsPercent === 'number' && swsPercent > 0;
   const stageProgression = hasAllStages 
     ? 'progressed into all sleep stages' 
-    : 'did not progress into slow wave sleep';
+    : (typeof swsPercent === 'number' && swsPercent === 0)
+      ? 'did not progress into slow wave sleep'
+      : 'progressed through recorded sleep stages';
   
   // Check if repeated study
   const isRepeated = clinicalData?.isRepeatedStudy === true;
@@ -640,10 +644,11 @@ function generateClinicalSummary(data: any, studyType: string, clinicalData: any
       
       mainSummary = `This split night sleep study shows evidence of "${severity} Obstructive Sleep Apnea". The patient had a total sleep time of ${totalHours} hours and ${totalMinutes} minutes (${offHours}h ${offMinutes}min OFF CPAP + ${onHours}h ${onMinutes}min ON CPAP). During the pre-PAP diagnostic period, AHI was ${ahi.toFixed(1)} events/hr associated with ${desatLevel} oxygen desaturations. At ${pressureText}, respiratory events were effectively controlled with AHI reduced to ${onCpapAhi.toFixed(1)}/hr. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
     } else if (studyType === 'Titration') {
-      mainSummary = `This ${isRepeated ? 'repeated ' : ''}therapeutic overnight sleep study was done on Conventional CPAP from start. The patient slept for a total sleep time of ${hours} hours and ${minutes} minutes. At CPAP pressure of ${clinicalData?.cpapPressure || '---'} cmH2O, respiratory events were eliminated on supine REM sleep. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
+      const residualAhi = data.respiratoryEvents?.ahiOverall || 0;
+      mainSummary = `This ${isRepeated ? 'repeated ' : ''}therapeutic overnight sleep study was done on Conventional CPAP from start. The patient slept for a total sleep time of ${hours} hours and ${minutes} minutes. At CPAP pressure of ${clinicalData?.cpapPressure || '---'} cmH2O, respiratory events were ${residualAhi < 5 ? 'effectively controlled' : 'reduced'} with a residual AHI of ${residualAhi.toFixed(1)}/hr. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
     } else {
       // Diagnostic
-      mainSummary = `This ${repeatedPrefix.toLowerCase()}overnight sleep study shows evidence of "${severity} Obstructive Sleep Apnea". The patient slept for a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi} events per hour associated with ${desatLevel} oxygen desaturations and repetitive sleep interruptions. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
+      mainSummary = `This ${repeatedPrefix.toLowerCase()}overnight sleep study shows evidence of "${severity} Obstructive Sleep Apnea". The patient slept for a total sleep time of ${hours} hours and ${minutes} minutes with an AHI of ${ahi.toFixed(1)} events per hour associated with ${desatLevel} oxygen desaturations and repetitive sleep interruptions. The patient ${stageProgression}. Otherwise, no unusual events were noted.`;
     }
     
     summaryParts.push(mainSummary);
@@ -995,8 +1000,15 @@ You must extract TWO complete sets of data, one for each period.
       "lowestSpO2": "number or null",
       "averageSpO2": "number or null",
       "desaturationIndex": "number or null",
-      "timeBelow90Percent": "number or null",
-      "timeBelow95Percent": "number or null"
+      "timeBelow90Percent": "CALCULATED - do not extract",
+      "timeBelow95Percent": "CALCULATED - do not extract",
+      "calculations": {
+        "tst": "number or null",
+        "under90REM": "number or null",
+        "under90NREM": "number or null",
+        "under95REM": "number or null",
+        "under95NREM": "number or null"
+      }
     },
     "cardiacData": {
       "meanHeartRateNrem": "number or null",
@@ -1010,12 +1022,60 @@ You must extract TWO complete sets of data, one for each period.
   },
   "onCpap": {
     "cpapPressure": "string or null (e.g., '8 cmH2O')",
-    "studyInfo": { /* same structure as offCpap */ },
-    "sleepArchitecture": { /* same structure */ },
-    "respiratoryEvents": { /* same structure */ },
-    "oxygenation": { /* same structure */ },
-    "cardiacData": { /* same structure */ },
-    "additionalMetrics": { /* same structure */ }
+    "studyInfo": {
+      "lightsOff": "string or null",
+      "lightsOn": "string or null",
+      "timeInBed": "number or null",
+      "totalSleepTime": "number or null",
+      "sleepLatency": "number or null",
+      "remLatency": "number or null"
+    },
+    "sleepArchitecture": {
+      "sleepEfficiency": "number or null",
+      "stage1Percent": "number or null",
+      "stage2Percent": "number or null",
+      "stage3Percent": "number or null",
+      "remPercent": "number or null",
+      "remCycles": "number or null"
+    },
+    "respiratoryEvents": {
+      "ahiOverall": "number or null",
+      "ahiNrem": "number or null",
+      "ahiRem": "number or null",
+      "ahiSupine": "number or null",
+      "ahiLateral": "number or null",
+      "centralApneaIndex": "number or null",
+      "obstructiveApneaIndex": "number or null",
+      "mixedApneaIndex": "number or null",
+      "hypopneaIndex": "number or null",
+      "caMeanDuration": "number (seconds from Mean row CA column) or null",
+      "oaMeanDuration": "number (seconds from Mean row OA column) or null",
+      "maMeanDuration": "number (seconds from Mean row MA column) or null",
+      "hypMeanDuration": "number (seconds from Mean row HYP column) or null"
+    },
+    "oxygenation": {
+      "lowestSpO2": "number or null",
+      "averageSpO2": "number or null",
+      "desaturationIndex": "number or null",
+      "timeBelow90Percent": "CALCULATED - do not extract",
+      "timeBelow95Percent": "CALCULATED - do not extract",
+      "calculations": {
+        "tst": "number or null",
+        "under90REM": "number or null",
+        "under90NREM": "number or null",
+        "under95REM": "number or null",
+        "under95NREM": "number or null"
+      }
+    },
+    "cardiacData": {
+      "meanHeartRateNrem": "number or null",
+      "meanHeartRateRem": "number or null"
+    },
+    "additionalMetrics": {
+      "arousalIndex": "number or null",
+      "snoringPercent": "number or null",
+      "legMovementIndex": "number or null"
+    }
   }
 }
 
@@ -1036,7 +1096,7 @@ ${therapeuticText.substring(0, 25000)}`;
         },
         body: JSON.stringify({
           model: 'google/gemini-2.5-flash',
-          max_tokens: 3000,
+          max_tokens: 4000,
           messages: [{ 
             role: 'user', 
             content: prompt
@@ -1089,6 +1149,61 @@ ${therapeuticText.substring(0, 25000)}`;
         parsed.onCpap.respiratoryEvents.meanHypopneaDuration = calculateMeanHypopneaDuration(parsed.onCpap.respiratoryEvents);
         console.log(`✅ ON CPAP Mean Hypopnea Duration: ${parsed.onCpap.respiratoryEvents.meanHypopneaDuration} sec`);
       }
+      // Split-Night post-extraction calculations for BOTH phases
+      const calculatePhasePostExtraction = (phase: any, label: string) => {
+        if (!phase) return;
+        
+        // SWS = S3 + S4
+        if (typeof phase.sleepArchitecture?.stage3Percent === 'number') {
+          const s4 = phase.sleepArchitecture?.stage4Percent || 0;
+          phase.sleepArchitecture.slowWaveSleepPercent = parseFloat((phase.sleepArchitecture.stage3Percent + s4).toFixed(1));
+          console.log(`✅ ${label} SWS: ${phase.sleepArchitecture.stage3Percent} + ${s4} = ${phase.sleepArchitecture.slowWaveSleepPercent}%`);
+        }
+        
+        // AHI Lateral with single-side fallback
+        if (!phase.respiratoryEvents?.ahiLateral) {
+          const ahiLeft = phase.respiratoryEvents?.ahiLeft;
+          const ahiRight = phase.respiratoryEvents?.ahiRight;
+          const leftIsNum = typeof ahiLeft === 'number';
+          const rightIsNum = typeof ahiRight === 'number';
+
+          if (leftIsNum && rightIsNum) {
+            phase.respiratoryEvents.ahiLateral = parseFloat(((ahiLeft + ahiRight) / 2).toFixed(2));
+            console.log(`✅ ${label} AHI Lateral: (${ahiLeft} + ${ahiRight}) / 2 = ${phase.respiratoryEvents.ahiLateral}`);
+          } else if (leftIsNum) {
+            phase.respiratoryEvents.ahiLateral = ahiLeft;
+            console.log(`✅ ${label} AHI Lateral (left only): ${ahiLeft}`);
+          } else if (rightIsNum) {
+            phase.respiratoryEvents.ahiLateral = ahiRight;
+            console.log(`✅ ${label} AHI Lateral (right only): ${ahiRight}`);
+          }
+        }
+        
+        // O2 <90% calculation
+        if (typeof phase.oxygenation?.calculations?.under90REM === 'number' && 
+            typeof phase.oxygenation?.calculations?.under90NREM === 'number' && 
+            typeof phase.oxygenation?.calculations?.tst === 'number' &&
+            phase.oxygenation.calculations.tst > 0) {
+          const tst = phase.oxygenation.calculations.tst;
+          const sum90 = phase.oxygenation.calculations.under90REM + phase.oxygenation.calculations.under90NREM;
+          phase.oxygenation.timeBelow90Percent = parseFloat(((sum90 / tst) * 100).toFixed(2));
+          console.log(`✅ ${label} O2 <90%: ${phase.oxygenation.timeBelow90Percent}%`);
+        }
+        
+        // O2 <95% calculation
+        if (typeof phase.oxygenation?.calculations?.under95REM === 'number' && 
+            typeof phase.oxygenation?.calculations?.under95NREM === 'number' && 
+            typeof phase.oxygenation?.calculations?.tst === 'number' &&
+            phase.oxygenation.calculations.tst > 0) {
+          const tst = phase.oxygenation.calculations.tst;
+          const sum95 = phase.oxygenation.calculations.under95REM + phase.oxygenation.calculations.under95NREM;
+          phase.oxygenation.timeBelow95Percent = parseFloat(((sum95 / tst) * 100).toFixed(2));
+          console.log(`✅ ${label} O2 <95%: ${phase.oxygenation.timeBelow95Percent}%`);
+        }
+      };
+      
+      calculatePhasePostExtraction(parsed.offCpap, 'OFF CPAP');
+      calculatePhasePostExtraction(parsed.onCpap, 'ON CPAP');
       
       console.log("✅ Split-Night extraction successful");
       
@@ -1155,8 +1270,8 @@ REM           2         20.5      5.3    5.8    6.8 ← Extract 6.8
 - **NREM Mean HR**: Same row → "NREM" column
 
 ### PAGE 6: Oxygenation & Arousal
-- **Oxygen <90%**: Oximetry Distribution "<90" row → Extract REM & NREM (minutes), Calculate: ((REM + NREM) * 100) / TST
-- **Oxygen <95%**: "<95" row → Extract REM & NREM (minutes), Calculate: ((REM + NREM) * 100) / TST
+- **Oxygen <90%**: Oximetry Distribution "<90" row → Extract REM minutes and NREM minutes separately (do NOT calculate the percentage yourself)
+- **Oxygen <95%**: "<95" row → Extract REM minutes and NREM minutes separately (do NOT calculate the percentage yourself)
 - **Lowest SpO2**: Oximetry Summary → "Minimum (%)" or "Lowest" value
 - **Average SpO2**: "Average (%)" row → Main value
 - **Desaturation Index**: "Desat Index (#/hour)" row → TOTAL column (rightmost number ONLY)
@@ -1221,8 +1336,8 @@ REM           2         20.5      5.3    5.8    6.8 ← Extract 6.8
     "lowestSpO2": "number or null (from Oximetry Minimum %)",
     "averageSpO2": "number or null",
     "desaturationIndex": "number or null",
-    "timeBelow90Percent": "number (percentage) or null",
-    "timeBelow95Percent": "number (percentage) or null",
+    "timeBelow90Percent": "CALCULATED - do not extract",
+    "timeBelow95Percent": "CALCULATED - do not extract",
     "calculations": {
       "tst": "number or null",
       "under90REM": "number or null",
@@ -1243,7 +1358,6 @@ REM           2         20.5      5.3    5.8    6.8 ← Extract 6.8
     "leftPositionIndex": "number or null",
     "rightPositionIndex": "number or null",
     "supinePositionIndex": "number or null",
-    "ahiLateral": "number or null"
   }
 }
 
@@ -1254,7 +1368,7 @@ REM           2         20.5      5.3    5.8    6.8 ← Extract 6.8
 - Perform calculations as specified
 
 ### 📄 DOCUMENT TEXT:
-${rawText.substring(0, 20000)}`;
+${rawText.substring(0, 50000)}`;
 
   try {
     console.log("=== Sending to Lovable AI (Comprehensive Extraction) ===");
@@ -1268,7 +1382,7 @@ ${rawText.substring(0, 20000)}`;
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        max_tokens: 2000,
+        max_tokens: 4000,
         messages: [{ 
           role: 'user', 
           content: prompt
@@ -1303,36 +1417,46 @@ ${rawText.substring(0, 20000)}`;
     console.log("=== Parsed Comprehensive Result ===", JSON.stringify(parsed, null, 2));
     
     // Calculate Slow Wave Sleep (SWS) = S3 + S4
-    if (parsed.sleepArchitecture?.stage3Percent !== null) {
+    if (typeof parsed.sleepArchitecture?.stage3Percent === 'number') {
       const s4 = parsed.sleepArchitecture?.stage4Percent || 0;
       parsed.sleepArchitecture.slowWaveSleepPercent = parseFloat((parsed.sleepArchitecture.stage3Percent + s4).toFixed(1));
       console.log(`✅ Calculated SWS: ${parsed.sleepArchitecture.stage3Percent} + ${s4} = ${parsed.sleepArchitecture.slowWaveSleepPercent}%`);
     }
     
-    // Calculate AHI Lateral = (AHI Left + AHI Right) / 2
-    if (!parsed.respiratoryEvents?.ahiLateral && 
-        typeof parsed.respiratoryEvents?.ahiLeft === 'number' && 
-        typeof parsed.respiratoryEvents?.ahiRight === 'number') {
-      parsed.respiratoryEvents.ahiLateral = parseFloat(((parsed.respiratoryEvents.ahiLeft + parsed.respiratoryEvents.ahiRight) / 2).toFixed(2));
-      console.log(`✅ Calculated AHI Lateral: (${parsed.respiratoryEvents.ahiLeft} + ${parsed.respiratoryEvents.ahiRight}) / 2 = ${parsed.respiratoryEvents.ahiLateral}`);
+    // Calculate AHI Lateral = (AHI Left + AHI Right) / 2, with single-side fallback
+    if (!parsed.respiratoryEvents?.ahiLateral) {
+      const ahiLeft = parsed.respiratoryEvents?.ahiLeft;
+      const ahiRight = parsed.respiratoryEvents?.ahiRight;
+      const leftIsNum = typeof ahiLeft === 'number';
+      const rightIsNum = typeof ahiRight === 'number';
+
+      if (leftIsNum && rightIsNum) {
+        parsed.respiratoryEvents.ahiLateral = parseFloat(((ahiLeft + ahiRight) / 2).toFixed(2));
+        console.log(`✅ Calculated AHI Lateral: (${ahiLeft} + ${ahiRight}) / 2 = ${parsed.respiratoryEvents.ahiLateral}`);
+      } else if (leftIsNum) {
+        parsed.respiratoryEvents.ahiLateral = ahiLeft;
+        console.log(`✅ AHI Lateral (left only): ${ahiLeft}`);
+      } else if (rightIsNum) {
+        parsed.respiratoryEvents.ahiLateral = ahiRight;
+        console.log(`✅ AHI Lateral (right only): ${ahiRight}`);
+      }
     }
     
-    // FIX: JavaScript Zero Bug - Check for number type instead of truthy value
-    // Calculate O2 percentages if AI provided raw values
-    if (parsed.oxygenation?.timeBelow90Percent === null && 
-        typeof parsed.oxygenation?.calculations?.under90REM === 'number' && 
+    // ALWAYS calculate O2 percentages from raw values (overrides any AI-calculated value)
+    if (typeof parsed.oxygenation?.calculations?.under90REM === 'number' && 
         typeof parsed.oxygenation?.calculations?.under90NREM === 'number' && 
-        parsed.oxygenation?.calculations?.tst) {
+        typeof parsed.oxygenation?.calculations?.tst === 'number' &&
+        parsed.oxygenation.calculations.tst > 0) {
       const tst = parsed.oxygenation.calculations.tst;
       const sum90 = parsed.oxygenation.calculations.under90REM + parsed.oxygenation.calculations.under90NREM;
       parsed.oxygenation.timeBelow90Percent = parseFloat(((sum90 / tst) * 100).toFixed(2));
       console.log(`✅ Calculated O2 <90%: (${parsed.oxygenation.calculations.under90REM} + ${parsed.oxygenation.calculations.under90NREM}) / ${tst} * 100 = ${parsed.oxygenation.timeBelow90Percent}%`);
     }
     
-    if (parsed.oxygenation?.timeBelow95Percent === null && 
-        typeof parsed.oxygenation?.calculations?.under95REM === 'number' && 
+    if (typeof parsed.oxygenation?.calculations?.under95REM === 'number' && 
         typeof parsed.oxygenation?.calculations?.under95NREM === 'number' && 
-        parsed.oxygenation?.calculations?.tst) {
+        typeof parsed.oxygenation?.calculations?.tst === 'number' &&
+        parsed.oxygenation.calculations.tst > 0) {
       const tst = parsed.oxygenation.calculations.tst;
       const sum95 = parsed.oxygenation.calculations.under95REM + parsed.oxygenation.calculations.under95NREM;
       parsed.oxygenation.timeBelow95Percent = parseFloat(((sum95 / tst) * 100).toFixed(2));
@@ -1431,8 +1555,7 @@ ${rawText.substring(0, 20000)}`;
         legMovementIndex: null,
         leftPositionIndex: null,
         rightPositionIndex: null,
-        supinePositionIndex: null,
-        ahiLateral: null
+        supinePositionIndex: null
       }
     };
   }
@@ -1721,8 +1844,7 @@ serve(async (req) => {
         legMovementIndex: null,
         leftPositionIndex: null,
         rightPositionIndex: null,
-        supinePositionIndex: null,
-        ahiLateral: null
+        supinePositionIndex: null
       },
       clinicalSummary,
       recommendations,
