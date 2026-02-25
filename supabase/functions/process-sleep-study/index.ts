@@ -1000,8 +1000,8 @@ You must extract TWO complete sets of data, one for each period.
       "lowestSpO2": "number or null",
       "averageSpO2": "number or null",
       "desaturationIndex": "number or null",
-      "timeBelow90Percent": "CALCULATED - do not extract",
-      "timeBelow95Percent": "CALCULATED - do not extract",
+      "timeBelow90Percent": "number or null",
+      "timeBelow95Percent": "number or null",
       "calculations": {
         "tst": "number or null",
         "under90REM": "number or null",
@@ -1057,8 +1057,8 @@ You must extract TWO complete sets of data, one for each period.
       "lowestSpO2": "number or null",
       "averageSpO2": "number or null",
       "desaturationIndex": "number or null",
-      "timeBelow90Percent": "CALCULATED - do not extract",
-      "timeBelow95Percent": "CALCULATED - do not extract",
+      "timeBelow90Percent": "number or null",
+      "timeBelow95Percent": "number or null",
       "calculations": {
         "tst": "number or null",
         "under90REM": "number or null",
@@ -1179,26 +1179,30 @@ ${therapeuticText.substring(0, 25000)}`;
           }
         }
         
-        // O2 <90% calculation
-        if (typeof phase.oxygenation?.calculations?.under90REM === 'number' && 
-            typeof phase.oxygenation?.calculations?.under90NREM === 'number' && 
-            typeof phase.oxygenation?.calculations?.tst === 'number' &&
-            phase.oxygenation.calculations.tst > 0) {
-          const tst = phase.oxygenation.calculations.tst;
-          const sum90 = phase.oxygenation.calculations.under90REM + phase.oxygenation.calculations.under90NREM;
-          phase.oxygenation.timeBelow90Percent = parseFloat(((sum90 / tst) * 100).toFixed(2));
-          console.log(`✅ ${label} O2 <90%: ${phase.oxygenation.timeBelow90Percent}%`);
+        // O2 <90% fallback - only if AI didn't extract it
+        if (phase.oxygenation?.timeBelow90Percent === null || phase.oxygenation?.timeBelow90Percent === undefined) {
+          if (typeof phase.oxygenation?.calculations?.under90REM === 'number' && 
+              typeof phase.oxygenation?.calculations?.under90NREM === 'number' && 
+              typeof phase.oxygenation?.calculations?.tst === 'number' &&
+              phase.oxygenation.calculations.tst > 0) {
+            const tst = phase.oxygenation.calculations.tst;
+            const sum90 = phase.oxygenation.calculations.under90REM + phase.oxygenation.calculations.under90NREM;
+            phase.oxygenation.timeBelow90Percent = parseFloat(((sum90 / tst) * 100).toFixed(2));
+            console.log(`✅ ${label} O2 <90% (fallback): ${phase.oxygenation.timeBelow90Percent}%`);
+          }
         }
         
-        // O2 <95% calculation
-        if (typeof phase.oxygenation?.calculations?.under95REM === 'number' && 
-            typeof phase.oxygenation?.calculations?.under95NREM === 'number' && 
-            typeof phase.oxygenation?.calculations?.tst === 'number' &&
-            phase.oxygenation.calculations.tst > 0) {
-          const tst = phase.oxygenation.calculations.tst;
-          const sum95 = phase.oxygenation.calculations.under95REM + phase.oxygenation.calculations.under95NREM;
-          phase.oxygenation.timeBelow95Percent = parseFloat(((sum95 / tst) * 100).toFixed(2));
-          console.log(`✅ ${label} O2 <95%: ${phase.oxygenation.timeBelow95Percent}%`);
+        // O2 <95% fallback - only if AI didn't extract it
+        if (phase.oxygenation?.timeBelow95Percent === null || phase.oxygenation?.timeBelow95Percent === undefined) {
+          if (typeof phase.oxygenation?.calculations?.under95REM === 'number' && 
+              typeof phase.oxygenation?.calculations?.under95NREM === 'number' && 
+              typeof phase.oxygenation?.calculations?.tst === 'number' &&
+              phase.oxygenation.calculations.tst > 0) {
+            const tst = phase.oxygenation.calculations.tst;
+            const sum95 = phase.oxygenation.calculations.under95REM + phase.oxygenation.calculations.under95NREM;
+            phase.oxygenation.timeBelow95Percent = parseFloat(((sum95 / tst) * 100).toFixed(2));
+            console.log(`✅ ${label} O2 <95% (fallback): ${phase.oxygenation.timeBelow95Percent}%`);
+          }
         }
       };
       
@@ -1270,8 +1274,8 @@ REM           2         20.5      5.3    5.8    6.8 ← Extract 6.8
 - **NREM Mean HR**: Same row → "NREM" column
 
 ### PAGE 6: Oxygenation & Arousal
-- **Oxygen <90%**: Oximetry Distribution "<90" row → Extract REM minutes and NREM minutes separately (do NOT calculate the percentage yourself)
-- **Oxygen <95%**: "<95" row → Extract REM minutes and NREM minutes separately (do NOT calculate the percentage yourself)
+- **Oxygen <90%**: Oximetry Distribution "<90" row → percentage of total sleep time with SpO2 below 90%
+- **Oxygen <95%**: Oximetry Distribution "<95" row → percentage of total sleep time with SpO2 below 95%
 - **Lowest SpO2**: Oximetry Summary → "Minimum (%)" or "Lowest" value
 - **Average SpO2**: "Average (%)" row → Main value
 - **Desaturation Index**: "Desat Index (#/hour)" row → TOTAL column (rightmost number ONLY)
@@ -1336,8 +1340,8 @@ REM           2         20.5      5.3    5.8    6.8 ← Extract 6.8
     "lowestSpO2": "number or null (from Oximetry Minimum %)",
     "averageSpO2": "number or null",
     "desaturationIndex": "number or null",
-    "timeBelow90Percent": "CALCULATED - do not extract",
-    "timeBelow95Percent": "CALCULATED - do not extract",
+    "timeBelow90Percent": "number or null",
+    "timeBelow95Percent": "number or null",
     "calculations": {
       "tst": "number or null",
       "under90REM": "number or null",
@@ -1442,25 +1446,30 @@ ${rawText.substring(0, 50000)}`;
       }
     }
     
-    // ALWAYS calculate O2 percentages from raw values (overrides any AI-calculated value)
-    if (typeof parsed.oxygenation?.calculations?.under90REM === 'number' && 
-        typeof parsed.oxygenation?.calculations?.under90NREM === 'number' && 
-        typeof parsed.oxygenation?.calculations?.tst === 'number' &&
-        parsed.oxygenation.calculations.tst > 0) {
-      const tst = parsed.oxygenation.calculations.tst;
-      const sum90 = parsed.oxygenation.calculations.under90REM + parsed.oxygenation.calculations.under90NREM;
-      parsed.oxygenation.timeBelow90Percent = parseFloat(((sum90 / tst) * 100).toFixed(2));
-      console.log(`✅ Calculated O2 <90%: (${parsed.oxygenation.calculations.under90REM} + ${parsed.oxygenation.calculations.under90NREM}) / ${tst} * 100 = ${parsed.oxygenation.timeBelow90Percent}%`);
+    // O2 <90% fallback - only if AI didn't extract it
+    if (parsed.oxygenation?.timeBelow90Percent === null || parsed.oxygenation?.timeBelow90Percent === undefined) {
+      if (typeof parsed.oxygenation?.calculations?.under90REM === 'number' && 
+          typeof parsed.oxygenation?.calculations?.under90NREM === 'number' && 
+          typeof parsed.oxygenation?.calculations?.tst === 'number' &&
+          parsed.oxygenation.calculations.tst > 0) {
+        const tst = parsed.oxygenation.calculations.tst;
+        const sum90 = parsed.oxygenation.calculations.under90REM + parsed.oxygenation.calculations.under90NREM;
+        parsed.oxygenation.timeBelow90Percent = parseFloat(((sum90 / tst) * 100).toFixed(2));
+        console.log(`✅ O2 <90% (fallback): (${parsed.oxygenation.calculations.under90REM} + ${parsed.oxygenation.calculations.under90NREM}) / ${tst} * 100 = ${parsed.oxygenation.timeBelow90Percent}%`);
+      }
     }
     
-    if (typeof parsed.oxygenation?.calculations?.under95REM === 'number' && 
-        typeof parsed.oxygenation?.calculations?.under95NREM === 'number' && 
-        typeof parsed.oxygenation?.calculations?.tst === 'number' &&
-        parsed.oxygenation.calculations.tst > 0) {
-      const tst = parsed.oxygenation.calculations.tst;
-      const sum95 = parsed.oxygenation.calculations.under95REM + parsed.oxygenation.calculations.under95NREM;
-      parsed.oxygenation.timeBelow95Percent = parseFloat(((sum95 / tst) * 100).toFixed(2));
-      console.log(`✅ Calculated O2 <95%: (${parsed.oxygenation.calculations.under95REM} + ${parsed.oxygenation.calculations.under95NREM}) / ${tst} * 100 = ${parsed.oxygenation.timeBelow95Percent}%`);
+    // O2 <95% fallback - only if AI didn't extract it
+    if (parsed.oxygenation?.timeBelow95Percent === null || parsed.oxygenation?.timeBelow95Percent === undefined) {
+      if (typeof parsed.oxygenation?.calculations?.under95REM === 'number' && 
+          typeof parsed.oxygenation?.calculations?.under95NREM === 'number' && 
+          typeof parsed.oxygenation?.calculations?.tst === 'number' &&
+          parsed.oxygenation.calculations.tst > 0) {
+        const tst = parsed.oxygenation.calculations.tst;
+        const sum95 = parsed.oxygenation.calculations.under95REM + parsed.oxygenation.calculations.under95NREM;
+        parsed.oxygenation.timeBelow95Percent = parseFloat(((sum95 / tst) * 100).toFixed(2));
+        console.log(`✅ O2 <95% (fallback): (${parsed.oxygenation.calculations.under95REM} + ${parsed.oxygenation.calculations.under95NREM}) / ${tst} * 100 = ${parsed.oxygenation.timeBelow95Percent}%`);
+      }
     }
     
     // Calculate Mean Hypopnea Duration = Average of non-zero durations (OA + CA + MA + HYP)
