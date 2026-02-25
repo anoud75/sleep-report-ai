@@ -1761,9 +1761,23 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Edge function error:', error);
+    
+    // Map internal errors to generic client-safe messages
+    let userMessage = 'An error occurred processing your request. Please try again.';
+    
+    if (error instanceof Error) {
+      if (error.message.includes('API_KEY') || error.message.includes('not configured')) {
+        userMessage = 'Service configuration error. Please contact support.';
+      } else if (error.message.includes('rawText') || error.message.includes('studyType')) {
+        userMessage = 'Invalid file data. Please check your upload and try again.';
+      } else if (error.message.includes('too large') || error.message.includes('size')) {
+        userMessage = 'File is too large. Please upload a smaller file.';
+      }
+    }
+    
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: userMessage,
         extractedData: null 
       }),
       { 
