@@ -86,7 +86,9 @@ ${colorConfig
     const color =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
+    const sanitizedKey = key.replace(/[^a-zA-Z0-9-_]/g, '')
+    const isValidColor = color && /^(#[0-9a-fA-F]{3,8}|rgba?\([\d\s,./%]+\)|hsla?\([\d\s,./%]+\)|[a-zA-Z]+)$/.test(color.trim())
+    return isValidColor ? `  --color-${sanitizedKey}: ${color};` : null
   })
   .join("\n")}
 }
