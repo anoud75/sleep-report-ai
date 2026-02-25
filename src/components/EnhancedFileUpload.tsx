@@ -316,7 +316,9 @@ export const EnhancedFileUpload = ({
       if (errorMessage.includes('RTF') || errorMessage.includes('could not be parsed')) {
         errorMessage = 'RTF file could not be processed. Please save the file as DOCX format and try again.';
       } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
-        errorMessage = 'Network error. Please check your internet connection and try again.';
+        errorMessage = 'Network error: Your firewall may be blocking access to the processing server. '
+          + 'Please ask IT to whitelist "rotdapktuwxwvylhnfry.functions.supabase.co" on port 443. '
+          + 'If the issue persists, check your internet connection.';
       }
       
       setError(errorMessage);

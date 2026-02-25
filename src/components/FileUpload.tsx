@@ -100,10 +100,17 @@ export const FileUpload = ({ onFileProcessed, selectedStudyType, onFileUploaded 
       }, 500);
 
     } catch (err) {
-      setError('Failed to process file. Please try again.');
+      const errMsg = err instanceof Error ? err.message : '';
+      const isNetworkError = errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError');
+      const errorMessage = isNetworkError
+        ? 'Network error: Your firewall may be blocking access to the processing server. '
+          + 'Please ask IT to whitelist "rotdapktuwxwvylhnfry.functions.supabase.co" on port 443. '
+          + 'If the issue persists, check your internet connection.'
+        : 'Failed to process file. Please try again.';
+      setError(errorMessage);
       toast({
         title: "Processing Error",
-        description: "There was an error processing your file.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
